@@ -1,0 +1,13 @@
+{
+  "$schema": "https://raw.githubusercontent.com/mfussenegger/dapconfig-schema/master/dapconfig-schema.json",
+  "version": "0.2.0",
+  "configurations": [
+    {
+      "name": "debug-win32-d3d11",
+      "type": "codelldb",
+      "request": "launch",
+      "program": "${workspaceFolder}/build/debug/main.exe",
+      "cwd": "${workspaceFolder}"
+    }
+  ]
+}

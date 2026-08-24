@@ -1,0 +1,19 @@
+{
+  "version": "2.0.0",
+  "tasks": [
+    {
+      "label": "build-debug-win32-d3d11",
+      "command": "build_win32.bat",
+      "presentation": {
+        "focus": false
+      }
+    },
+    {
+      "label": "build-run-debug-win32-d3d11",
+      "command": "build_win32.bat && build\\debug\\main.exe",
+      "presentation": {
+        "focus": true
+      }
+    }
+  ]
+}
