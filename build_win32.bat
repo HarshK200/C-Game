@@ -9,7 +9,7 @@ set "RESET=%ESC%[0m"
 
 
 if not exist ".\build\debug" mkdir ".\build\debug"
-clang++ main.cpp -o build\debug\main.exe -g -Xlinker /subsystem:windows -luser32
+clang++ src\win32_main.cpp -o build\debug\win32_main.exe -g -Xlinker /subsystem:windows -luser32
 
 
 if errorlevel 1 (

@@ -6,7 +6,7 @@
       "name": "debug-win32-d3d11",
       "type": "codelldb",
       "request": "launch",
-      "program": "${workspaceFolder}/build/debug/main.exe",
+      "program": "${workspaceFolder}/build/debug/win32_main.exe",
       "cwd": "${workspaceFolder}"
     }
   ]

@@ -1,11 +1,14 @@
 #include <Windows.h>
+#include <stdio.h>
 
 int CALLBACK WinMain(HINSTANCE hInstance,
                      HINSTANCE hPrevInstance,
                      LPSTR lpCmdLine,
                      int nShowCmd)
 {
-    MessageBox(NULL, "Enter world", "Game message box", MB_OK | MB_ICONINFORMATION);
+    // OutputDebugStringA("Hello cpp");
+    printf("Hello win32");
+    fflush(stdout);
 
     return 0;
 }
