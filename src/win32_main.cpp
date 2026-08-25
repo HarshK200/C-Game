@@ -5,7 +5,7 @@ int CALLBACK WinMain(HINSTANCE hInstance,
                      LPSTR lpCmdLine,
                      int nShowCmd)
 {
-     OutputDebugStringA("Hello cpp");
+    OutputDebugStringA("Hello cpp");
 
     return 0;
 }
