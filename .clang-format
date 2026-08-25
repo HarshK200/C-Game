@@ -3,7 +3,12 @@ BasedOnStyle: LLVM
 IndentWidth: 4
 ContinuationIndentWidth: 4
 
+ColumnLimit: 70
+AlwaysBreakAfterReturnType: AllDefinitions
 BreakBeforeBraces: Allman
 BinPackParameters: false
 
 PointerAlignment: Left
+
+IndentCaseLabels: true
+IndentCaseBlocks: false

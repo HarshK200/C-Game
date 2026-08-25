@@ -8,7 +8,7 @@ set "PASTEL_GREEN=%ESC%[38;2;120;200;140m"
 set "RESET=%ESC%[0m"
 
 
-:: *SLOW set up MSVC environment (cl, link, etc.) if not already set up
+:: *SLOW set up MSVC environment (cl, link, etc.) if not already set up NOTE: x64 is to specify we want the 64bits compiler
 :: if not defined DevEnvDir (
 ::    call "C:\Program Files\Microsoft Visual Studio\18\Insiders\VC\Auxiliary\Build\vcvarsall.bat" x64
 :: )
