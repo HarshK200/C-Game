@@ -8,11 +8,18 @@ set "PASTEL_GREEN=%ESC%[38;2;120;200;140m"
 set "RESET=%ESC%[0m"
 
 
+:: Set up MSVC environment (cl, link, etc.) if not already set up
+if not defined DevEnvDir (
+    call "C:\Program Files\Microsoft Visual Studio\18\Insiders\VC\Auxiliary\Build\vcvarsall.bat" x64
+)
 
 if not exist ".\build\debug" mkdir ".\build\debug"
 
+:: compile with cl i.e. msvc compiler so its fully compatible with visual studio debugger
+cl src\win32_main.cpp /Zi /Fo:build\debug\ /Fe:build\debug\win32_d3d11_main.exe /link /SUBSYSTEM:WINDOWS user32.lib
+
 :: Clang complier build command
-clang++ src\win32_main.cpp -o build\debug\win32_d3d11_main.exe -g -Xlinker /subsystem:windows -luser32
+:: clang++ src\win32_main.cpp -o build\debug\win32_d3d11_main.exe -g -Xlinker /subsystem:windows -luser32
 
 
 if errorlevel 1 (

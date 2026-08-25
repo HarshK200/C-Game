@@ -5,3 +5,5 @@ ContinuationIndentWidth: 4
 
 BreakBeforeBraces: Allman
 BinPackParameters: false
+
+PointerAlignment: Left
