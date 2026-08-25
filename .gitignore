@@ -2,3 +2,4 @@ build/**
 .vs/**
 !.vs/launch.vs.json
 !.vs/tasks.vs.json
+vc140.pdb
