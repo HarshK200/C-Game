@@ -5,7 +5,8 @@
     {
       "type": "default",
       "project": "build\\debug\\win32_d3d11_main.exe",
-      "name": "win32_d3d11_main.exe"
+      "name": "win32_d3d11_main.exe",
+      "projectTarget": ""
     }
   ]
 }

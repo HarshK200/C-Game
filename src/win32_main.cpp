@@ -1,4 +1,5 @@
-#include "main.h"
+#include "game.cpp"
+#include "win32_renderer_d3d11.cpp"
 #include <Windows.h>
 
 LRESULT CALLBACK MainWindowCallback(HWND Window,
@@ -99,15 +100,18 @@ int CALLBACK WinMain(HINSTANCE Instance,
         DispatchMessage(&Message);
 
         // ======= Game Updates =======
+        GameUpdate();
 
         // ======= Renderer Updates =======
+        RendererUpdate();
     }
 
     return 0;
 }
 
-
-// Prints a debug message to the windows console using OutputDebugString
-void PlatformPrintDebug(const char* message) {
+// Prints a debug message to the windows console using
+// OutputDebugString
+void PlatformPrintDebug(const char* message)
+{
     OutputDebugString(message);
 }
