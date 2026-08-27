@@ -1,10 +1,10 @@
+#include "main.h"
 #include <Windows.h>
 
-LRESULT CALLBACK
-MainWindowCallback(HWND Window,
-                   UINT Message,
-                   WPARAM WParam,
-                   LPARAM LParam)
+LRESULT CALLBACK MainWindowCallback(HWND Window,
+                                    UINT Message,
+                                    WPARAM WParam,
+                                    LPARAM LParam)
 {
 
     LRESULT result = 0;
@@ -16,19 +16,21 @@ MainWindowCallback(HWND Window,
             OutputDebugString("WM_CREATE\n");
             break;
         }
-        case WM_CLOSE:
-        {
-            OutputDebugString("WM_CLOSE\n");
-            break;
-        }
         case WM_ACTIVATEAPP:
         {
             OutputDebugString("WM_ACTIVATEAPP\n");
             break;
         }
+        case WM_CLOSE:
+        {
+            OutputDebugString("WM_CLOSE\n");
+            DestroyWindow(Window);
+            break;
+        }
         case WM_DESTROY:
         {
             OutputDebugString("WM_DESTROY\n");
+            PostQuitMessage(0);
             break;
         }
         default:
@@ -41,43 +43,43 @@ MainWindowCallback(HWND Window,
     return result;
 }
 
-int CALLBACK
-WinMain(HINSTANCE Instance,
-        HINSTANCE PrevInstance,
-        LPSTR CmdLine,
-        int ShowCmd)
+int CALLBACK WinMain(HINSTANCE Instance,
+                     HINSTANCE PrevInstance,
+                     LPSTR CmdLine,
+                     int ShowCmd)
 {
-    // Create a class for our window
-    WNDCLASS WindowClass = {};
 
+    // ====================== Opening a window ======================
+    WNDCLASS WindowClass = {};
     WindowClass.style = CS_OWNDC;
     WindowClass.lpfnWndProc = MainWindowCallback;
     WindowClass.hInstance = Instance;
     // WindowClass.hIcon = ;
     // WindowClass.hCursor = ;
     WindowClass.lpszClassName = "Cpp_Game";
-
     if (RegisterClass(&WindowClass) == 0)
     {
         OutputDebugString("\n[ERROR] Registering window failed\n");
         return -1;
     }
-
-    // TODO check if width height value is correct
     HWND WindowHandle = CreateWindowEx(
         NULL, WindowClass.lpszClassName, "Isakied Game",
         WS_OVERLAPPEDWINDOW | WS_VISIBLE, CW_USEDEFAULT,
-        CW_USEDEFAULT, CW_USEDEFAULT, CW_USEDEFAULT, 0, 0, Instance,
-        0);
-
+        CW_USEDEFAULT, 800, 600, 0, 0, Instance, 0);
     if (WindowHandle == NULL)
     {
         OutputDebugString("\n[ERROR] Unable to create window\n");
         return -1;
     }
 
+    // =================== Init ====================
+    GameInit();
+    RendererInit();
+
+    // ======= Update loop =======
     while (true)
     {
+        // ======= Handle input =======
         MSG Message;
         BOOL result = GetMessage(&Message, NULL, 0, 0);
 
@@ -92,10 +94,20 @@ WinMain(HINSTANCE Instance,
             return -1;
         }
 
-        // TODO understand wtf this thing does??
+        // TODO(harsh): understand wtf this thing does??
         TranslateMessage(&Message);
         DispatchMessage(&Message);
+
+        // ======= Game Updates =======
+
+        // ======= Renderer Updates =======
     }
 
     return 0;
+}
+
+
+// Prints a debug message to the windows console using OutputDebugString
+void PlatformPrintDebug(const char* message) {
+    OutputDebugString(message);
 }

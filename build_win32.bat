@@ -19,6 +19,7 @@ if not exist ".\build\debug" mkdir ".\build\debug"
 :: cl src\win32_main.cpp /Zi /Fo:build\debug\ /Fe:build\debug\win32_d3d11_main.exe /link /SUBSYSTEM:WINDOWS user32.lib
 
 :: Clang complier build command
+:: NOTE(harsh): (this is called a unity build, because we only have one translation unit i.e. win32_main.cpp)
 clang++ src\win32_main.cpp -o build\debug\win32_d3d11_main.exe -g -Xlinker /subsystem:windows -luser32
 
 
