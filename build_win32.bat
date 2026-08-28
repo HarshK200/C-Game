@@ -20,7 +20,7 @@ if not exist ".\build\debug" mkdir ".\build\debug"
 
 :: Clang complier build command
 :: NOTE(harsh): (this is called a unity build, because we only have one translation unit i.e. win32_main.cpp)
-clang++ src\win32_main.cpp -o build\debug\win32_d3d11_main.exe -g -Xlinker /subsystem:windows -luser32
+clang++ src\win32\win32_platform.cpp -o build\debug\win32_d3d11_main.exe -g -Xlinker /subsystem:windows -luser32 -ld3d11
 
 
 if errorlevel 1 (
