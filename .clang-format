@@ -3,6 +3,8 @@ BasedOnStyle: LLVM
 IndentWidth: 4
 ContinuationIndentWidth: 4
 
+SortIncludes: Never
+
 ColumnLimit: 70
 # AlwaysBreakAfterReturnType: AllDefinitions
 BreakBeforeBraces: Allman

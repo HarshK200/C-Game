@@ -1,7 +1,8 @@
 #include <Windows.h>
 
-#include "../game.cpp"
+#include "../main.h"
 #include "win32_platform.h"
+#include "../game.cpp"
 #include "win32_platform_renderer_d3d11.cpp"
 
 // ===== Internal declerations =====
@@ -12,7 +13,7 @@ LRESULT CALLBACK WindowInputCallback(HWND Window,
 HWND OpenWindow(HINSTANCE Instance);
 void SetupGraphicsApiAndSwapchain(HWND WindowHandle);
 
-// ===== Windows application Entery Point =====
+// ===== Windows Application Entry Point =====
 int CALLBACK WinMain(HINSTANCE Instance,
                      HINSTANCE PrevInstance,
                      LPSTR CmdLine,
@@ -96,8 +97,8 @@ LRESULT CALLBACK WindowInputCallback(HWND Window,
     return result;
 }
 
-// Creates a window using win32 api and returns the HWND i.e. WindowHandle
-// If failed returns NULL
+// Creates a window using win32 api and returns the HWND i.e.
+// WindowHandle If failed returns NULL
 HWND OpenWindow(HINSTANCE Instance)
 {
     WNDCLASS WindowClass = {};
