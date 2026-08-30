@@ -74,8 +74,18 @@ int CALLBACK WinMain(HINSTANCE Instance,
     }
 
     // Create Game and Renderer instance
-    App.Game = GameNew();
-    App.Renderer = RendererNew(App.Window);
+    App.Game = GameCreateAndInit();
+    if (App.Game == nullptr)
+    {
+        PlatformPrintDebug("[ERROR] Game init failed. Exiting program...");
+        return -1;
+    }
+    App.Renderer = RendererCreateAndInit(App.Window);
+    if (App.Renderer == nullptr)
+    {
+        PlatformPrintDebug("[ERROR] Renderer init failed. Exiting program...");
+        return -1;
+    }
 
     // Main Update Loop
     while (App.ShouldClose == false)

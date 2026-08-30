@@ -16,4 +16,4 @@ PointerAlignment: Left
 IndentCaseLabels: true
 IndentCaseBlocks: false
 
-MaxEmptyLinesToKeep: 3
+MaxEmptyLinesToKeep: 2

@@ -13,10 +13,10 @@ void PlatformPrintDebug(const char* message);
 
 // NOTE(harsh): game layer services
 struct Game;
-Game* GameNew();
+Game* GameCreateAndInit();
 void GameUpdate(Game* g); // TODO(harsh): pass delta_time, InputManager
 
 
 // NOTE(harsh): rendering layer services
-Renderer* RendererNew(PlatformWindow* Window);
+Renderer* RendererCreateAndInit(PlatformWindow* Window);
 void RendererUpdate(Renderer* r, Game* g); // pass game_state
