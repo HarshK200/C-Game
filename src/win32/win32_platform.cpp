@@ -73,7 +73,7 @@ int CALLBACK WinMain(HINSTANCE Instance,
         return -1;
     }
 
-    // Init Game and Renderer
+    // Create Game and Renderer instance
     App.Game = GameNew();
     App.Renderer = RendererNew(App.Window);
 

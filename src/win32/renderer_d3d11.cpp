@@ -47,9 +47,9 @@ namespace
     }
 } // namespace
 
-// creates a new renderer with the "new" keyword and returns the pointer
-// the allocated memory is not tracker you must track and free the renderer
-// yourself
+// creates a new renderer with the "new" keyword and returns the pointer to it
+// NOTE(harsh): the allocated memory is not tracker you must track and free the renderer
+// yourself or use an arena allocater, i gotta imlement that allocater first > o <
 Renderer* RendererNew(PlatformWindow* Window)
 {
     // TODO(harsh): allocate using a arena allocator
@@ -61,4 +61,5 @@ Renderer* RendererNew(PlatformWindow* Window)
     return r;
 }
 
-void RendererUpdate(Renderer* r, Game* g) {}
+void RendererUpdate(Renderer* r, Game* g) {
+}
