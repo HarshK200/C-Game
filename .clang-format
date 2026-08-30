@@ -2,10 +2,11 @@ BasedOnStyle: LLVM
 
 IndentWidth: 4
 ContinuationIndentWidth: 4
+NamespaceIndentation: All
 
 SortIncludes: Never
 
-ColumnLimit: 70
+ColumnLimit: 80
 # AlwaysBreakAfterReturnType: AllDefinitions
 BreakBeforeBraces: Allman
 BinPackParameters: false
@@ -14,3 +15,5 @@ PointerAlignment: Left
 
 IndentCaseLabels: true
 IndentCaseBlocks: false
+
+MaxEmptyLinesToKeep: 3

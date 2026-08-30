@@ -1,15 +1,22 @@
 #pragma once
 
-// TODO(harsh): services that the platform layer provides
+// TODO(harsh): input layer services implement a input manager which keep's
+// track of an action map
+struct InputManager;
+
+// NOTE(harsh): platform layer services (types defined in platform.h)
 struct PlatformApp;
 struct PlatformWindow;
-
+struct Renderer;
 void PlatformPrintDebug(const char* message);
 
-// NOTE(harsh): services that game provides to the platform layer
-void GameInit();
-void GameUpdate(); // pass delta_time, input
 
-// NOTE(harsh): services that renderer provides
-void RendererInit(PlatformWindow* Window);
-void RendererUpdate(); // pass game_state
+// NOTE(harsh): game layer services
+struct Game;
+Game* GameNew();
+void GameUpdate(Game* g); // TODO(harsh): pass delta_time, InputManager
+
+
+// NOTE(harsh): rendering layer services
+Renderer* RendererNew(PlatformWindow* Window);
+void RendererUpdate(Renderer* r, Game* g); // pass game_state
