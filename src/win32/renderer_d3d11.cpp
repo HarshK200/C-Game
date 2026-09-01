@@ -43,21 +43,24 @@ namespace
 
         // NOTE(harsh): Only support D3D11 features
         D3D_FEATURE_LEVEL FeatureLevels = D3D_FEATURE_LEVEL_11_0;
-        // TODO(harsh): check if _Debug is defined and only then set DEBUG flag
-        // for create device
-        UINT flags = D3D11_CREATE_DEVICE_DEBUG;
+        UINT CreateDeviceFlags = 0;
+
+#if defined(ISEKAIED_DEBUG)
+        CreateDeviceFlags |= D3D11_CREATE_DEVICE_DEBUG;
+#endif
 
         // NOTE(harsh): create the device and swapchain
         // don't need the returned feature level hence passing NULL
         HRESULT result = D3D11CreateDeviceAndSwapChain(
-            NULL, D3D_DRIVER_TYPE_HARDWARE, NULL, flags, &FeatureLevels, 1,
-            D3D11_SDK_VERSION, &sd, &r->SwapChain, &r->Device, NULL,
-            &r->DeviceContext);
-        if (result != S_OK)
+            NULL, D3D_DRIVER_TYPE_HARDWARE, NULL, CreateDeviceFlags,
+            &FeatureLevels, 1, D3D11_SDK_VERSION, &sd, &r->SwapChain,
+            &r->Device, NULL, &r->DeviceContext);
+        if (FAILED(result))
         {
             return -1;
         }
-        assert(result == S_OK && r->SwapChain && r->Device && r->DeviceContext);
+        assert(SUCCEEDED(result) && r->SwapChain && r->Device &&
+               r->DeviceContext);
 
         return 0;
     }
