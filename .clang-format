@@ -6,7 +6,7 @@ NamespaceIndentation: All
 
 SortIncludes: Never
 
-ColumnLimit: 80
+ColumnLimit: 0
 # AlwaysBreakAfterReturnType: AllDefinitions
 BreakBeforeBraces: Allman
 BinPackParameters: false

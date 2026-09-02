@@ -1,5 +1,6 @@
 ### TODO:
-[ ] Draw a triangle
+[ ] Figure out window internal render resolution upscaling i.e. 640x360 (16:9) -> 1280x720(16:9)
+    - NOTE: snap the scale factor to the nearest integer (×2, ×3, ×4...) when computing draw_w/draw_h in that blit pass
 [ ] Create a Arena Allocation system
     - watch handmade hero and also check randy's resources
 [ ] Create Input Manager and Action map
@@ -11,3 +12,4 @@
 [x] Figure out how to get D3D11_CREATE_DEVICE_DEBUG feature working
     - Just had to install Direct3D 12 debug layers (system component) from here:
     `https://learn.microsoft.com/en-us/windows/ai/directml/dml-debug-layer#installing-the-directml-and-direct3d-12-debug-layers-system-component`
+[x] Draw a triangle

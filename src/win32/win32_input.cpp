@@ -4,10 +4,7 @@
 #include "win32_platform.h"
 
 // Handles the window messages and input
-LRESULT CALLBACK WindowInputCallback(HWND Window,
-                                     UINT Message,
-                                     WPARAM WParam,
-                                     LPARAM LParam)
+LRESULT CALLBACK WindowInputCallback(HWND Window, UINT Message, WPARAM WParam, LPARAM LParam)
 {
 
     LRESULT result = 0;
@@ -52,14 +49,14 @@ void PollMessage(PlatformApp* App)
     BOOL result = GetMessage(&Message, NULL, 0, 0);
     if (result == 0)
     {
-        PlatformPrintDebug("[INFO] Close key pressed exiting\n");
+        PlatformPrintDebug("[INFO] Close key pressed exiting");
         App->ShouldClose = true;
         App->ExitCode = 0;
         return;
     }
     if (result < 0)
     {
-        PlatformPrintDebug("\n[ERROR] occured exiting\n");
+        PlatformPrintDebug("[ERROR] occured exiting");
         App->ShouldClose = true;
         App->ExitCode = -1;
         return;

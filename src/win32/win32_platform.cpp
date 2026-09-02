@@ -1,3 +1,4 @@
+#include <stdio.h>
 #define WIN32_LEAN_AND_MEAN
 #include <Windows.h>
 
@@ -8,13 +9,27 @@
 #include "renderer_d3d11.cpp"
 
 
-
-// ================== Platform Provided Services ==================
+// ================== Platform Provided Services Definitions ==================
 
 // Prints a debug message to the windows console using
 // OutputDebugString
-void PlatformPrintDebug(const char* message) { OutputDebugString(message); }
+void PlatformPrintDebug(const char* message)
+{
+    OutputDebugString(message);
+    OutputDebugString("\n");
+}
 
+template <typename... T> void PlatformPrintDebugF(const char* fstring, const T&... args)
+{
+    OutputDebugString(fstring);
+    OutputDebugString("\n");
+
+    // TODO(harsh): Implement the PrintDebugF functionallity
+    // write the arena allocator so it can be used here for allocation
+    //
+    // sprintf(OutStr, fstring, args...);
+    // OutputDebugString(OutStr);
+}
 
 
 // ====================== Internal functions ======================
@@ -24,40 +39,35 @@ namespace
     // WindowHandle If failed returns NULL
     HWND OpenWindow(HINSTANCE Instance)
     {
-        WNDCLASS WindowClass = {};
-        WindowClass.style = CS_OWNDC;
-        WindowClass.lpfnWndProc = WindowInputCallback;
-        WindowClass.hInstance = Instance;
+        WNDCLASS window_class = {};
+        window_class.style = CS_OWNDC;
+        window_class.lpfnWndProc = WindowInputCallback;
+        window_class.hInstance = Instance;
         // TODO(harsh): add custom icon and cursor for the game
         // WindowClass.hIcon = ;
         // WindowClass.hCursor = ;
-        WindowClass.lpszClassName = "isekaied_class";
-        if (RegisterClass(&WindowClass) == 0)
+        window_class.lpszClassName = "isekaied_class";
+        if (RegisterClass(&window_class) == 0)
         {
             OutputDebugString("\n[ERROR] Registering window failed\n");
             return NULL;
         }
-        HWND WindowHandle =
-            CreateWindowEx(NULL, WindowClass.lpszClassName, "isekaied",
-                           WS_OVERLAPPEDWINDOW | WS_VISIBLE, CW_USEDEFAULT,
-                           CW_USEDEFAULT, 800, 600, 0, 0, Instance, 0);
-        if (WindowHandle == NULL)
+        HWND window_handle =
+            CreateWindowEx(NULL, window_class.lpszClassName, "isekaied", WS_OVERLAPPEDWINDOW | WS_VISIBLE,
+                           CW_USEDEFAULT, CW_USEDEFAULT, 640, 360, 0, 0, Instance, 0);
+        if (window_handle == NULL)
         {
             OutputDebugString("\n[ERROR] Unable to create window\n");
             return NULL;
         }
 
-        return WindowHandle;
+        return window_handle;
     }
 } // namespace
 
 
-
 // ================== Windows Application Entry Point ==================
-int CALLBACK WinMain(HINSTANCE Instance,
-                     HINSTANCE PrevInstance,
-                     LPSTR CmdLine,
-                     int ShowCmd)
+int CALLBACK WinMain(HINSTANCE Instance, HINSTANCE PrevInstance, LPSTR CmdLine, int ShowCmd)
 {
     // create app
     PlatformApp App = {};
@@ -95,7 +105,7 @@ int CALLBACK WinMain(HINSTANCE Instance,
         PollMessage(&App);
 
         GameUpdate(App.Game);
-        RendererUpdate(App.Renderer, App.Game);
+        RendererUpdate(App.Renderer, App.Game, App.Window);
     }
 
     return App.ExitCode;

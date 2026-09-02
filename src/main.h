@@ -9,6 +9,7 @@ struct PlatformApp;
 struct PlatformWindow;
 struct Renderer;
 void PlatformPrintDebug(const char* message);
+template <typename... T> void PlatformPrintDebugF(const char* fstring, const T&... args);
 
 
 // NOTE(harsh): game layer services
@@ -18,5 +19,5 @@ void GameUpdate(Game* g); // TODO(harsh): pass delta_time, InputManager
 
 
 // NOTE(harsh): rendering layer services
-Renderer* RendererCreateAndInit(PlatformWindow* Window);
-void RendererUpdate(Renderer* r, Game* g); // pass game_state
+Renderer* RendererCreateAndInit(PlatformWindow* window);
+void RendererUpdate(Renderer* r, Game* g, PlatformWindow* window); // pass game_state

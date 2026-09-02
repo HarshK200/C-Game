@@ -8,7 +8,6 @@
 #include "../main.h"
 
 
-
 struct PlatformWindow
 {
     HWND Handle;
