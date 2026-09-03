@@ -1,15 +1,19 @@
 #pragma once
-
-// TODO(harsh): input layer services implement a input manager which keep's
-// track of an action map
-struct InputManager;
+#include <Windows.h>
 
 // NOTE(harsh): platform layer services (types defined in platform.h)
 struct PlatformApp;
 struct PlatformWindow;
 struct Renderer;
 void PlatformPrintDebug(const char* message);
-template <typename... T> void PlatformPrintDebugF(const char* fstring, const T&... args);
+template <typename... T>
+void PlatformPrintDebugF(const char* fstring, const T&... args);
+
+// TODO(harsh): input layer services implement a input manager which keep's
+// track of an action map
+struct InputManager;
+LRESULT CALLBACK InputWindowCallback(HWND window, UINT wessage, WPARAM wparam, LPARAM lparam);
+void InputPollMessage(PlatformApp* app);
 
 
 // NOTE(harsh): game layer services

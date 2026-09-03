@@ -1,4 +1,3 @@
-#include <stdio.h>
 #define WIN32_LEAN_AND_MEAN
 #include <Windows.h>
 
@@ -9,7 +8,7 @@
 #include "renderer_d3d11.cpp"
 
 
-// ================== Platform Provided Services Definitions ==================
+// ================== Platform Layer Services Definitions ==================
 
 // Prints a debug message to the windows console using
 // OutputDebugString
@@ -19,7 +18,8 @@ void PlatformPrintDebug(const char* message)
     OutputDebugString("\n");
 }
 
-template <typename... T> void PlatformPrintDebugF(const char* fstring, const T&... args)
+template <typename... T>
+void PlatformPrintDebugF(const char* fstring, const T&... args)
 {
     OutputDebugString(fstring);
     OutputDebugString("\n");
@@ -41,7 +41,7 @@ namespace
     {
         WNDCLASS window_class = {};
         window_class.style = CS_OWNDC;
-        window_class.lpfnWndProc = WindowInputCallback;
+        window_class.lpfnWndProc = InputWindowCallback;
         window_class.hInstance = Instance;
         // TODO(harsh): add custom icon and cursor for the game
         // WindowClass.hIcon = ;
@@ -60,7 +60,6 @@ namespace
             OutputDebugString("\n[ERROR] Unable to create window\n");
             return NULL;
         }
-
         return window_handle;
     }
 } // namespace
@@ -102,7 +101,7 @@ int CALLBACK WinMain(HINSTANCE Instance, HINSTANCE PrevInstance, LPSTR CmdLine, 
     {
         // TODO(Create an input manager and pass that in instead of the whole
         // App instance):
-        PollMessage(&App);
+        InputPollMessage(&App);
 
         GameUpdate(App.Game);
         RendererUpdate(App.Renderer, App.Game, App.Window);

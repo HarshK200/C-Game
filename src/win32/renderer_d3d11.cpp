@@ -28,8 +28,8 @@ struct Renderer
     ID3D11Device* Device;
     ID3D11DeviceContext* DeviceContext;
     ID3D11RenderTargetView* RenderTargetView;
-    Shader* Shaders[2];
 
+    Shader* Shaders[1];
     Mesh* TriangleMesh;
 };
 
@@ -46,24 +46,24 @@ namespace
     {
 
         DXGI_SWAP_CHAIN_DESC sd = {};
-        sd.BufferCount = 1;
+        sd.BufferCount = 2;
         sd.BufferDesc.Width = 640;
         sd.BufferDesc.Height = 360;
-        // TODO(harsh): what's SRGB? also the article said the non SRGB one has
-        // gamma correction issues?
+        // NOTE(harsh): sRGB is non-linear color encoding as human eye's are more sensitive to darker tones than
+        // brighter tones, when creating textures make sure to specifiy DXGI_FORMAT_R8G8B8A8_UNORM_SRGB in texture
+        // description the GPU will handle the sRGB -> Linear conversion
         sd.BufferDesc.Format = DXGI_FORMAT_R8G8B8A8_UNORM;
-        sd.BufferDesc.RefreshRate.Numerator = 60;
+        sd.BufferDesc.RefreshRate.Numerator = 0;
         sd.BufferDesc.RefreshRate.Denominator = 1;
         sd.BufferUsage = DXGI_USAGE_RENDER_TARGET_OUTPUT;
         sd.OutputWindow = window_handle;
         sd.SampleDesc.Count = 1;
         sd.SampleDesc.Quality = 0;
         sd.Windowed = true;
+        sd.SwapEffect = DXGI_SWAP_EFFECT_FLIP_DISCARD;
+        D3D_FEATURE_LEVEL FeatureLevels = D3D_FEATURE_LEVEL_11_0; // Only support D3D11 features
 
-        // Only support D3D11 features
-        D3D_FEATURE_LEVEL FeatureLevels = D3D_FEATURE_LEVEL_11_0;
         UINT CreateDeviceFlags = 0;
-
         // clang-format off
         #if defined(ISEKAIED_DEBUG)
         // for D3D11 debug output
@@ -92,7 +92,7 @@ namespace
         assert(SUCCEEDED(result) && r->SwapChain && r->Device && r->DeviceContext);
 
 
-        // create the frame_buffer to render to
+        // Get the pointer to the back-buffer
         ID3D11Texture2D* frame_buffer;
         result = r->SwapChain->GetBuffer(0, __uuidof(ID3D11Texture2D), (void**)&frame_buffer);
         if (FAILED(result))
@@ -112,7 +112,6 @@ namespace
         }
         frame_buffer->Release();
 
-
         return S_OK;
     }
 
@@ -130,7 +129,7 @@ namespace
         #endif
         // clang-format on
 
-        // NOTE(harsh): Default vertex and pixel shader
+        // NOTE(harsh): Default vertex and pixel shader and input layout setup
         {
             Shader* default_shader = new Shader{};
             ID3DBlob *vs_blob = NULL, *ps_blob = NULL, *error_blob = NULL;
@@ -170,6 +169,11 @@ namespace
                 &vertex_shader);
             if (FAILED(result))
             {
+                // release vs_blob if CreateVertexShader failed
+                if (vs_blob)
+                {
+                    vs_blob->Release();
+                }
                 return result;
             }
             default_shader->VertexShader = vertex_shader;
@@ -194,7 +198,7 @@ namespace
                     PlatformPrintDebug((char*)error_blob->GetBufferPointer());
                     error_blob->Release();
                 }
-                // release vs_blob if complie failed
+                // release ps_blob if complie failed
                 if (ps_blob)
                 {
                     ps_blob->Release();
@@ -209,6 +213,11 @@ namespace
                 &pixel_shader);
             if (FAILED(result))
             {
+                // release ps_blob if CreatePixelShader failed
+                if (ps_blob)
+                {
+                    ps_blob->Release();
+                }
                 return result;
             }
             default_shader->PixelShader = pixel_shader;
@@ -230,6 +239,9 @@ namespace
             }
             default_shader->InputLayout = input_layout;
             r->Shaders[0] = default_shader;
+
+            vs_blob->Release();
+            ps_blob->Release();
         }
 
         return S_OK;
@@ -237,6 +249,8 @@ namespace
 
 } // namespace
 
+
+// ================== Renderer Layer Services Definitions ==================
 
 /*
   Creates and initializes a D3D11 renderer (allocates renderer).
@@ -255,7 +269,7 @@ Renderer* RendererCreateAndInit(PlatformWindow* window)
     if (FAILED(result))
     {
         PlatformPrintDebugF(
-            "[ERROR] D3D11 and Swapchain Setup/Creation FAILED! with error code: %d", result);
+            "[ERROR] SetupD3D11 FAILED! with error code: %d", result);
         return nullptr;
     }
 
@@ -274,7 +288,6 @@ Renderer* RendererCreateAndInit(PlatformWindow* window)
     {
 
         // ============================= UPLOADING VERTEX BUFFER =============================
-
         r->TriangleMesh = new Mesh{};
 
         // clang-format off
@@ -301,6 +314,7 @@ Renderer* RendererCreateAndInit(PlatformWindow* window)
                 return nullptr;
             }
         }
+        // ===================================================================================
     }
 
 
@@ -309,15 +323,14 @@ Renderer* RendererCreateAndInit(PlatformWindow* window)
 
 void RendererUpdate(Renderer* r, Game* g, PlatformWindow* window)
 {
-    // ============================= FINALLY DRAWING =============================
+    // bind the render target NOTE(harsh): MUST do this before any draw or clear calls
+    r->DeviceContext->OMSetRenderTargets(1, &r->RenderTargetView, NULL);
 
-    // clear the screen with pastel green
-    // float background_color[4] = {218.0f, 242.0f, 212.0f, 1.0f};
-    // r->DeviceContext->ClearRenderTargetView(r->RenderTargetView, background_color);
+    // clear the screen with cornflower blue
     float background_colour[4] = {0x64 / 255.0f, 0x95 / 255.0f, 0xED / 255.0f, 1.0f};
     r->DeviceContext->ClearRenderTargetView(r->RenderTargetView, background_colour);
 
-    // set the valid drawing area
+    // set the viewport for drawing
     RECT win_rect;
     GetClientRect(window->Handle, &win_rect);
     D3D11_VIEWPORT viewport = {
@@ -328,12 +341,15 @@ void RendererUpdate(Renderer* r, Game* g, PlatformWindow* window)
         0.0f,
         1.0f,
     };
-
     r->DeviceContext->RSSetViewports(1, &viewport);
-    r->DeviceContext->OMSetRenderTargets(1, &r->RenderTargetView, NULL);
+
+    // set primitive topology to draw triangles
     r->DeviceContext->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
+
+    // set the shader input layout
     r->DeviceContext->IASetInputLayout(r->Shaders[0]->InputLayout);
 
+    // set the vertex buffer, the vertex shader and the pixel shader to use for the draw call
     // TODO(harsh): move all this data to the Shader struct
     UINT vertex_stride = 3 * sizeof(float);
     UINT vertex_offset = 0;
@@ -342,9 +358,9 @@ void RendererUpdate(Renderer* r, Game* g, PlatformWindow* window)
     r->DeviceContext->VSSetShader(r->Shaders[0]->VertexShader, NULL, 0);
     r->DeviceContext->PSSetShader(r->Shaders[0]->PixelShader, NULL, 0);
 
-    // FINAL DRAW LINE!!!
+    // =============== FINAL DRAW CALL!!! ===============
     r->DeviceContext->Draw(vertex_count, vertex_offset);
 
-    // also we kinda need to swap the buffer as well now so it acutally shows up on the screen/viewport
+    // VERY IMPORTANT Finally Swap the back-buffer to show it
     r->SwapChain->Present(1, 0);
 }

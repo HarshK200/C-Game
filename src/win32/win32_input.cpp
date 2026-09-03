@@ -3,13 +3,15 @@
 #include "../main.h"
 #include "win32_platform.h"
 
+// ================== Input Layer Services Definitions ==================
+
 // Handles the window messages and input
-LRESULT CALLBACK WindowInputCallback(HWND Window, UINT Message, WPARAM WParam, LPARAM LParam)
+LRESULT CALLBACK InputWindowCallback(HWND window, UINT message, WPARAM wparam, LPARAM lparam)
 {
 
     LRESULT result = 0;
 
-    switch (Message)
+    switch (message)
     {
         case WM_CREATE:
         {
@@ -24,7 +26,7 @@ LRESULT CALLBACK WindowInputCallback(HWND Window, UINT Message, WPARAM WParam, L
         case WM_CLOSE:
         {
             OutputDebugString("WM_CLOSE\n");
-            DestroyWindow(Window);
+            DestroyWindow(window);
             break;
         }
         case WM_DESTROY:
@@ -35,7 +37,7 @@ LRESULT CALLBACK WindowInputCallback(HWND Window, UINT Message, WPARAM WParam, L
         }
         default:
         {
-            result = DefWindowProc(Window, Message, WParam, LParam);
+            result = DefWindowProc(window, message, wparam, lparam);
             break;
         }
     }
@@ -43,7 +45,7 @@ LRESULT CALLBACK WindowInputCallback(HWND Window, UINT Message, WPARAM WParam, L
     return result;
 }
 
-void PollMessage(PlatformApp* App)
+void InputPollMessage(PlatformApp* App)
 {
     MSG Message;
     BOOL result = GetMessage(&Message, NULL, 0, 0);
