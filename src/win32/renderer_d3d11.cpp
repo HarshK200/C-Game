@@ -1,7 +1,9 @@
 #include <Windows.h>
 #include <d3d11.h>
 #include <d3dcompiler.h>
+
 #include <assert.h>
+#include <iterator>
 
 #include "../main.h"
 #include "win32_platform.h"
@@ -9,6 +11,12 @@
 // TODO(harsh): Temporarly placed here, move these structs to there
 // dedicated file, like shader_d3d11.cpp, mesh_d3d11.h and triangle_mesh_d3d11.cpp
 // which includes the mesh_d3d11.h file for Mesh struct definition
+enum ShaderID
+{
+    Shader_Default = 0,
+    Shader_Blit = 1,
+    Shader_Count // always the last gives the Shader* array size for free
+};
 struct Shader
 {
     ID3D11VertexShader* VertexShader;
@@ -27,9 +35,13 @@ struct Renderer
     IDXGISwapChain* SwapChain;
     ID3D11Device* Device;
     ID3D11DeviceContext* DeviceContext;
-    ID3D11RenderTargetView* RenderTargetView;
 
-    Shader* Shaders[1];
+    ID3D11RenderTargetView* BackBufferRTV;
+    ID3D11Texture2D* InternalRenderTexture; // 640x360 i.e. 16:9 aspect ratio
+    ID3D11RenderTargetView* InternalRTV;
+    ID3D11ShaderResourceView* InternalSRV;
+
+    Shader* Shaders[Shader_Count];
     Mesh* TriangleMesh;
 };
 
@@ -37,16 +49,149 @@ struct Renderer
 // ====================== Internal functions ======================
 namespace
 {
+
+
     /*
-       Sets up DirectX11 by creating the swapchain, Device and the render target view.
-       Writes the resulting pointers to the Renderer passed in.
-       Returns S_OK if succeeds else returns the HRESULT i.e. the error code on failure.
+        Compiles a single shader file's Vertex and Pixel Shader at shader_file_path with compile_options.
+        It Sets teh shader in the Renderer's Shaders array
+        On Success returns S_OK otherwise HRESULT
+    */
+    HRESULT CreateShader(
+        Renderer* r,
+        ShaderID shader_id,
+        const wchar_t* shader_file_path,
+        UINT compile_options,
+        D3D11_INPUT_ELEMENT_DESC* input_element_desc,
+        UINT input_element_count)
+    {
+        Shader* shader = new Shader{};
+        ID3DBlob *vs_blob = nullptr, *ps_blob = nullptr, *error_blob = nullptr;
+
+
+        // compile vertex shader
+        HRESULT result = D3DCompileFromFile(
+            shader_file_path,
+            NULL,
+            D3D_COMPILE_STANDARD_FILE_INCLUDE,
+            "vs_main",
+            "vs_5_0",
+            compile_options,
+            NULL,
+            &vs_blob,
+            &error_blob);
+        if (FAILED(result))
+        {
+            if (error_blob)
+            {
+                // basically casting the buffer pointer to a char* so its
+                // treated as a char array i.e. string
+                PlatformPrintDebugF("[ERROR] Failed compiling Vertex Shader at path: %s", shader_file_path);
+                PlatformPrintDebug((char*)error_blob->GetBufferPointer());
+                error_blob->Release();
+            }
+            // release vs_blob if complie failed
+            if (vs_blob)
+                vs_blob->Release();
+            delete shader;
+            return result;
+        }
+        ID3D11VertexShader* vertex_shader = nullptr;
+        result = r->Device->CreateVertexShader(
+            vs_blob->GetBufferPointer(),
+            vs_blob->GetBufferSize(),
+            NULL,
+            &vertex_shader);
+        if (FAILED(result))
+        {
+            // release vs_blob if CreateVertexShader failed
+            if (vs_blob)
+                vs_blob->Release();
+            delete shader;
+            return result;
+        }
+        shader->VertexShader = vertex_shader;
+
+
+        // compile pixel shader
+        result = D3DCompileFromFile(
+            shader_file_path,
+            NULL,
+            D3D_COMPILE_STANDARD_FILE_INCLUDE,
+            "ps_main",
+            "ps_5_0",
+            compile_options,
+            NULL,
+            &ps_blob,
+            &error_blob);
+        if (FAILED(result))
+        {
+            if (error_blob)
+            {
+                // basically casting the buffer pointer to a char* so its
+                // treated as a char array i.e. string
+                PlatformPrintDebugF("[ERROR] Failed compiling Pixel Shader at path: %s", shader_file_path);
+                PlatformPrintDebug((char*)error_blob->GetBufferPointer());
+                error_blob->Release();
+            }
+            // release ps_blob if complie failed
+            if (ps_blob)
+                ps_blob->Release();
+            delete shader;
+            return result;
+        }
+        ID3D11PixelShader* pixel_shader = nullptr;
+        result = r->Device->CreatePixelShader(
+            ps_blob->GetBufferPointer(),
+            ps_blob->GetBufferSize(),
+            NULL,
+            &pixel_shader);
+        if (FAILED(result))
+        {
+            // release ps_blob if CreatePixelShader failed
+            if (ps_blob)
+                ps_blob->Release();
+            delete shader;
+            return result;
+        }
+        shader->PixelShader = pixel_shader;
+
+        // Input Layout setup for the shader
+        ID3D11InputLayout* input_layout = nullptr;
+        result = r->Device->CreateInputLayout(
+            input_element_desc,
+            input_element_count,
+            vs_blob->GetBufferPointer(),
+            vs_blob->GetBufferSize(),
+            &input_layout);
+        if (FAILED(result))
+        {
+            delete shader;
+            return result;
+        }
+        shader->InputLayout = input_layout;
+
+        // set the shader in the Renderer shader array
+        r->Shaders[shader_id] = shader;
+
+        vs_blob->Release();
+        ps_blob->Release();
+
+        return S_OK;
+    }
+
+
+    /*
+        Sets up DirectX11 by creating the swapchain, Device.
+        Writes the resulting pointers to the Renderer passed in.
+
+        Returns S_OK if succeeds else returns the HRESULT i.e. the error code on failure.
     */
     HRESULT SetupD3D11(HWND window_handle, Renderer* r)
     {
 
         DXGI_SWAP_CHAIN_DESC sd = {};
         sd.BufferCount = 2;
+        // 16:9 aspect ratio
         sd.BufferDesc.Width = 640;
         sd.BufferDesc.Height = 360;
         // NOTE(harsh): sRGB is non-linear color encoding as human eye's are more sensitive to darker tones than
@@ -91,158 +236,73 @@ namespace
         }
         assert(SUCCEEDED(result) && r->SwapChain && r->Device && r->DeviceContext);
 
+        return S_OK;
+    }
 
-        // Get the pointer to the back-buffer
-        ID3D11Texture2D* frame_buffer;
-        result = r->SwapChain->GetBuffer(0, __uuidof(ID3D11Texture2D), (void**)&frame_buffer);
+
+    /*
+        Loads all the vertex & pixel shaders TODO(harsh): implemente shader compilation caching andload from cache.
+        If no cache found Compiles the shaders and creates there input layouts.
+        Creates a Shader struct containing pointers to the input_layout, vertex & fragment shaders,
+        and writes them into the Shaders[] on the renderer
+    */
+    HRESULT LoadAllShaders(Renderer* r)
+    {
+        UINT compile_options = D3DCOMPILE_ENABLE_STRICTNESS;
+        // clang-format off
+        #if defined(ISEKAIED_DEBUG)
+            compile_options |= D3DCOMPILE_DEBUG;
+        #endif
+        // clang-format on
+
+
+        // loading default-shader
+        D3D11_INPUT_ELEMENT_DESC input_element_desc[] = {
+            {"POS", 0, DXGI_FORMAT_R32G32B32_FLOAT, 0, 0, D3D11_INPUT_PER_VERTEX_DATA, 0}};
+        HRESULT result = CreateShader(
+            r,
+            Shader_Default,
+            L"C:/Users/Harsh/Desktop/personal_dev/cpp_game/src/win32/shaders/default.hlsl",
+            compile_options,
+            input_element_desc,
+            std::size(input_element_desc));
         if (FAILED(result))
         {
-            PlatformPrintDebugF("[ERROR] D3D11 SwapChain Getting buffer FAILED! with error code: %d",
-                                result);
             return result;
         }
-
-        // create the Render Target using the frame buffer
-        result = r->Device->CreateRenderTargetView(frame_buffer, 0, &r->RenderTargetView);
-        if (FAILED(result))
-        {
-            PlatformPrintDebugF("[ERROR] D3D11 Render Target Creation FAILED! with error code: %d",
-                                result);
-            return result;
-        }
-        frame_buffer->Release();
 
         return S_OK;
     }
 
 
     /*
-       Compiles all the vertex and pixel shaders and pushes them to the renderer vertex &
-       pixel shaders map
+        Creates the InternalRenderTexture and its RenderTargetView/ShaderResourceView i.e.
+        InteralRenderTextureRTV & InternalRenderTextureSRV
     */
-    HRESULT CompileAndSetupShaders(Renderer* r)
+    HRESULT CreateRenderTextures(Renderer* r)
     {
-        UINT CompileOptions = D3DCOMPILE_ENABLE_STRICTNESS;
-        // clang-format off
-        #if defined(ISEKAIED_DEBUG)
-            CompileOptions |= D3DCOMPILE_DEBUG;
-        #endif
-        // clang-format on
+        // TODO(harsh): Create the internal render texture
 
-        // NOTE(harsh): Default vertex and pixel shader and input layout setup
+
+        // Get the pointer to the back-buffer
+        ID3D11Texture2D* back_buffer_texture;
+        HRESULT result = r->SwapChain->GetBuffer(0, __uuidof(ID3D11Texture2D), (void**)&back_buffer_texture);
+        if (FAILED(result))
         {
-            Shader* default_shader = new Shader{};
-            ID3DBlob *vs_blob = NULL, *ps_blob = NULL, *error_blob = NULL;
-
-            // Compile and Create default-vertex-shader
-            HRESULT result = D3DCompileFromFile(
-                L"C:/Users/Harsh/Desktop/personal_dev/cpp_game/src/win32/shaders/default.hlsl",
-                NULL,
-                D3D_COMPILE_STANDARD_FILE_INCLUDE,
-                "vs_main",
-                "vs_5_0",
-                CompileOptions,
-                NULL,
-                &vs_blob,
-                &error_blob);
-            if (FAILED(result))
-            {
-                if (error_blob)
-                {
-                    // basically casting the buffer pointer to a char* so its
-                    // treated as a char array i.e. string
-                    PlatformPrintDebug((char*)error_blob->GetBufferPointer());
-                    error_blob->Release();
-                }
-                // release vs_blob if complie failed
-                if (vs_blob)
-                {
-                    vs_blob->Release();
-                }
-                return result;
-            }
-            ID3D11VertexShader* vertex_shader = NULL;
-            result = r->Device->CreateVertexShader(
-                vs_blob->GetBufferPointer(),
-                vs_blob->GetBufferSize(),
-                NULL,
-                &vertex_shader);
-            if (FAILED(result))
-            {
-                // release vs_blob if CreateVertexShader failed
-                if (vs_blob)
-                {
-                    vs_blob->Release();
-                }
-                return result;
-            }
-            default_shader->VertexShader = vertex_shader;
-
-            // NOTE(harsh): Compile and create defualt-pixel-shader
-            result = D3DCompileFromFile(
-                L"C:/Users/Harsh/Desktop/personal_dev/cpp_game/src/win32/shaders/default.hlsl",
-                NULL,
-                D3D_COMPILE_STANDARD_FILE_INCLUDE,
-                "ps_main",
-                "ps_5_0",
-                CompileOptions,
-                NULL,
-                &ps_blob,
-                &error_blob);
-            if (FAILED(result))
-            {
-                if (error_blob)
-                {
-                    // basically casting the buffer pointer to a char* so its
-                    // treated as a char array i.e. string
-                    PlatformPrintDebug((char*)error_blob->GetBufferPointer());
-                    error_blob->Release();
-                }
-                // release ps_blob if complie failed
-                if (ps_blob)
-                {
-                    ps_blob->Release();
-                }
-                return result;
-            }
-            ID3D11PixelShader* pixel_shader = NULL;
-            result = r->Device->CreatePixelShader(
-                ps_blob->GetBufferPointer(),
-                ps_blob->GetBufferSize(),
-                NULL,
-                &pixel_shader);
-            if (FAILED(result))
-            {
-                // release ps_blob if CreatePixelShader failed
-                if (ps_blob)
-                {
-                    ps_blob->Release();
-                }
-                return result;
-            }
-            default_shader->PixelShader = pixel_shader;
-
-
-            // NOTE(harsh): Input Layout setup for the shader
-            ID3D11InputLayout* input_layout = NULL;
-            D3D11_INPUT_ELEMENT_DESC input_element_desc[] = {
-                {"POS", 0, DXGI_FORMAT_R32G32B32_FLOAT, 0, 0, D3D11_INPUT_PER_VERTEX_DATA, 0}};
-            result = r->Device->CreateInputLayout(
-                input_element_desc,
-                ARRAYSIZE(input_element_desc),
-                vs_blob->GetBufferPointer(),
-                vs_blob->GetBufferSize(),
-                &input_layout);
-            if (FAILED(result))
-            {
-                return result;
-            }
-            default_shader->InputLayout = input_layout;
-            r->Shaders[0] = default_shader;
-
-            vs_blob->Release();
-            ps_blob->Release();
+            PlatformPrintDebugF("[ERROR] SetupPixelartRenderTargets SwapChain Getting buffer FAILED! with error code: %d",
+                                result);
+            return result;
         }
+
+        // Create RenderTargetView for the back-buffer
+        result = r->Device->CreateRenderTargetView(back_buffer_texture, 0, &r->BackBufferRTV);
+        if (FAILED(result))
+        {
+            PlatformPrintDebugF("[ERROR] SetupPixelartRenderTargets Render Target View Creation FAILED! with error code: %d",
+                                result);
+            return result;
+        }
+        back_buffer_texture->Release();
 
         return S_OK;
     }
@@ -253,18 +313,18 @@ namespace
 // ================== Renderer Layer Services Definitions ==================
 
 /*
-  Creates and initializes a D3D11 renderer (allocates renderer).
-  Returns Renderer* if succeeds otherwise returns nullptr.
+    Creates and initializes a D3D11 renderer (allocates renderer).
+    Returns Renderer* if succeeds otherwise returns nullptr.
 
-  NOTE(harsh): the allocated memory is not tracked you must track and free the renderer
-  yourself or use an arena allocater, TODO(harsh): i gotta implement that allocater > o <
+    NOTE(harsh): the allocated memory is not tracked you must track and free the renderer
+    yourself or use an arena allocater, TODO(harsh): i gotta implement that allocater > o <
 */
 Renderer* RendererCreateAndInit(PlatformWindow* window)
 {
     PlatformPrintDebug("Renderer Init");
-
     // TODO(harsh): allocate using a arena allocator
     Renderer* r = new Renderer{};
+
     HRESULT result = SetupD3D11(window->Handle, r);
     if (FAILED(result))
     {
@@ -273,11 +333,19 @@ Renderer* RendererCreateAndInit(PlatformWindow* window)
         return nullptr;
     }
 
-    result = CompileAndSetupShaders(r);
+    result = LoadAllShaders(r);
     if (FAILED(result))
     {
         PlatformPrintDebugF(
-            "[ERROR] D3D11 Shader Compilation/Setup FAILED! with error code: %d", result);
+            "[ERROR] D3D11 LoadAllShaders FAILED! with error code: %d", result);
+        return nullptr;
+    }
+
+    result = CreateRenderTextures(r);
+    if (FAILED(result))
+    {
+        PlatformPrintDebugF(
+            "[ERROR] D3D11 CreateRenderTextures FAILED! with error code: %d", result);
         return nullptr;
     }
 
@@ -297,15 +365,15 @@ Renderer* RendererCreateAndInit(PlatformWindow* window)
             -0.5f, -0.5f, 0.0f, // bottom-left
         };
         // clang-format on
-        r->TriangleMesh->VertexBuffer = NULL;
+        r->TriangleMesh->VertexBuffer = nullptr;
         {
             D3D11_BUFFER_DESC vertex_buf_desc = {};
             vertex_buf_desc.ByteWidth = sizeof(vertex_data);
             vertex_buf_desc.Usage = D3D11_USAGE_IMMUTABLE;
             vertex_buf_desc.BindFlags = D3D11_BIND_VERTEX_BUFFER;
-
             D3D11_SUBRESOURCE_DATA sr_data = {0};
             sr_data.pSysMem = vertex_data;
+
             result = r->Device->CreateBuffer(&vertex_buf_desc, &sr_data, &r->TriangleMesh->VertexBuffer);
             if (FAILED(result))
             {
@@ -321,14 +389,19 @@ Renderer* RendererCreateAndInit(PlatformWindow* window)
     return r;
 }
 
+// TODO(harsh): Setup the 2 pass rendering,
+// 1st PASS: game render on InternalRenderTexture's RenderTargetView.
+// 2nd PASS: take that InternalRenderTexture and pass that to a blit shader which will sample that
+// texture with a PointSampler i.e. NearestNeighbourSampling onto the BackBufferRenderTargetView
+// then finally we present the backbuffer
 void RendererUpdate(Renderer* r, Game* g, PlatformWindow* window)
 {
     // bind the render target NOTE(harsh): MUST do this before any draw or clear calls
-    r->DeviceContext->OMSetRenderTargets(1, &r->RenderTargetView, NULL);
+    r->DeviceContext->OMSetRenderTargets(1, &r->BackBufferRTV, NULL);
 
     // clear the screen with cornflower blue
     float background_colour[4] = {0x64 / 255.0f, 0x95 / 255.0f, 0xED / 255.0f, 1.0f};
-    r->DeviceContext->ClearRenderTargetView(r->RenderTargetView, background_colour);
+    r->DeviceContext->ClearRenderTargetView(r->BackBufferRTV, background_colour);
 
     // set the viewport for drawing
     RECT win_rect;
@@ -336,8 +409,8 @@ void RendererUpdate(Renderer* r, Game* g, PlatformWindow* window)
     D3D11_VIEWPORT viewport = {
         0.0f,
         0.0f,
-        (FLOAT)(win_rect.right - win_rect.left),
-        (FLOAT)(win_rect.bottom - win_rect.top),
+        640.0f,
+        360.0f,
         0.0f,
         1.0f,
     };

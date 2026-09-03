@@ -36,7 +36,7 @@ void PlatformPrintDebugF(const char* fstring, const T&... args)
 namespace
 {
     // Creates a window using win32 api and returns the HWND i.e.
-    // WindowHandle If failed returns NULL
+    // WindowHandle If failed returns nullptr
     HWND OpenWindow(HINSTANCE Instance)
     {
         WNDCLASS window_class = {};
@@ -50,15 +50,23 @@ namespace
         if (RegisterClass(&window_class) == 0)
         {
             OutputDebugString("\n[ERROR] Registering window failed\n");
-            return NULL;
+            return nullptr;
         }
-        HWND window_handle =
-            CreateWindowEx(NULL, window_class.lpszClassName, "isekaied", WS_OVERLAPPEDWINDOW | WS_VISIBLE,
-                           CW_USEDEFAULT, CW_USEDEFAULT, 640, 360, 0, 0, Instance, 0);
-        if (window_handle == NULL)
+        HWND window_handle = CreateWindowEx(
+            NULL,
+            window_class.lpszClassName,
+            "isekaied",
+            WS_OVERLAPPEDWINDOW | WS_VISIBLE,
+            CW_USEDEFAULT,
+            CW_USEDEFAULT,
+            640, 360,
+            0, 0,
+            Instance,
+            0);
+        if (!window_handle)
         {
             OutputDebugString("\n[ERROR] Unable to create window\n");
-            return NULL;
+            return nullptr;
         }
         return window_handle;
     }
@@ -76,7 +84,7 @@ int CALLBACK WinMain(HINSTANCE Instance, HINSTANCE PrevInstance, LPSTR CmdLine, 
     // TODO(harsh): handle allocation with an arena allocator
     App.Window = new PlatformWindow{};
     App.Window->Handle = OpenWindow(Instance);
-    if (App.Window->Handle == NULL)
+    if (!App.Window->Handle)
     {
         PlatformPrintDebug("[ERROR] OpenWindow failed. Exiting program...");
         return -1;
@@ -84,13 +92,13 @@ int CALLBACK WinMain(HINSTANCE Instance, HINSTANCE PrevInstance, LPSTR CmdLine, 
 
     // Create Game and Renderer instance
     App.Game = GameCreateAndInit();
-    if (App.Game == nullptr)
+    if (!App.Game)
     {
         PlatformPrintDebug("[ERROR] Game init failed. Exiting program...");
         return -1;
     }
     App.Renderer = RendererCreateAndInit(App.Window);
-    if (App.Renderer == nullptr)
+    if (!App.Renderer)
     {
         PlatformPrintDebug("[ERROR] Renderer init failed. Exiting program...");
         return -1;
