@@ -16,9 +16,9 @@ namespace
 
 
     /*
-        Compiles a single shader file's Vertex and Pixel Shader at shader_file_path with compile_options.
-        It Sets teh shader in the Renderer's Shaders array
-        On Success returns S_OK otherwise HRESULT
+        Compiles the vertex and pixel shaders from shader_file_path using compile_options.
+        Sets the resulting shader in the Renderer's Shaders array.
+        Returns S_OK on success, otherwise the failing HRESULT.
     */
     HRESULT CreateShader(
         Renderer* r,
@@ -28,12 +28,13 @@ namespace
         D3D11_INPUT_ELEMENT_DESC* input_element_desc,
         UINT input_element_count)
     {
-        Shader* shader = new Shader{};
         ID3DBlob *vs_blob = nullptr, *ps_blob = nullptr, *error_blob = nullptr;
+        Shader* shader = new Shader{};
 
+        HRESULT result;
 
         // compile vertex shader
-        HRESULT result = D3DCompileFromFile(
+        result = D3DCompileFromFile(
             shader_file_path,
             NULL,
             D3D_COMPILE_STANDARD_FILE_INCLUDE,
@@ -44,36 +45,23 @@ namespace
             &vs_blob,
             &error_blob);
         if (FAILED(result))
-        {
-            if (error_blob)
-            {
-                // basically casting the buffer pointer to a char* so its
-                // treated as a char array i.e. string
-                PlatformPrintDebugF("[ERROR] Failed compiling Vertex Shader at path: %s", shader_file_path);
-                PlatformPrintDebug((char*)error_blob->GetBufferPointer());
-                error_blob->Release();
-            }
-            // release vs_blob if complie failed
-            if (vs_blob)
-                vs_blob->Release();
-            delete shader;
-            return result;
-        }
-        ID3D11VertexShader* vertex_shader = nullptr;
+            goto cleanup;
         result = r->Device->CreateVertexShader(
             vs_blob->GetBufferPointer(),
             vs_blob->GetBufferSize(),
             NULL,
-            &vertex_shader);
+            &shader->VertexShader);
         if (FAILED(result))
+            goto cleanup;
+
+
+        // reset the error blob after last call
+        if (error_blob)
         {
-            // release vs_blob if CreateVertexShader failed
-            if (vs_blob)
-                vs_blob->Release();
-            delete shader;
-            return result;
+            PlatformPrintDebug((char*)error_blob->GetBufferPointer());
+            error_blob->Release();
+            error_blob = nullptr;
         }
-        shader->VertexShader = vertex_shader;
 
 
         // compile pixel shader
@@ -88,59 +76,51 @@ namespace
             &ps_blob,
             &error_blob);
         if (FAILED(result))
-        {
-            if (error_blob)
-            {
-                // basically casting the buffer pointer to a char* so its
-                // treated as a char array i.e. string
-                PlatformPrintDebugF("[ERROR] Failed compiling Pixel Shader at path: %s", shader_file_path);
-                PlatformPrintDebug((char*)error_blob->GetBufferPointer());
-                error_blob->Release();
-            }
-            // release ps_blob if complie failed
-            if (ps_blob)
-                ps_blob->Release();
-            delete shader;
-            return result;
-        }
-        ID3D11PixelShader* pixel_shader = nullptr;
+            goto cleanup;
         result = r->Device->CreatePixelShader(
             ps_blob->GetBufferPointer(),
             ps_blob->GetBufferSize(),
             NULL,
-            &pixel_shader);
+            &shader->PixelShader);
         if (FAILED(result))
-        {
-            // release ps_blob if CreatePixelShader failed
-            if (ps_blob)
-                ps_blob->Release();
-            delete shader;
-            return result;
-        }
-        shader->PixelShader = pixel_shader;
+            goto cleanup;
 
         // Input Layout setup for the shader
-        ID3D11InputLayout* input_layout = nullptr;
         result = r->Device->CreateInputLayout(
             input_element_desc,
             input_element_count,
             vs_blob->GetBufferPointer(),
             vs_blob->GetBufferSize(),
-            &input_layout);
+            &shader->InputLayout);
         if (FAILED(result))
-        {
-            delete shader;
-            return result;
-        }
-        shader->InputLayout = input_layout;
+            goto cleanup;
 
         // set the shader in the Renderer shader array
+        // TODO(harsh): use Arena allocator for this shader allocation
         r->Shaders[shader_id] = shader;
 
-        vs_blob->Release();
-        ps_blob->Release();
+    cleanup:
+        if (error_blob)
+        {
+            PlatformPrintDebug((char*)error_blob->GetBufferPointer());
+            error_blob->Release();
+        }
+        if (vs_blob)
+            vs_blob->Release();
+        if (ps_blob)
+            ps_blob->Release();
+        if (FAILED(result))
+        {
+            if (shader->VertexShader)
+                shader->VertexShader->Release();
+            if (shader->PixelShader)
+                shader->PixelShader->Release();
+            if (shader->InputLayout)
+                shader->InputLayout->Release();
+            delete shader;
+        }
 
-        return S_OK;
+        return result;
     }
 
 
