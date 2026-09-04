@@ -1,9 +1,9 @@
 #include <Windows.h>
 
-#include "../main.h"
-#include "win32_platform.h"
+#include "src/main.h"
+#include "src/win32/win32_input.h"
 
-// ================== Input Layer Services Definitions ==================
+// ================== Internal functions only to be used by win32_platform ==================
 
 // Handles the window messages and input
 LRESULT CALLBACK InputWindowCallback(HWND window, UINT message, WPARAM wparam, LPARAM lparam)

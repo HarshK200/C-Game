@@ -1,13 +1,10 @@
-// NOTE(harsh): This file is ONLY for the type definitions,
-// Don't put any function signature declarations here that are either internal
-// or exposed by platform layer They should live in main.h and implemented in
-// win32_platform.cpp
-
 #pragma once
 #include <Windows.h>
-#include "../main.h"
+
+#include "src/main.h"
 
 
+// Struct Definitions Only
 struct PlatformWindow
 {
     HWND Handle;

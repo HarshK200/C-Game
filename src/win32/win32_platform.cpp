@@ -1,11 +1,14 @@
 #define WIN32_LEAN_AND_MEAN
 #include <Windows.h>
 
-#include "../main.h"
-#include "win32_platform.h"
-#include "win32_input.cpp"
-#include "../game.cpp"
-#include "renderer_d3d11.cpp"
+// the declarations
+#include "src/main.h"
+
+// the definitions
+#include "src/game.cpp"
+#include "src/win32/win32_platform.h"
+#include "src/win32/win32_input.cpp"
+#include "src/win32/renderer/renderer_d3d11.cpp"
 
 
 // ================== Platform Layer Services Definitions ==================

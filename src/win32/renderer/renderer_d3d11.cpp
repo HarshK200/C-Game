@@ -5,45 +5,9 @@
 #include <assert.h>
 #include <iterator>
 
-#include "../main.h"
-#include "win32_platform.h"
-
-// TODO(harsh): Temporarly placed here, move these structs to there
-// dedicated file, like shader_d3d11.cpp, mesh_d3d11.h and triangle_mesh_d3d11.cpp
-// which includes the mesh_d3d11.h file for Mesh struct definition
-enum ShaderID
-{
-    Shader_Default = 0,
-    Shader_Blit = 1,
-    Shader_Count // always the last gives the Shader* array size for free
-};
-struct Shader
-{
-    ID3D11VertexShader* VertexShader;
-    ID3D11PixelShader* PixelShader;
-    ID3D11InputLayout* InputLayout;
-};
-// TODO(harsh): make a CreateMesh function which will upload the mesh's vertex data
-struct Mesh
-{
-    ID3D11Buffer* VertexBuffer;
-};
-
-
-struct Renderer
-{
-    IDXGISwapChain* SwapChain;
-    ID3D11Device* Device;
-    ID3D11DeviceContext* DeviceContext;
-
-    ID3D11RenderTargetView* BackBufferRTV;
-    ID3D11Texture2D* InternalRenderTexture; // 640x360 i.e. 16:9 aspect ratio
-    ID3D11RenderTargetView* InternalRTV;
-    ID3D11ShaderResourceView* InternalSRV;
-
-    Shader* Shaders[Shader_Count];
-    Mesh* TriangleMesh;
-};
+#include "src/main.h"
+#include "src/win32/win32_platform.h"
+#include "src/win32/renderer/renderer_d3d11.h"
 
 
 // ====================== Internal functions ======================
@@ -262,7 +226,7 @@ namespace
         HRESULT result = CreateShader(
             r,
             Shader_Default,
-            L"C:/Users/Harsh/Desktop/personal_dev/cpp_game/src/win32/shaders/default.hlsl",
+            L"C:/Users/Harsh/Desktop/personal_dev/cpp_game/src/win32/renderer/shaders_d3d11/default.hlsl",
             compile_options,
             input_element_desc,
             std::size(input_element_desc));
@@ -400,7 +364,7 @@ void RendererUpdate(Renderer* r, Game* g, PlatformWindow* window)
     r->DeviceContext->OMSetRenderTargets(1, &r->BackBufferRTV, NULL);
 
     // clear the screen with cornflower blue
-    float background_colour[4] = {0x64 / 255.0f, 0x95 / 255.0f, 0xED / 255.0f, 1.0f};
+    float background_colour[4] = {119.0f / 255.0f, 221.0f / 255.0f, 119.0f / 255.0f, 1.0f};
     r->DeviceContext->ClearRenderTargetView(r->BackBufferRTV, background_colour);
 
     // set the viewport for drawing

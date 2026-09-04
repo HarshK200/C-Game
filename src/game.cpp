@@ -1,10 +1,5 @@
-#include "main.h"
-
-
-struct Game
-{
-};
-
+#include "src/main.h"
+#include "src/game.h"
 
 // creates a new game with the "new" keyword and returns the pointer to it
 // NOTE(harsh): the allocated memory is not tracker you must track and free the game

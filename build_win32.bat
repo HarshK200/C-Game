@@ -21,7 +21,7 @@ if not exist ".\build\debug" mkdir ".\build\debug"
 :: TODO(harsh): pass a -debug / -release flag to this batch file, to figure out which build command to run
 :: NOTE(harsh): Clang complier DEBUG build command
 :: (this is called a unity build, because we only have one translation unit i.e. win32_main.cpp)
-clang++ src\win32\win32_platform.cpp -o build\debug\win32_d3d11_main.exe -g -DISEKAIED_DEBUG -Xlinker /subsystem:windows -luser32 -ld3d11 -ld3dcompiler
+clang++ -I. src\win32\win32_platform.cpp -o build\debug\win32_d3d11_main.exe -g -DISEKAIED_DEBUG -Xlinker /subsystem:windows -luser32 -ld3d11 -ld3dcompiler
 
 
 
