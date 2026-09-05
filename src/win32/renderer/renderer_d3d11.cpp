@@ -153,12 +153,10 @@ namespace
         D3D_FEATURE_LEVEL FeatureLevels = D3D_FEATURE_LEVEL_11_0; // Only support D3D11 features
 
         UINT CreateDeviceFlags = 0;
-        // clang-format off
-        #if defined(ISEKAIED_DEBUG)
+#if defined(ISEKAIED_DEBUG)
         // for D3D11 debug output
         CreateDeviceFlags |= D3D11_CREATE_DEVICE_DEBUG;
-        #endif
-        // clang-format on
+#endif
 
         // create the device and swapchain
         // don't need the returned feature level hence passing NULL
@@ -193,11 +191,9 @@ namespace
     HRESULT LoadAllShaders(Renderer* r)
     {
         UINT compile_options = D3DCOMPILE_ENABLE_STRICTNESS;
-        // clang-format off
-        #if defined(ISEKAIED_DEBUG)
-            compile_options |= D3DCOMPILE_DEBUG;
-        #endif
-        // clang-format on
+#if defined(ISEKAIED_DEBUG)
+        compile_options |= D3DCOMPILE_DEBUG;
+#endif
 
 
         // loading default-shader
@@ -225,25 +221,56 @@ namespace
     */
     HRESULT CreateRenderTextures(Renderer* r)
     {
-        // TODO(harsh): Create the internal render texture
+        HRESULT result;
+
+        // creating internal render texture
+        D3D11_TEXTURE2D_DESC internal_texture_desc = {};
+        internal_texture_desc.Width = 640;
+        internal_texture_desc.Height = 360;
+        internal_texture_desc.MipLevels = 1;
+        internal_texture_desc.ArraySize = 1;
+        internal_texture_desc.Format = DXGI_FORMAT_R8G8B8A8_UNORM;
+        internal_texture_desc.SampleDesc.Count = 1;
+        // TODO(harsh): do i really need default usage here? since i'll use this texture to
+        // paint on it?? LOOK AT UP
+        internal_texture_desc.Usage = D3D11_USAGE_DEFAULT;
+        internal_texture_desc.BindFlags = D3D11_BIND_RENDER_TARGET | D3D11_BIND_SHADER_RESOURCE;
+        result = r->Device->CreateTexture2D(&internal_texture_desc, NULL, &r->InternalRenderTexture);
+        if (FAILED(result))
+        {
+            PlatformPrintDebugF("[ERROR] Creating internal render texture FAILED! with error code: %d", result);
+            return result;
+        }
+
+        // create render target view and shader resource view (not passing any desc so just default)
+        result = r->Device->CreateRenderTargetView(r->InternalRenderTexture, NULL, &r->InternalRTV);
+        if (FAILED(result))
+        {
+            PlatformPrintDebugF("[ERROR] Creating internal_texture RenderTargetView FAILED! with error code: %d", result);
+            return result;
+        }
+        result = r->Device->CreateShaderResourceView(r->InternalRenderTexture, NULL, &r->InternalSRV);
+        if (FAILED(result))
+        {
+            PlatformPrintDebugF("[ERROR] Creating internal_texture ShaderResourceView FAILED! with error code: %d", result);
+            return result;
+        }
 
 
         // Get the pointer to the back-buffer
         ID3D11Texture2D* back_buffer_texture;
-        HRESULT result = r->SwapChain->GetBuffer(0, __uuidof(ID3D11Texture2D), (void**)&back_buffer_texture);
+        result = r->SwapChain->GetBuffer(0, __uuidof(ID3D11Texture2D), (void**)&back_buffer_texture);
         if (FAILED(result))
         {
-            PlatformPrintDebugF("[ERROR] SetupPixelartRenderTargets SwapChain Getting buffer FAILED! with error code: %d",
-                                result);
+            PlatformPrintDebugF("[ERROR] SetupPixelartRenderTargets SwapChain Getting buffer FAILED! with error code: %d", result);
             return result;
         }
 
         // Create RenderTargetView for the back-buffer
-        result = r->Device->CreateRenderTargetView(back_buffer_texture, 0, &r->BackBufferRTV);
+        result = r->Device->CreateRenderTargetView(back_buffer_texture, NULL, &r->BackBufferRTV);
         if (FAILED(result))
         {
-            PlatformPrintDebugF("[ERROR] SetupPixelartRenderTargets Render Target View Creation FAILED! with error code: %d",
-                                result);
+            PlatformPrintDebugF("[ERROR] SetupPixelartRenderTargets Render Target View Creation FAILED! with error code: %d", result);
             return result;
         }
         back_buffer_texture->Release();
