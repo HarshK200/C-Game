@@ -18,6 +18,20 @@ set "RESET=%ESC%[0m"
 
 if not exist ".\build\debug" mkdir ".\build\debug"
 
+
+
+:: ============================================================
+:: Start build timer
+:: ============================================================
+
+for /f "delims=" %%A in ('powershell -NoProfile -Command "[System.Diagnostics.Stopwatch]::GetTimestamp()"') do set "BUILD_START=%%A"
+
+
+
+:: ============================================================
+:: Build
+:: ============================================================
+
 :: compile with cl i.e. msvc compiler so its fully compatible with visual studio debugger
 :: cl src\win32_main.cpp /Zi /Fo:build\debug\ /Fe:build\debug\win32_d3d11_main.exe /link /SUBSYSTEM:WINDOWS user32.lib
 
@@ -26,11 +40,19 @@ if not exist ".\build\debug" mkdir ".\build\debug"
 :: (this is called a unity build, because we only have one translation unit i.e. win32_main.cpp)
 clang++ -I. src\win32\win32_platform.cpp -o build\debug\win32_d3d11_main.exe -g -DISEKAIED_DEBUG -Xlinker /subsystem:windows -luser32 -ld3d11 -ld3dcompiler
 
+:: ============================================================
+:: Stop build timer
+:: ============================================================
+
+for /f "delims=" %%A in ('powershell -NoProfile -Command "$end=[System.Diagnostics.Stopwatch]::GetTimestamp(); $start=[long]$env:BUILD_START; (($end-$start)*1000.0/[System.Diagnostics.Stopwatch]::Frequency)"') do set "BUILD_TIME_MS=%%A"
+
 
 
 if errorlevel 1 (
     echo Compilation %PASTEL_RED%failed%RESET%
+    echo Build time: %BUILD_TIME_MS% ms
     exit /b 1
 )
 
 echo Compilation finished %PASTEL_GREEN%successfully%RESET%
+echo Build time: %BUILD_TIME_MS% ms

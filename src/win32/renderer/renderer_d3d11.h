@@ -10,7 +10,7 @@
 enum ShaderID
 {
     Shader_Default = 0,
-    Shader_Blit = 1,
+    Shader_Upscale = 1,
     Shader_Count // always the last gives the Shader* array size for free
 };
 struct Shader

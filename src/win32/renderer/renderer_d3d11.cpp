@@ -18,6 +18,9 @@ namespace
     /*
         Compiles the vertex and pixel shaders from shader_file_path using compile_options.
         Sets the resulting shader in the Renderer's Shaders array.
+        if input_element_desc != nullptr then the InputLayout for the shader is also created.
+        WARNING: the input_element_count must be > 0 when input_element_desc is passed in
+
         Returns S_OK on success, otherwise the failing HRESULT.
     */
     HRESULT CreateShader(
@@ -86,14 +89,17 @@ namespace
             goto cleanup;
 
         // Input Layout setup for the shader
-        result = r->Device->CreateInputLayout(
-            input_element_desc,
-            input_element_count,
-            vs_blob->GetBufferPointer(),
-            vs_blob->GetBufferSize(),
-            &shader->InputLayout);
-        if (FAILED(result))
-            goto cleanup;
+        if (input_element_desc)
+        {
+            result = r->Device->CreateInputLayout(
+                input_element_desc,
+                input_element_count,
+                vs_blob->GetBufferPointer(),
+                vs_blob->GetBufferSize(),
+                &shader->InputLayout);
+            if (FAILED(result))
+                goto cleanup;
+        }
 
         // set the shader in the Renderer shader array
         // TODO(harsh): use Arena allocator for this shader allocation
@@ -196,20 +202,29 @@ namespace
 #endif
 
 
-        // loading default-shader
-        D3D11_INPUT_ELEMENT_DESC input_element_desc[] = {
+        // loading default shader
+        D3D11_INPUT_ELEMENT_DESC default_input_element_desc[] = {
             {"POS", 0, DXGI_FORMAT_R32G32B32_FLOAT, 0, 0, D3D11_INPUT_PER_VERTEX_DATA, 0}};
         HRESULT result = CreateShader(
             r,
             Shader_Default,
             L"C:/Users/Harsh/Desktop/personal_dev/cpp_game/src/win32/renderer/shaders_d3d11/default.hlsl",
             compile_options,
-            input_element_desc,
-            std::size(input_element_desc));
+            default_input_element_desc,
+            std::size(default_input_element_desc));
         if (FAILED(result))
-        {
             return result;
-        }
+
+        // loading pixelart upscale shader
+        result = CreateShader(
+            r,
+            Shader_Upscale,
+            L"C:/Users/Harsh/Desktop/personal_dev/cpp_game/src/win32/renderer/shaders_d3d11/upscale.hlsl",
+            compile_options,
+            nullptr,
+            NULL);
+        if (FAILED(result))
+            return result;
 
         return S_OK;
     }
@@ -367,10 +382,13 @@ Renderer* RendererCreateAndInit(PlatformWindow* window)
 // then finally we present the backbuffer
 void RendererUpdate(Renderer* r, Game* g, PlatformWindow* window)
 {
+
+    // ======================== GAME RENDER PASS ========================
+
     // bind the render target NOTE(harsh): MUST do this before any draw or clear calls
     r->DeviceContext->OMSetRenderTargets(1, &r->BackBufferRTV, NULL);
 
-    // clear the screen with cornflower blue
+    // clear the screen with pastel green
     float background_colour[4] = {119.0f / 255.0f, 221.0f / 255.0f, 119.0f / 255.0f, 1.0f};
     r->DeviceContext->ClearRenderTargetView(r->BackBufferRTV, background_colour);
 

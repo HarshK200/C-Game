@@ -1,16 +1,13 @@
-// input struct
-struct vs_in {
-    float3 pos : POS;
-};
 // output struct
 struct vs_out {
     float4 pos : SV_POSITION; // required output of VS
+    float4 uv : TEXCOORD0; // required output of VS
 };
 
 
-vs_out vs_main(vs_in input) {
+vs_out vs_main(uint id: SV_VertexID) {
     vs_out output = (vs_out)0; // zero the memory
-    output.pos = float4(input.pos, 1.0);
+
     return output;
 }
 
