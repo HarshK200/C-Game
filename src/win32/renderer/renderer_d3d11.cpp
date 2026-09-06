@@ -3,9 +3,12 @@
 #include <d3dcompiler.h>
 
 #include <assert.h>
+#include <dxgiformat.h>
 #include <iterator>
 
 #include "src/main.h"
+#include "src/game.h"
+#include "src/utils/constants.h"
 #include "src/win32/win32_platform.h"
 #include "src/win32/renderer/renderer_d3d11.h"
 
@@ -231,8 +234,9 @@ namespace
 
 
     /*
-        Creates the InternalRenderTexture and its RenderTargetView/ShaderResourceView i.e.
-        InteralRenderTextureRTV & InternalRenderTextureSRV
+        Creates and setups the Render textures i.e. BackBufferRender texture & InternalRenderTexture and the
+        RenderTargetView/ShaderResourceView i.e. InteralRenderTextureRTV & InternalRenderTextureSRV for the
+        InternalRenderTexture
     */
     HRESULT CreateRenderTextures(Renderer* r)
     {
@@ -293,6 +297,66 @@ namespace
         return S_OK;
     }
 
+
+    void RenderPass_Game(Renderer* r, Game* g)
+    {
+        // set internal texture as render target
+        r->DeviceContext->OMSetRenderTargets(1, &r->InternalRTV, NULL);
+
+        // clear the internal render target with pastel green
+        float background_colour[4] = {119.0f / 255.0f, 221.0f / 255.0f, 119.0f / 255.0f, 1.0f};
+        r->DeviceContext->ClearRenderTargetView(r->InternalRTV, background_colour);
+
+        // set the internal render viewport
+        D3D11_VIEWPORT internal_render_viewport = {
+            0.0f,
+            0.0f,
+            INTERNAL_RENDER_RESOLUTION.x,
+            INTERNAL_RENDER_RESOLUTION.y,
+            0.0f,
+            1.0f,
+        };
+        r->DeviceContext->RSSetViewports(1, &internal_render_viewport);
+
+        // set the topology for draw calls
+        r->DeviceContext->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
+
+        // set the input layout
+        Shader* default_shader = r->Shaders[Shader_Default];
+
+        // set vertex and pixel shader and input layout to be used
+        r->DeviceContext->VSSetShader(default_shader->VertexShader, NULL, 0);
+        r->DeviceContext->PSSetShader(default_shader->PixelShader, NULL, 0);
+        r->DeviceContext->IASetInputLayout(default_shader->InputLayout);
+
+
+        // ====================== DRAW CALLS ======================
+
+        // bind the quad vertex buffer for drawing
+        r->DeviceContext->IASetVertexBuffers(
+            0,
+            1,
+            &r->QuadMesh->VertexBuffer,
+            &r->QuadMesh->VertexStride,
+            &r->QuadMesh->VertexOffset);
+
+        // bind the quad index buffer for drawing
+        r->DeviceContext->IASetIndexBuffer(
+            r->QuadMesh->IndexBuffer,
+            DXGI_FORMAT_R32_UINT,
+            0);
+
+        // make the draw call
+        r->DeviceContext->DrawIndexed(
+            r->QuadMesh->IndexCount,
+            r->QuadMesh->IndexOffset,
+            r->QuadMesh->VertexOffset);
+    }
+
+    void RenderPass_Upscale(Renderer* r)
+    {
+    }
+
 } // namespace
 
 
@@ -341,34 +405,104 @@ Renderer* RendererCreateAndInit(PlatformWindow* window)
     // CreateTriangleMesh function or something
     {
 
-        // ============================= UPLOADING VERTEX BUFFER =============================
+        // ============================= UPLOADING TRIANGLE MESH VERTEX BUFFER =============================
+
+        // TODO(harsh): use arena allocator
         r->TriangleMesh = new Mesh{};
 
+        // vertex buffer data
         // clang-format off
-        float vertex_data[] = {
+        float triangle_vertex_buffer_data[] = {
              0.0f,  0.5f, 0.0f, // top (D3D11 Y+ Up convention, this is temporary i'll use Y+ Down Convention later)
              0.5f, -0.5f, 0.0f, // bottom-right
             -0.5f, -0.5f, 0.0f, // bottom-left
         };
         // clang-format on
         r->TriangleMesh->VertexBuffer = nullptr;
-        {
-            D3D11_BUFFER_DESC vertex_buf_desc = {};
-            vertex_buf_desc.ByteWidth = sizeof(vertex_data);
-            vertex_buf_desc.Usage = D3D11_USAGE_IMMUTABLE;
-            vertex_buf_desc.BindFlags = D3D11_BIND_VERTEX_BUFFER;
-            D3D11_SUBRESOURCE_DATA sr_data = {0};
-            sr_data.pSysMem = vertex_data;
 
-            result = r->Device->CreateBuffer(&vertex_buf_desc, &sr_data, &r->TriangleMesh->VertexBuffer);
-            if (FAILED(result))
-            {
-                PlatformPrintDebugF(
-                    "[ERROR] D3D11 Triangle Vertex Buffer creation FAILED! with error code: %d", result);
-                return nullptr;
-            }
+        // set vertex buffer info
+        r->TriangleMesh->VertexStride = sizeof(float) * 3;
+        r->TriangleMesh->VertexCount = 3;
+        r->TriangleMesh->VertexOffset = 0;
+
+        // upload vertex buffer
+        D3D11_BUFFER_DESC triangle_vertex_buff_desc = {};
+        triangle_vertex_buff_desc.ByteWidth = sizeof(triangle_vertex_buffer_data);
+        triangle_vertex_buff_desc.Usage = D3D11_USAGE_IMMUTABLE;
+        triangle_vertex_buff_desc.BindFlags = D3D11_BIND_VERTEX_BUFFER;
+        D3D11_SUBRESOURCE_DATA triangle_vertex_buffer_sr_data = {};
+        triangle_vertex_buffer_sr_data.pSysMem = triangle_vertex_buffer_data;
+        result = r->Device->CreateBuffer(&triangle_vertex_buff_desc, &triangle_vertex_buffer_sr_data, &r->TriangleMesh->VertexBuffer);
+        if (FAILED(result))
+        {
+            PlatformPrintDebugF(
+                "[ERROR] D3D11 Triangle Vertex Buffer creation FAILED! with error code: %d", result);
+            return nullptr;
         }
-        // ===================================================================================
+
+
+        // ============================= UPLOADING QUAD MESH VERTEX BUFFER =============================
+
+        // TODO(harsh): use arena allocator
+        r->QuadMesh = new Mesh{};
+
+        // vertex buffer data
+        // clang-format off
+        float quad_vertex_buffer_data[] = {
+             0.5f,  0.5f, 0.0f, // top-right
+             0.5f, -0.5f, 0.0f, // bottom-right
+            -0.5f,  0.5f, 0.0f, // top-left
+            -0.5f, -0.5f, 0.0f, // bottom-left
+        };
+
+        // index buffer data
+        // NOTE(harsh): the indices must be in clockwise order for each triangle otherwise it won't be drawn
+        // because of back culling.
+        int unsigned quad_index_buffer_data[] = {
+            2, 0, 1, // top half triangle
+            2, 1, 3, // bottom half triangle
+        };
+        // clang-format on
+        r->QuadMesh->VertexBuffer = nullptr;
+
+        // set vertex buffer info
+        r->QuadMesh->VertexStride = sizeof(float) * 3;
+        r->QuadMesh->VertexCount = 4;
+        r->QuadMesh->VertexOffset = 0;
+
+        // upload vertex buffer
+        D3D11_BUFFER_DESC quad_vertex_buffer_desc = {};
+        quad_vertex_buffer_desc.ByteWidth = sizeof(quad_vertex_buffer_data);
+        quad_vertex_buffer_desc.Usage = D3D11_USAGE_IMMUTABLE;
+        quad_vertex_buffer_desc.BindFlags = D3D11_BIND_VERTEX_BUFFER;
+        D3D11_SUBRESOURCE_DATA quad_vertex_buffer_sr_data = {};
+        quad_vertex_buffer_sr_data.pSysMem = quad_vertex_buffer_data;
+        result = r->Device->CreateBuffer(&quad_vertex_buffer_desc, &quad_vertex_buffer_sr_data, &r->QuadMesh->VertexBuffer);
+        if (FAILED(result))
+        {
+            PlatformPrintDebugF(
+                "[ERROR] D3D11 Quad Vertex Buffer creation FAILED! with error code: %d", result);
+            return nullptr;
+        }
+
+        // set index buffer info
+        r->QuadMesh->IndexCount = std::size(quad_index_buffer_data);
+        r->QuadMesh->IndexOffset = 0;
+
+        // upload index buffer
+        D3D11_BUFFER_DESC quad_index_buffer_desc = {};
+        quad_index_buffer_desc.ByteWidth = sizeof(quad_index_buffer_data);
+        quad_index_buffer_desc.Usage = D3D11_USAGE_IMMUTABLE;
+        quad_index_buffer_desc.BindFlags = D3D11_BIND_INDEX_BUFFER;
+        D3D11_SUBRESOURCE_DATA quad_index_buffer_sr_data = {};
+        quad_index_buffer_sr_data.pSysMem = quad_index_buffer_data;
+        result = r->Device->CreateBuffer(&quad_index_buffer_desc, &quad_index_buffer_sr_data, &r->QuadMesh->IndexBuffer);
+        if (FAILED(result))
+        {
+            PlatformPrintDebugF(
+                "[ERROR] D3D11 Quad Index Buffer creation FAILED! with error code: %d", result);
+            return nullptr;
+        }
     }
 
 
@@ -384,44 +518,8 @@ void RendererUpdate(Renderer* r, Game* g, PlatformWindow* window)
 {
 
     // ======================== GAME RENDER PASS ========================
+    RenderPass_Game(r, g);
 
-    // bind the render target NOTE(harsh): MUST do this before any draw or clear calls
-    r->DeviceContext->OMSetRenderTargets(1, &r->BackBufferRTV, NULL);
-
-    // clear the screen with pastel green
-    float background_colour[4] = {119.0f / 255.0f, 221.0f / 255.0f, 119.0f / 255.0f, 1.0f};
-    r->DeviceContext->ClearRenderTargetView(r->BackBufferRTV, background_colour);
-
-    // set the viewport for drawing
-    RECT win_rect;
-    GetClientRect(window->Handle, &win_rect);
-    D3D11_VIEWPORT viewport = {
-        0.0f,
-        0.0f,
-        640.0f,
-        360.0f,
-        0.0f,
-        1.0f,
-    };
-    r->DeviceContext->RSSetViewports(1, &viewport);
-
-    // set primitive topology to draw triangles
-    r->DeviceContext->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
-
-    // set the shader input layout
-    r->DeviceContext->IASetInputLayout(r->Shaders[0]->InputLayout);
-
-    // set the vertex buffer, the vertex shader and the pixel shader to use for the draw call
-    // TODO(harsh): move all this data to the Shader struct
-    UINT vertex_stride = 3 * sizeof(float);
-    UINT vertex_offset = 0;
-    UINT vertex_count = 3;
-    r->DeviceContext->IASetVertexBuffers(0, 1, &r->TriangleMesh->VertexBuffer, &vertex_stride, &vertex_offset);
-    r->DeviceContext->VSSetShader(r->Shaders[0]->VertexShader, NULL, 0);
-    r->DeviceContext->PSSetShader(r->Shaders[0]->PixelShader, NULL, 0);
-
-    // =============== FINAL DRAW CALL!!! ===============
-    r->DeviceContext->Draw(vertex_count, vertex_offset);
 
     // VERY IMPORTANT Finally Swap the back-buffer to show it
     r->SwapChain->Present(1, 0);

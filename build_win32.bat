@@ -38,7 +38,7 @@ for /f "delims=" %%A in ('powershell -NoProfile -Command "[System.Diagnostics.St
 :: TODO(harsh): pass a -debug / -release flag to this batch file, to figure out which build command to run
 :: NOTE(harsh): Clang complier DEBUG build command
 :: (this is called a unity build, because we only have one translation unit i.e. win32_main.cpp)
-clang++ -I. src\win32\win32_platform.cpp -o build\debug\win32_d3d11_main.exe -g -DISEKAIED_DEBUG -Xlinker /subsystem:windows -luser32 -ld3d11 -ld3dcompiler
+clang++ -std=c++20 -I. src\win32\win32_platform.cpp -o build\debug\win32_d3d11_main.exe -g -DISEKAIED_DEBUG -Xlinker /subsystem:windows -luser32 -ld3d11 -ld3dcompiler
 
 :: ============================================================
 :: Stop build timer

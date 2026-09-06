@@ -1,5 +1,6 @@
 #pragma once
 
+#include "src/utils/game_math.h"
 #include <d3d11.h>
 
 
@@ -23,6 +24,12 @@ struct Shader
 struct Mesh
 {
     ID3D11Buffer* VertexBuffer;
+    ID3D11Buffer* IndexBuffer;
+    UINT VertexCount;
+    UINT VertexStride;
+    UINT VertexOffset;
+    UINT IndexCount;
+    UINT IndexOffset;
 };
 // ====================================== TEMP END ======================================
 
@@ -39,5 +46,7 @@ struct Renderer
     ID3D11ShaderResourceView* InternalSRV;
 
     Shader* Shaders[Shader_Count];
+
     Mesh* TriangleMesh;
+    Mesh* QuadMesh;
 };
