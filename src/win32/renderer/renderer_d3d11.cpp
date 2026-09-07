@@ -4,8 +4,8 @@
 
 #include <assert.h>
 #include <dxgiformat.h>
-#include <iterator>
 
+#include "mesh.h"
 #include "src/main.h"
 #include "src/game.h"
 #include "src/utils/constants.h"
@@ -19,121 +19,6 @@ namespace
 
 
     /*
-        Compiles the vertex and pixel shaders from shader_file_path using compile_options.
-        Sets the resulting shader in the Renderer's Shaders array.
-        if input_element_desc != nullptr then the InputLayout for the shader is also created.
-        WARNING: the input_element_count must be > 0 when input_element_desc is passed in
-
-        Returns S_OK on success, otherwise the failing HRESULT.
-    */
-    HRESULT CreateShader(
-        Renderer* r,
-        ShaderID shader_id,
-        const wchar_t* shader_file_path,
-        UINT compile_options,
-        D3D11_INPUT_ELEMENT_DESC* input_element_desc,
-        UINT input_element_count)
-    {
-        ID3DBlob *vs_blob = nullptr, *ps_blob = nullptr, *error_blob = nullptr;
-        Shader* shader = new Shader{};
-
-        HRESULT result;
-
-        // compile vertex shader
-        result = D3DCompileFromFile(
-            shader_file_path,
-            NULL,
-            D3D_COMPILE_STANDARD_FILE_INCLUDE,
-            "vs_main",
-            "vs_5_0",
-            compile_options,
-            NULL,
-            &vs_blob,
-            &error_blob);
-        if (FAILED(result))
-            goto cleanup;
-        result = r->Device->CreateVertexShader(
-            vs_blob->GetBufferPointer(),
-            vs_blob->GetBufferSize(),
-            NULL,
-            &shader->VertexShader);
-        if (FAILED(result))
-            goto cleanup;
-
-
-        // reset the error blob after last call
-        if (error_blob)
-        {
-            PlatformPrintDebug((char*)error_blob->GetBufferPointer());
-            error_blob->Release();
-            error_blob = nullptr;
-        }
-
-
-        // compile pixel shader
-        result = D3DCompileFromFile(
-            shader_file_path,
-            NULL,
-            D3D_COMPILE_STANDARD_FILE_INCLUDE,
-            "ps_main",
-            "ps_5_0",
-            compile_options,
-            NULL,
-            &ps_blob,
-            &error_blob);
-        if (FAILED(result))
-            goto cleanup;
-        result = r->Device->CreatePixelShader(
-            ps_blob->GetBufferPointer(),
-            ps_blob->GetBufferSize(),
-            NULL,
-            &shader->PixelShader);
-        if (FAILED(result))
-            goto cleanup;
-
-        // Input Layout setup for the shader
-        if (input_element_desc)
-        {
-            result = r->Device->CreateInputLayout(
-                input_element_desc,
-                input_element_count,
-                vs_blob->GetBufferPointer(),
-                vs_blob->GetBufferSize(),
-                &shader->InputLayout);
-            if (FAILED(result))
-                goto cleanup;
-        }
-
-        // set the shader in the Renderer shader array
-        // TODO(harsh): use Arena allocator for this shader allocation
-        r->Shaders[shader_id] = shader;
-
-    cleanup:
-        if (error_blob)
-        {
-            PlatformPrintDebug((char*)error_blob->GetBufferPointer());
-            error_blob->Release();
-        }
-        if (vs_blob)
-            vs_blob->Release();
-        if (ps_blob)
-            ps_blob->Release();
-        if (FAILED(result))
-        {
-            if (shader->VertexShader)
-                shader->VertexShader->Release();
-            if (shader->PixelShader)
-                shader->PixelShader->Release();
-            if (shader->InputLayout)
-                shader->InputLayout->Release();
-            delete shader;
-        }
-
-        return result;
-    }
-
-
-    /*
         Sets up DirectX11 by creating the swapchain, Device.
         Writes the resulting pointers to the Renderer passed in.
 
@@ -144,9 +29,8 @@ namespace
 
         DXGI_SWAP_CHAIN_DESC sd = {};
         sd.BufferCount = 2;
-        // 16:9 aspect ratio
-        sd.BufferDesc.Width = 640;
-        sd.BufferDesc.Height = 360;
+        sd.BufferDesc.Width = DEFAULT_WINDOW_RESOLUTION.x;
+        sd.BufferDesc.Height = DEFAULT_WINDOW_RESOLUTION.y;
         // NOTE(harsh): sRGB is non-linear color encoding as human eye's are more sensitive to darker tones than
         // brighter tones, when creating textures make sure to specifiy DXGI_FORMAT_R8G8B8A8_UNORM_SRGB in texture
         // description the GPU will handle the sRGB -> Linear conversion
@@ -192,53 +76,14 @@ namespace
 
 
     /*
-        Loads all the vertex & pixel shaders TODO(harsh): implemente shader compilation caching andload from cache.
-        If no cache found Compiles the shaders and creates there input layouts.
-        Creates a Shader struct containing pointers to the input_layout, vertex & fragment shaders,
-        and writes them into the Shaders[] on the renderer
-    */
-    HRESULT LoadAllShaders(Renderer* r)
-    {
-        UINT compile_options = D3DCOMPILE_ENABLE_STRICTNESS;
-#if defined(ISEKAIED_DEBUG)
-        compile_options |= D3DCOMPILE_DEBUG;
-#endif
-
-
-        // loading default shader
-        D3D11_INPUT_ELEMENT_DESC default_input_element_desc[] = {
-            {"POS", 0, DXGI_FORMAT_R32G32B32_FLOAT, 0, 0, D3D11_INPUT_PER_VERTEX_DATA, 0}};
-        HRESULT result = CreateShader(
-            r,
-            Shader_Default,
-            L"C:/Users/Harsh/Desktop/personal_dev/cpp_game/src/win32/renderer/shaders_d3d11/default.hlsl",
-            compile_options,
-            default_input_element_desc,
-            std::size(default_input_element_desc));
-        if (FAILED(result))
-            return result;
-
-        // loading pixelart upscale shader
-        result = CreateShader(
-            r,
-            Shader_Upscale,
-            L"C:/Users/Harsh/Desktop/personal_dev/cpp_game/src/win32/renderer/shaders_d3d11/upscale.hlsl",
-            compile_options,
-            nullptr,
-            NULL);
-        if (FAILED(result))
-            return result;
-
-        return S_OK;
-    }
-
-
-    /*
-        Creates and setups the Render textures i.e. BackBufferRender texture & InternalRenderTexture and the
+        Creates the Render textures i.e. BackBufferRender texture & InternalRenderTexture and the
         RenderTargetView/ShaderResourceView i.e. InteralRenderTextureRTV & InternalRenderTextureSRV for the
-        InternalRenderTexture
+        InternalRenderTexture AND,
+        Sets the created Render Textures in the appropriate field on the renderer
+
+        On Sucess returns S_OK, otherwise returns the failure HRESULT code
     */
-    HRESULT CreateRenderTextures(Renderer* r)
+    HRESULT CreateAndSetRenderTextures(Renderer* r)
     {
         HRESULT result;
 
@@ -250,8 +95,6 @@ namespace
         internal_texture_desc.ArraySize = 1;
         internal_texture_desc.Format = DXGI_FORMAT_R8G8B8A8_UNORM;
         internal_texture_desc.SampleDesc.Count = 1;
-        // TODO(harsh): do i really need default usage here? since i'll use this texture to
-        // paint on it?? LOOK AT UP
         internal_texture_desc.Usage = D3D11_USAGE_DEFAULT;
         internal_texture_desc.BindFlags = D3D11_BIND_RENDER_TARGET | D3D11_BIND_SHADER_RESOURCE;
         result = r->Device->CreateTexture2D(&internal_texture_desc, NULL, &r->InternalRenderTexture);
@@ -297,6 +140,27 @@ namespace
         return S_OK;
     }
 
+    /*
+        Creates the point sampler and sets it on the Renderer PointSampler field
+        On Sucess returns S_OK, otherwise returns the failure HRESULT code
+    */
+    HRESULT CreateAndSetPointSampler(Renderer* r)
+    {
+        D3D11_SAMPLER_DESC sd = {};
+        // NOTE(harsh): nearest-neighbour sampling, no blurring
+        sd.Filter = D3D11_FILTER_MIN_MAG_MIP_POINT;
+        sd.AddressU = D3D11_TEXTURE_ADDRESS_CLAMP;
+        sd.AddressV = D3D11_TEXTURE_ADDRESS_CLAMP;
+        sd.AddressW = D3D11_TEXTURE_ADDRESS_CLAMP;
+        sd.ComparisonFunc = D3D11_COMPARISON_NEVER;
+        HRESULT result = r->Device->CreateSamplerState(&sd, &r->PointSampler);
+        if (FAILED(result))
+        {
+            return result;
+        }
+
+        return S_OK;
+    }
 
     void RenderPass_Game(Renderer* r, Game* g)
     {
@@ -308,6 +172,7 @@ namespace
         r->DeviceContext->ClearRenderTargetView(r->InternalRTV, background_colour);
 
         // set the internal render viewport
+        // NOTE(harsh): the internal render resolution is set here that determines the aspect ratio
         D3D11_VIEWPORT internal_render_viewport = {
             0.0f,
             0.0f,
@@ -321,16 +186,14 @@ namespace
         // set the topology for draw calls
         r->DeviceContext->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
 
-        // set the input layout
+        // set vertex & pixel shader and input layout to be used
         Shader* default_shader = r->Shaders[Shader_Default];
-
-        // set vertex and pixel shader and input layout to be used
         r->DeviceContext->VSSetShader(default_shader->VertexShader, NULL, 0);
         r->DeviceContext->PSSetShader(default_shader->PixelShader, NULL, 0);
         r->DeviceContext->IASetInputLayout(default_shader->InputLayout);
 
 
-        // ====================== DRAW CALLS ======================
+        // ====================== TEMP DRAWING A RAW QUAD MESH ======================
 
         // bind the quad vertex buffer for drawing
         r->DeviceContext->IASetVertexBuffers(
@@ -351,10 +214,66 @@ namespace
             r->QuadMesh->IndexCount,
             r->QuadMesh->IndexOffset,
             r->QuadMesh->VertexOffset);
+
+        // ==========================================================================
     }
 
     void RenderPass_Upscale(Renderer* r)
     {
+        // set the backbuffer as render target
+        r->DeviceContext->OMSetRenderTargets(1, &r->BackBufferRTV, NULL);
+
+        // set the viewport that should be the exact same as the window
+        // TODO(harsh): make the viewport width and height set by settings also must be a float
+        D3D11_VIEWPORT backbuffer_render_viewport = {
+            0.0f,
+            0.0f,
+            DEFAULT_WINDOW_RESOLUTION.x,
+            DEFAULT_WINDOW_RESOLUTION.y,
+            0.0f,
+            1.0f,
+        };
+        r->DeviceContext->RSSetViewports(1, &backbuffer_render_viewport);
+
+        // set the topology for draw calls
+        r->DeviceContext->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
+
+        // set the vertex & pixel shader and input layout
+        Shader* upscale_shader = r->Shaders[Shader_Upscale];
+        r->DeviceContext->VSSetShader(upscale_shader->VertexShader, NULL, 0);
+        r->DeviceContext->PSSetShader(upscale_shader->PixelShader, NULL, 0);
+        r->DeviceContext->IASetInputLayout(upscale_shader->InputLayout);
+
+
+        // ========================= DRAW THE UPSCALED TEXTURE =========================
+
+        // bind upscale_quad_mesh vertex buffer
+        r->DeviceContext->IASetVertexBuffers(
+            0,
+            1,
+            &r->UpscaleQuadMesh->VertexBuffer,
+            &r->UpscaleQuadMesh->VertexStride,
+            &r->UpscaleQuadMesh->VertexOffset);
+
+        // bind upscale_quad_mesh index buffer
+        r->DeviceContext->IASetIndexBuffer(
+            r->UpscaleQuadMesh->IndexBuffer,
+            DXGI_FORMAT_R32_UINT,
+            r->UpscaleQuadMesh->IndexOffset);
+
+        // bind internal render texture shader resource view and the point sampler
+        r->DeviceContext->PSSetShaderResources(0, 1, &r->InternalSRV);
+        r->DeviceContext->PSSetSamplers(0, 1, &r->PointSampler);
+
+        // make the upscale draw call
+        r->DeviceContext->DrawIndexed(
+            r->UpscaleQuadMesh->IndexCount,
+            r->UpscaleQuadMesh->IndexOffset,
+            r->UpscaleQuadMesh->VertexOffset);
+
+        // unbind InternalSRV — it must be free before next frame's RenderPass_Game else D3D11 gives a warning
+        ID3D11ShaderResourceView* null_srv = NULL;
+        r->DeviceContext->PSSetShaderResources(0, 1, &null_srv);
     }
 
 } // namespace
@@ -384,127 +303,33 @@ Renderer* RendererCreateAndInit(PlatformWindow* window)
     }
 
     result = LoadAllShaders(r);
-    if (FAILED(result))
+    if (result == -1)
     {
         PlatformPrintDebugF(
             "[ERROR] D3D11 LoadAllShaders FAILED! with error code: %d", result);
         return nullptr;
     }
 
-    result = CreateRenderTextures(r);
+    result = CreateAndSetRenderTextures(r);
     if (FAILED(result))
     {
         PlatformPrintDebugF(
-            "[ERROR] D3D11 CreateRenderTextures FAILED! with error code: %d", result);
+            "[ERROR] D3D11 CreateAndSetRenderTextures FAILED! with error code: %d", result);
         return nullptr;
     }
 
-
-    // NOTE(harsh): TEMPORARY INLINE UPOLOAD OF TRIANGLE MESH DATA
-    // TODO(harsh): create a seprate mesh/triangle_d3d11.cpp file and move this into
-    // CreateTriangleMesh function or something
+    result = CreateAndSetPointSampler(r);
+    if (FAILED(result))
     {
-
-        // ============================= UPLOADING TRIANGLE MESH VERTEX BUFFER =============================
-
-        // TODO(harsh): use arena allocator
-        r->TriangleMesh = new Mesh{};
-
-        // vertex buffer data
-        // clang-format off
-        float triangle_vertex_buffer_data[] = {
-             0.0f,  0.5f, 0.0f, // top (D3D11 Y+ Up convention, this is temporary i'll use Y+ Down Convention later)
-             0.5f, -0.5f, 0.0f, // bottom-right
-            -0.5f, -0.5f, 0.0f, // bottom-left
-        };
-        // clang-format on
-        r->TriangleMesh->VertexBuffer = nullptr;
-
-        // set vertex buffer info
-        r->TriangleMesh->VertexStride = sizeof(float) * 3;
-        r->TriangleMesh->VertexCount = 3;
-        r->TriangleMesh->VertexOffset = 0;
-
-        // upload vertex buffer
-        D3D11_BUFFER_DESC triangle_vertex_buff_desc = {};
-        triangle_vertex_buff_desc.ByteWidth = sizeof(triangle_vertex_buffer_data);
-        triangle_vertex_buff_desc.Usage = D3D11_USAGE_IMMUTABLE;
-        triangle_vertex_buff_desc.BindFlags = D3D11_BIND_VERTEX_BUFFER;
-        D3D11_SUBRESOURCE_DATA triangle_vertex_buffer_sr_data = {};
-        triangle_vertex_buffer_sr_data.pSysMem = triangle_vertex_buffer_data;
-        result = r->Device->CreateBuffer(&triangle_vertex_buff_desc, &triangle_vertex_buffer_sr_data, &r->TriangleMesh->VertexBuffer);
-        if (FAILED(result))
-        {
-            PlatformPrintDebugF(
-                "[ERROR] D3D11 Triangle Vertex Buffer creation FAILED! with error code: %d", result);
-            return nullptr;
-        }
-
-
-        // ============================= UPLOADING QUAD MESH VERTEX BUFFER =============================
-
-        // TODO(harsh): use arena allocator
-        r->QuadMesh = new Mesh{};
-
-        // vertex buffer data
-        // clang-format off
-        float quad_vertex_buffer_data[] = {
-             0.5f,  0.5f, 0.0f, // top-right
-             0.5f, -0.5f, 0.0f, // bottom-right
-            -0.5f,  0.5f, 0.0f, // top-left
-            -0.5f, -0.5f, 0.0f, // bottom-left
-        };
-
-        // index buffer data
-        // NOTE(harsh): the indices must be in clockwise order for each triangle otherwise it won't be drawn
-        // because of back culling.
-        int unsigned quad_index_buffer_data[] = {
-            2, 0, 1, // top half triangle
-            2, 1, 3, // bottom half triangle
-        };
-        // clang-format on
-        r->QuadMesh->VertexBuffer = nullptr;
-
-        // set vertex buffer info
-        r->QuadMesh->VertexStride = sizeof(float) * 3;
-        r->QuadMesh->VertexCount = 4;
-        r->QuadMesh->VertexOffset = 0;
-
-        // upload vertex buffer
-        D3D11_BUFFER_DESC quad_vertex_buffer_desc = {};
-        quad_vertex_buffer_desc.ByteWidth = sizeof(quad_vertex_buffer_data);
-        quad_vertex_buffer_desc.Usage = D3D11_USAGE_IMMUTABLE;
-        quad_vertex_buffer_desc.BindFlags = D3D11_BIND_VERTEX_BUFFER;
-        D3D11_SUBRESOURCE_DATA quad_vertex_buffer_sr_data = {};
-        quad_vertex_buffer_sr_data.pSysMem = quad_vertex_buffer_data;
-        result = r->Device->CreateBuffer(&quad_vertex_buffer_desc, &quad_vertex_buffer_sr_data, &r->QuadMesh->VertexBuffer);
-        if (FAILED(result))
-        {
-            PlatformPrintDebugF(
-                "[ERROR] D3D11 Quad Vertex Buffer creation FAILED! with error code: %d", result);
-            return nullptr;
-        }
-
-        // set index buffer info
-        r->QuadMesh->IndexCount = std::size(quad_index_buffer_data);
-        r->QuadMesh->IndexOffset = 0;
-
-        // upload index buffer
-        D3D11_BUFFER_DESC quad_index_buffer_desc = {};
-        quad_index_buffer_desc.ByteWidth = sizeof(quad_index_buffer_data);
-        quad_index_buffer_desc.Usage = D3D11_USAGE_IMMUTABLE;
-        quad_index_buffer_desc.BindFlags = D3D11_BIND_INDEX_BUFFER;
-        D3D11_SUBRESOURCE_DATA quad_index_buffer_sr_data = {};
-        quad_index_buffer_sr_data.pSysMem = quad_index_buffer_data;
-        result = r->Device->CreateBuffer(&quad_index_buffer_desc, &quad_index_buffer_sr_data, &r->QuadMesh->IndexBuffer);
-        if (FAILED(result))
-        {
-            PlatformPrintDebugF(
-                "[ERROR] D3D11 Quad Index Buffer creation FAILED! with error code: %d", result);
-            return nullptr;
-        }
+        PlatformPrintDebugF(
+            "[ERROR] D3D11 CreateAndSetPointSampler FAILED! with error code: %d", result);
+        return nullptr;
     }
 
+    // upload mesh vertex/index buffers
+    r->UpscaleQuadMesh = CreateUpscaleQuadMesh(r->Device);
+    r->TriangleMesh = CreateTriangleMesh(r->Device);
+    r->QuadMesh = CreateQuadMesh(r->Device);
 
     return r;
 }
@@ -519,6 +344,7 @@ void RendererUpdate(Renderer* r, Game* g, PlatformWindow* window)
 
     // ======================== GAME RENDER PASS ========================
     RenderPass_Game(r, g);
+    RenderPass_Upscale(r);
 
 
     // VERY IMPORTANT Finally Swap the back-buffer to show it

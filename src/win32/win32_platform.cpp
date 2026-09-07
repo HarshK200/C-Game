@@ -11,6 +11,8 @@
 #include "src/game.cpp"
 #include "src/win32/win32_platform.h"
 #include "src/win32/win32_input.cpp"
+#include "src/win32/renderer/mesh.cpp"
+#include "src/win32/renderer/shader_d3d11.cpp"
 #include "src/win32/renderer/renderer_d3d11.cpp"
 #include "src/utils/game_math.cpp"
 
@@ -66,7 +68,8 @@ namespace
             WS_OVERLAPPEDWINDOW | WS_VISIBLE,
             CW_USEDEFAULT,
             CW_USEDEFAULT,
-            640, 360,
+            DEFAULT_WINDOW_RESOLUTION.x,
+            DEFAULT_WINDOW_RESOLUTION.y,
             0, 0,
             Instance,
             0);

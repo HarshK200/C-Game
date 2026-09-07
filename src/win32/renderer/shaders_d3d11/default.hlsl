@@ -1,6 +1,6 @@
 // input struct
 struct vs_in {
-    float3 pos : POS;
+    float3 pos : POS0;
 };
 // output struct
 struct vs_out {

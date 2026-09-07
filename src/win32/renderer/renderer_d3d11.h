@@ -1,37 +1,10 @@
 #pragma once
 
-#include "src/utils/game_math.h"
 #include <d3d11.h>
 
-
-// ====================================== TEMP START ======================================
-// TODO(harsh): Temporarly placed here, move these structs to there
-// dedicated file, like shader_d3d11.cpp, mesh_d3d11.h and triangle_mesh_d3d11.cpp
-// which includes the mesh_d3d11.h file for Mesh struct definition
-enum ShaderID
-{
-    Shader_Default = 0,
-    Shader_Upscale = 1,
-    Shader_Count // always the last gives the Shader* array size for free
-};
-struct Shader
-{
-    ID3D11VertexShader* VertexShader;
-    ID3D11PixelShader* PixelShader;
-    ID3D11InputLayout* InputLayout;
-};
-// TODO(harsh): make a CreateMesh function which will upload the mesh's vertex data
-struct Mesh
-{
-    ID3D11Buffer* VertexBuffer;
-    ID3D11Buffer* IndexBuffer;
-    UINT VertexCount;
-    UINT VertexStride;
-    UINT VertexOffset;
-    UINT IndexCount;
-    UINT IndexOffset;
-};
-// ====================================== TEMP END ======================================
+#include "src/utils/game_math.h"
+#include "src/win32/renderer/mesh.h"
+#include "src/win32/renderer/shader_d3d11.h"
 
 
 struct Renderer
@@ -46,7 +19,9 @@ struct Renderer
     ID3D11ShaderResourceView* InternalSRV;
 
     Shader* Shaders[Shader_Count];
+    ID3D11SamplerState* PointSampler; // TODO(harsh): maybe create a ID3D11SamplerState* array like the shader arary?
 
+    Mesh* UpscaleQuadMesh;
     Mesh* TriangleMesh;
     Mesh* QuadMesh;
 };
