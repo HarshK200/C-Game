@@ -1,6 +1,7 @@
 #pragma once
 #include <d3d11.h>
 
+#include "src/utils/arena_allocator.h"
 
 struct Mesh
 {
@@ -14,6 +15,6 @@ struct Mesh
 };
 
 
-Mesh* CreateUpscaleQuadMesh(ID3D11Device* device);
-Mesh* CreateTriangleMesh(ID3D11Device* device);
-Mesh* CreateQuadMesh(ID3D11Device* device);
+Mesh* CreateUpscaleQuadMesh(ID3D11Device* device, ArenaAllocator* permanent_allocator);
+Mesh* CreateTriangleMesh(ID3D11Device* device, ArenaAllocator* permanent_allocator);
+Mesh* CreateQuadMesh(ID3D11Device* device, ArenaAllocator* permanent_allocator);

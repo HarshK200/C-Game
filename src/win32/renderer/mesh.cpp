@@ -13,9 +13,9 @@
     Uploads Upscale quad mesh vertex & index buffer to the GPU,
     Returns the resulting pointer on success, otherwise returns a nullptr on failure
 */
-Mesh* CreateUpscaleQuadMesh(ID3D11Device* device)
+Mesh* CreateUpscaleQuadMesh(ID3D11Device* device, ArenaAllocator* permanent_allocator)
 {
-    Mesh* upscale_quad_mesh = new Mesh{};
+    Mesh* upscale_quad_mesh = (Mesh*)ArenaAlloc(permanent_allocator, sizeof(Mesh));
     // vertex buffer data
     // clang-format off
     float vertex_buffer_data[] = {
@@ -84,10 +84,9 @@ Mesh* CreateUpscaleQuadMesh(ID3D11Device* device)
     Uploads triangle mesh vertex buffer to the GPU.
     Returns the resulting pointer on success, otherwise returns a nullptr on failure
 */
-Mesh* CreateTriangleMesh(ID3D11Device* device)
+Mesh* CreateTriangleMesh(ID3D11Device* device, ArenaAllocator* permanent_allocator)
 {
-    // TODO(harsh): use arena allocator
-    Mesh* triangle_mesh = new Mesh{};
+    Mesh* triangle_mesh = (Mesh*)ArenaAlloc(permanent_allocator, sizeof(Mesh));
 
     // vertex buffer data
     // clang-format off
@@ -128,10 +127,9 @@ Mesh* CreateTriangleMesh(ID3D11Device* device)
     Uploads quad mesh vertex & index buffer to the GPU,
     Returns the resulting pointer on success, otherwise returns a nullptr on failure
 */
-Mesh* CreateQuadMesh(ID3D11Device* device)
+Mesh* CreateQuadMesh(ID3D11Device* device, ArenaAllocator* permanent_allocator)
 {
-    // TODO(harsh): use arena allocator
-    Mesh* quad_mesh = new Mesh{};
+    Mesh* quad_mesh = (Mesh*)ArenaAlloc(permanent_allocator, sizeof(Mesh));
 
     // vertex buffer data
     // clang-format off

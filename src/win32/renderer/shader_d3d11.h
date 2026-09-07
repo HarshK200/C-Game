@@ -19,6 +19,7 @@ struct Shader
 
 Shader* CreateShader(
     Renderer* r,
+    ArenaAllocator* permanent_allocator,
     ShaderID shader_id,
     const wchar_t* shader_file_path,
     UINT compile_options,
@@ -26,4 +27,4 @@ Shader* CreateShader(
     UINT input_element_count);
 
 
-int LoadAllShaders(Renderer* r);
+int LoadAllShaders(Renderer* r, ArenaAllocator* permanent_allocator);

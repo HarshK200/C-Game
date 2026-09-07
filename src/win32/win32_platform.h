@@ -2,6 +2,7 @@
 #include <Windows.h>
 
 #include "src/main.h"
+#include "src/utils/arena_allocator.h"
 
 
 // Struct Definitions Only
@@ -19,4 +20,7 @@ struct PlatformApp
     PlatformWindow* Window;
     Game* Game;
     Renderer* Renderer; // D3D11
+
+    ArenaAllocator PermanentAllocator;
+    ArenaAllocator TempAllocator;
 };

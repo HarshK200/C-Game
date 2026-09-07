@@ -1,4 +1,5 @@
 #pragma once
+#include "src/utils/arena_allocator.h"
 
 
 // NOTE(harsh): platform layer services (types defined in platform.h)
@@ -15,11 +16,11 @@ void InputPollMessage(PlatformApp* app);
 
 // NOTE(harsh): game layer services
 struct Game;
-Game* GameCreateAndInit();
+Game* GameCreateAndInit(ArenaAllocator* persistent_allocator);
 void GameUpdate(Game* g); // TODO(harsh): pass delta_time, InputManager
 
 
 // NOTE(harsh): rendering layer services
 struct Renderer;
-Renderer* RendererCreateAndInit(PlatformWindow* window);
+Renderer* RendererCreateAndInit(PlatformWindow* window, ArenaAllocator* permanent_allocator);
 void RendererUpdate(Renderer* r, Game* g, PlatformWindow* window);

@@ -229,7 +229,7 @@ namespace
         r->DeviceContext->ClearRenderTargetView(r->BackBufferRTV, black);
 
         // set the viewport that should be the exact same as the window
-        // TODO(harsh): make the viewport width and height set by settings also must be a float
+        // TODO(harsh): make the viewport width and height set by settings.
         D3D11_VIEWPORT backbuffer_render_viewport = {
             0.0f,
             0.0f,
@@ -290,14 +290,13 @@ namespace
     Creates and initializes a D3D11 renderer (allocates renderer).
     Returns Renderer* if succeeds otherwise returns nullptr.
 
-    NOTE(harsh): the allocated memory is not tracked you must track and free the renderer
-    yourself or use an arena allocater, TODO(harsh): i gotta implement that allocater > o <
+    NOTE(harsh): allocates using passed in permanent_allocator, any temporary variables
+    lives on the stack and automatically popped when function returns
 */
-Renderer* RendererCreateAndInit(PlatformWindow* window)
+Renderer* RendererCreateAndInit(PlatformWindow* window, ArenaAllocator* permanent_allocator)
 {
     LOG_INFO("Renderer Init");
-    // TODO(harsh): allocate using a arena allocator
-    Renderer* r = new Renderer{};
+    Renderer* r = (Renderer*)ArenaAlloc(permanent_allocator, sizeof(Renderer));
 
     HRESULT result = SetupD3D11(window->Handle, r);
     if (FAILED(result))
@@ -306,7 +305,7 @@ Renderer* RendererCreateAndInit(PlatformWindow* window)
         return nullptr;
     }
 
-    result = LoadAllShaders(r);
+    result = LoadAllShaders(r, permanent_allocator);
     if (result == -1)
     {
         // PlatformPrintDebugF( "[ERROR] D3D11 LoadAllShaders FAILED! with error code: %d", result);
@@ -330,18 +329,18 @@ Renderer* RendererCreateAndInit(PlatformWindow* window)
     // load all texture
 
     // upload mesh vertex/index buffers
-    r->UpscaleQuadMesh = CreateUpscaleQuadMesh(r->Device);
-    r->TriangleMesh = CreateTriangleMesh(r->Device);
-    r->QuadMesh = CreateQuadMesh(r->Device);
+    r->UpscaleQuadMesh = CreateUpscaleQuadMesh(r->Device, permanent_allocator);
+    r->TriangleMesh = CreateTriangleMesh(r->Device, permanent_allocator);
+    r->QuadMesh = CreateQuadMesh(r->Device, permanent_allocator);
 
     return r;
 }
 
-// TODO(harsh): Setup the 2 pass rendering,
-// 1st PASS: game render on InternalRenderTexture's RenderTargetView.
-// 2nd PASS: take that InternalRenderTexture and pass that to a blit shader which will sample that
-// texture with a PointSampler i.e. NearestNeighbourSampling onto the BackBufferRenderTargetView
-// then finally we present the backbuffer
+// GAME_PASS: game render on InternalRenderTexture's RenderTargetView.
+// UPSCALE_PASS: take that InternalRenderTexture and pass that to a upscale shader which samples
+// internal render texture with a PointSampler i.e. NearestNeighbourSampling onto the
+// BackBufferRenderTargetView.
+// Then finally present's the backbuffer
 void RendererUpdate(Renderer* r, Game* g, PlatformWindow* window)
 {
 
