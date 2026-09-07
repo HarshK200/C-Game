@@ -35,10 +35,14 @@ for /f "delims=" %%A in ('powershell -NoProfile -Command "[System.Diagnostics.St
 :: compile with cl i.e. msvc compiler so its fully compatible with visual studio debugger
 :: cl src\win32_main.cpp /Zi /Fo:build\debug\ /Fe:build\debug\win32_d3d11_main.exe /link /SUBSYSTEM:WINDOWS user32.lib
 
+set "defines=-DISEKAIED_DEBUG"
+set "libs=-luser32 -ld3d11 -ld3dcompiler"
+set "warnings=-Wno-format-security"
+
 :: TODO(harsh): pass a -debug / -release flag to this batch file, to figure out which build command to run
 :: NOTE(harsh): Clang complier DEBUG build command
 :: (this is called a unity build, because we only have one translation unit i.e. win32_main.cpp)
-clang++ -std=c++20 -I. src\main.cpp -o build\debug\win32_d3d11_main.exe -g -DISEKAIED_DEBUG -luser32 -ld3d11 -ld3dcompiler
+clang++ -std=c++20 -I. src\main.cpp -o build\debug\win32_d3d11_main.exe -g %defines% %libs% %warnings%
 
 :: ============================================================
 :: Stop build timer

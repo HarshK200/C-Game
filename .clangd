@@ -3,4 +3,5 @@ CompileFlags:
     - -Ic:/Users/Harsh/Desktop/personal_dev/cpp_game/
     - -DISEKAIED_DEBUG
     - -std=c++20
+    - -Wno-format-security
   Compiler: clang++

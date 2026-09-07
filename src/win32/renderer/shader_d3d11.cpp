@@ -3,6 +3,7 @@
 #include <iterator>
 
 #include "src/main.h"
+#include "src/utils/log.h"
 #include "src/win32/renderer/renderer_d3d11.h"
 #include "src/win32/renderer/shader_d3d11.h"
 
@@ -54,7 +55,7 @@ Shader* CreateShader(
     // reset the error blob after last call
     if (error_blob)
     {
-        // PlatformPrintDebug((char*)error_blob->GetBufferPointer());
+        LOG_ASSERT(false, (char*)error_blob->GetBufferPointer());
         error_blob->Release();
         error_blob = nullptr;
     }
@@ -97,8 +98,9 @@ Shader* CreateShader(
 cleanup:
     if (error_blob)
     {
-        // PlatformPrintDebug((char*)error_blob->GetBufferPointer());
+        LOG_ASSERT(false, (char*)error_blob->GetBufferPointer());
         error_blob->Release();
+        error_blob = nullptr;
     }
     if (vs_blob)
         vs_blob->Release();

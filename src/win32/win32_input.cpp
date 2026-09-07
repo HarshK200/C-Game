@@ -1,6 +1,7 @@
 #include <Windows.h>
 
 #include "src/main.h"
+#include "src/utils/log.h"
 #include "src/win32/win32_input.h"
 
 // ================== Internal functions only to be used by win32_platform ==================
@@ -51,14 +52,14 @@ void InputPollMessage(PlatformApp* app)
     BOOL result = GetMessage(&Message, NULL, 0, 0);
     if (result == 0)
     {
-        // PlatformPrintDebug("[INFO] Close key pressed exiting");
+        LOG_INFO("Close key pressed exiting...");
         app->ShouldClose = true;
         app->ExitCode = 0;
         return;
     }
     if (result < 0)
     {
-        // PlatformPrintDebug("[ERROR] occured exiting");
+        LOG_ASSERT(false, "failed processing input, exiting...");
         app->ShouldClose = true;
         app->ExitCode = -1;
         return;

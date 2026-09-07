@@ -6,6 +6,7 @@
 
 #include "src/main.h"
 #include "src/utils/arena_allocator.h"
+#include "src/utils/log.h"
 
 
 struct ArenaAllocator
@@ -45,7 +46,7 @@ inline char* ArenaAlloc(ArenaAllocator* arena_allocator, size_t size)
     size_t alignment_size = (size + 7) & ~7;
     if (arena_allocator->used + alignment_size > arena_allocator->capacity)
     {
-        // PlatformPrintDebug("[ERROR] Arena allocation failed! capacity exceeded");
+        LOG_ASSERT(false, "Arena allocation failed! capacity exceeded");
         return nullptr;
     }
 

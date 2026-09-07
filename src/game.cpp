@@ -1,12 +1,13 @@
 #include "src/main.h"
 #include "src/game.h"
+#include "src/utils/log.h"
 
 // creates a new game with the "new" keyword and returns the pointer to it
 // NOTE(harsh): the allocated memory is not tracker you must track and free the game
 // yourself or use an arena allocater, i gotta imlement that allocater first > o <
 Game* GameCreateAndInit()
 {
-    // PlatformPrintDebug("Game Init");
+    LOG_INFO("Game Init");
 
     // TODO(harsh): allocate using arena allocator
     Game* g = new Game{};

@@ -1,5 +1,4 @@
 #include "main.h"
-#include "src/utils/log.h"
 
 #ifdef _WIN32
 #include "src/win32/win32_platform.cpp"
@@ -9,8 +8,6 @@
 // ================== Windows Application Entry Point ==================
 int main()
 {
-    LOG_ERROR("Hello world testing error");
-
     // create app
     PlatformApp App = {};
     App.ShouldClose = false;
@@ -20,7 +17,7 @@ int main()
     App.Window = PlatformOpenWindow();
     if (!App.Window->Handle)
     {
-        // PlatformPrintDebug("[ERROR] OpenWindow failed. Exiting program...");
+        LOG_ASSERT(false, "OpenWindow failed. Exiting program...");
         App.ExitCode = -1;
         goto program_exit;
     }
@@ -29,14 +26,14 @@ int main()
     App.Game = GameCreateAndInit();
     if (!App.Game)
     {
-        // PlatformPrintDebug("[ERROR] Game init failed. Exiting program...");
+        LOG_ASSERT(false, "Game init failed. Exiting program...");
         App.ExitCode = -1;
         goto program_exit;
     }
     App.Renderer = RendererCreateAndInit(App.Window);
     if (!App.Renderer)
     {
-        // PlatformPrintDebug("[ERROR] Renderer init failed. Exiting program...");
+        LOG_ASSERT(false, "Renderer init failed. Exiting program...");
         App.ExitCode = -1;
         goto program_exit;
     }
