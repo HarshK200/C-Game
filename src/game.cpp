@@ -6,7 +6,8 @@
 // yourself or use an arena allocater, i gotta imlement that allocater first > o <
 Game* GameCreateAndInit()
 {
-    PlatformPrintDebug("Game Init");
+    // PlatformPrintDebug("Game Init");
+
     // TODO(harsh): allocate using arena allocator
     Game* g = new Game{};
 

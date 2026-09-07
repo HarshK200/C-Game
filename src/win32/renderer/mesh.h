@@ -14,6 +14,6 @@ struct Mesh
 };
 
 
-Mesh* CreateUpscaleQuadMesh(ID3D11Device* Device);
-Mesh* CreateTriangleMesh(ID3D11Device* Device);
-Mesh* CreateQuadMesh(ID3D11Device* Device);
+Mesh* CreateUpscaleQuadMesh(ID3D11Device* device);
+Mesh* CreateTriangleMesh(ID3D11Device* device);
+Mesh* CreateQuadMesh(ID3D11Device* device);

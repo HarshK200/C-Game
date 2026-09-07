@@ -1,9 +1,7 @@
 #include <d3d11.h>
 #include <iterator>
 
-#include "src/main.h"
 #include "src/win32/renderer/mesh.h"
-
 
 
 /*
@@ -15,7 +13,7 @@
     Uploads Upscale quad mesh vertex & index buffer to the GPU,
     Returns the resulting pointer on success, otherwise returns a nullptr on failure
 */
-Mesh* CreateUpscaleQuadMesh(ID3D11Device* Device)
+Mesh* CreateUpscaleQuadMesh(ID3D11Device* device)
 {
     Mesh* upscale_quad_mesh = new Mesh{};
     // vertex buffer data
@@ -50,11 +48,10 @@ Mesh* CreateUpscaleQuadMesh(ID3D11Device* Device)
     vertex_buffer_desc.BindFlags = D3D11_BIND_VERTEX_BUFFER;
     D3D11_SUBRESOURCE_DATA vertex_sr_data = {};
     vertex_sr_data.pSysMem = vertex_buffer_data;
-    HRESULT result = Device->CreateBuffer(&vertex_buffer_desc, &vertex_sr_data, &upscale_quad_mesh->VertexBuffer);
+    HRESULT result = device->CreateBuffer(&vertex_buffer_desc, &vertex_sr_data, &upscale_quad_mesh->VertexBuffer);
     if (FAILED(result))
     {
-        PlatformPrintDebugF(
-            "[ERROR] D3D11 Quad Vertex Buffer creation FAILED! with error code: %d", result);
+        // PlatformPrintDebugF( "[ERROR] D3D11 Quad Vertex Buffer creation FAILED! with error code: %d", result);
         return nullptr;
     }
 
@@ -69,11 +66,10 @@ Mesh* CreateUpscaleQuadMesh(ID3D11Device* Device)
     index_buffer_desc.BindFlags = D3D11_BIND_INDEX_BUFFER;
     D3D11_SUBRESOURCE_DATA index_sr_data = {};
     index_sr_data.pSysMem = index_buffer_data;
-    result = Device->CreateBuffer(&index_buffer_desc, &index_sr_data, &upscale_quad_mesh->IndexBuffer);
+    result = device->CreateBuffer(&index_buffer_desc, &index_sr_data, &upscale_quad_mesh->IndexBuffer);
     if (FAILED(result))
     {
-        PlatformPrintDebugF(
-            "[ERROR] D3D11 Quad Index Buffer creation FAILED! with error code: %d", result);
+        // PlatformPrintDebugF( "[ERROR] D3D11 Quad Index Buffer creation FAILED! with error code: %d", result);
         return nullptr;
     }
 
@@ -88,7 +84,7 @@ Mesh* CreateUpscaleQuadMesh(ID3D11Device* Device)
     Uploads triangle mesh vertex buffer to the GPU.
     Returns the resulting pointer on success, otherwise returns a nullptr on failure
 */
-Mesh* CreateTriangleMesh(ID3D11Device* Device)
+Mesh* CreateTriangleMesh(ID3D11Device* device)
 {
     // TODO(harsh): use arena allocator
     Mesh* triangle_mesh = new Mesh{};
@@ -115,14 +111,13 @@ Mesh* CreateTriangleMesh(ID3D11Device* Device)
     vertex_buff_desc.BindFlags = D3D11_BIND_VERTEX_BUFFER;
     D3D11_SUBRESOURCE_DATA vertex_sr_data = {};
     vertex_sr_data.pSysMem = vertex_buffer_data;
-    HRESULT result = Device->CreateBuffer(
+    HRESULT result = device->CreateBuffer(
         &vertex_buff_desc,
         &vertex_sr_data,
         &triangle_mesh->VertexBuffer);
     if (FAILED(result))
     {
-        PlatformPrintDebugF(
-            "[ERROR] D3D11 Triangle Vertex Buffer creation FAILED! with error code: %d", result);
+        // PlatformPrintDebugF( "[ERROR] D3D11 Triangle Vertex Buffer creation FAILED! with error code: %d", result);
         return nullptr;
     }
 
@@ -133,7 +128,7 @@ Mesh* CreateTriangleMesh(ID3D11Device* Device)
     Uploads quad mesh vertex & index buffer to the GPU,
     Returns the resulting pointer on success, otherwise returns a nullptr on failure
 */
-Mesh* CreateQuadMesh(ID3D11Device* Device)
+Mesh* CreateQuadMesh(ID3D11Device* device)
 {
     // TODO(harsh): use arena allocator
     Mesh* quad_mesh = new Mesh{};
@@ -169,11 +164,10 @@ Mesh* CreateQuadMesh(ID3D11Device* Device)
     vertex_buffer_desc.BindFlags = D3D11_BIND_VERTEX_BUFFER;
     D3D11_SUBRESOURCE_DATA vertex_sr_data = {};
     vertex_sr_data.pSysMem = vertex_buffer_data;
-    HRESULT result = Device->CreateBuffer(&vertex_buffer_desc, &vertex_sr_data, &quad_mesh->VertexBuffer);
+    HRESULT result = device->CreateBuffer(&vertex_buffer_desc, &vertex_sr_data, &quad_mesh->VertexBuffer);
     if (FAILED(result))
     {
-        PlatformPrintDebugF(
-            "[ERROR] D3D11 Quad Vertex Buffer creation FAILED! with error code: %d", result);
+        // PlatformPrintDebugF( "[ERROR] D3D11 Quad Vertex Buffer creation FAILED! with error code: %d", result);
         return nullptr;
     }
 
@@ -188,11 +182,10 @@ Mesh* CreateQuadMesh(ID3D11Device* Device)
     index_buffer_desc.BindFlags = D3D11_BIND_INDEX_BUFFER;
     D3D11_SUBRESOURCE_DATA index_sr_data = {};
     index_sr_data.pSysMem = index_buffer_data;
-    result = Device->CreateBuffer(&index_buffer_desc, &index_sr_data, &quad_mesh->IndexBuffer);
+    result = device->CreateBuffer(&index_buffer_desc, &index_sr_data, &quad_mesh->IndexBuffer);
     if (FAILED(result))
     {
-        PlatformPrintDebugF(
-            "[ERROR] D3D11 Quad Index Buffer creation FAILED! with error code: %d", result);
+        // PlatformPrintDebugF( "[ERROR] D3D11 Quad Index Buffer creation FAILED! with error code: %d", result);
         return nullptr;
     }
 

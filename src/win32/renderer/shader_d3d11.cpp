@@ -54,7 +54,7 @@ Shader* CreateShader(
     // reset the error blob after last call
     if (error_blob)
     {
-        PlatformPrintDebug((char*)error_blob->GetBufferPointer());
+        // PlatformPrintDebug((char*)error_blob->GetBufferPointer());
         error_blob->Release();
         error_blob = nullptr;
     }
@@ -97,7 +97,7 @@ Shader* CreateShader(
 cleanup:
     if (error_blob)
     {
-        PlatformPrintDebug((char*)error_blob->GetBufferPointer());
+        // PlatformPrintDebug((char*)error_blob->GetBufferPointer());
         error_blob->Release();
     }
     if (vs_blob)

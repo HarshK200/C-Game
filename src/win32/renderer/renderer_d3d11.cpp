@@ -100,7 +100,7 @@ namespace
         result = r->Device->CreateTexture2D(&internal_texture_desc, NULL, &r->InternalRenderTexture);
         if (FAILED(result))
         {
-            PlatformPrintDebugF("[ERROR] Creating internal render texture FAILED! with error code: %d", result);
+            // PlatformPrintDebugF("[ERROR] Creating internal render texture FAILED! with error code: %d", result);
             return result;
         }
 
@@ -108,13 +108,13 @@ namespace
         result = r->Device->CreateRenderTargetView(r->InternalRenderTexture, NULL, &r->InternalRTV);
         if (FAILED(result))
         {
-            PlatformPrintDebugF("[ERROR] Creating internal_texture RenderTargetView FAILED! with error code: %d", result);
+            // PlatformPrintDebugF("[ERROR] Creating internal_texture RenderTargetView FAILED! with error code: %d", result);
             return result;
         }
         result = r->Device->CreateShaderResourceView(r->InternalRenderTexture, NULL, &r->InternalSRV);
         if (FAILED(result))
         {
-            PlatformPrintDebugF("[ERROR] Creating internal_texture ShaderResourceView FAILED! with error code: %d", result);
+            // PlatformPrintDebugF("[ERROR] Creating internal_texture ShaderResourceView FAILED! with error code: %d", result);
             return result;
         }
 
@@ -124,7 +124,7 @@ namespace
         result = r->SwapChain->GetBuffer(0, __uuidof(ID3D11Texture2D), (void**)&back_buffer_texture);
         if (FAILED(result))
         {
-            PlatformPrintDebugF("[ERROR] SetupPixelartRenderTargets SwapChain Getting buffer FAILED! with error code: %d", result);
+            // PlatformPrintDebugF("[ERROR] SetupPixelartRenderTargets SwapChain Getting buffer FAILED! with error code: %d", result);
             return result;
         }
 
@@ -132,7 +132,7 @@ namespace
         result = r->Device->CreateRenderTargetView(back_buffer_texture, NULL, &r->BackBufferRTV);
         if (FAILED(result))
         {
-            PlatformPrintDebugF("[ERROR] SetupPixelartRenderTargets Render Target View Creation FAILED! with error code: %d", result);
+            // PlatformPrintDebugF("[ERROR] SetupPixelartRenderTargets Render Target View Creation FAILED! with error code: %d", result);
             return result;
         }
         back_buffer_texture->Release();
@@ -223,6 +223,10 @@ namespace
         // set the backbuffer as render target
         r->DeviceContext->OMSetRenderTargets(1, &r->BackBufferRTV, NULL);
 
+        // clear backbuffer render target with black color
+        float black[4] = {0.0f, 0.0f, 0.0f, 1.0f};
+        r->DeviceContext->ClearRenderTargetView(r->BackBufferRTV, black);
+
         // set the viewport that should be the exact same as the window
         // TODO(harsh): make the viewport width and height set by settings also must be a float
         D3D11_VIEWPORT backbuffer_render_viewport = {
@@ -290,41 +294,39 @@ namespace
 */
 Renderer* RendererCreateAndInit(PlatformWindow* window)
 {
-    PlatformPrintDebug("Renderer Init");
+    // PlatformPrintDebug("Renderer Init");
     // TODO(harsh): allocate using a arena allocator
     Renderer* r = new Renderer{};
 
     HRESULT result = SetupD3D11(window->Handle, r);
     if (FAILED(result))
     {
-        PlatformPrintDebugF(
-            "[ERROR] SetupD3D11 FAILED! with error code: %d", result);
+        // PlatformPrintDebugF( "[ERROR] SetupD3D11 FAILED! with error code: %d", result);
         return nullptr;
     }
 
     result = LoadAllShaders(r);
     if (result == -1)
     {
-        PlatformPrintDebugF(
-            "[ERROR] D3D11 LoadAllShaders FAILED! with error code: %d", result);
+        // PlatformPrintDebugF( "[ERROR] D3D11 LoadAllShaders FAILED! with error code: %d", result);
         return nullptr;
     }
 
     result = CreateAndSetRenderTextures(r);
     if (FAILED(result))
     {
-        PlatformPrintDebugF(
-            "[ERROR] D3D11 CreateAndSetRenderTextures FAILED! with error code: %d", result);
+        // PlatformPrintDebugF( "[ERROR] D3D11 CreateAndSetRenderTextures FAILED! with error code: %d", result);
         return nullptr;
     }
 
     result = CreateAndSetPointSampler(r);
     if (FAILED(result))
     {
-        PlatformPrintDebugF(
-            "[ERROR] D3D11 CreateAndSetPointSampler FAILED! with error code: %d", result);
+        // PlatformPrintDebugF( "[ERROR] D3D11 CreateAndSetPointSampler FAILED! with error code: %d", result);
         return nullptr;
     }
+
+    // load all texture
 
     // upload mesh vertex/index buffers
     r->UpscaleQuadMesh = CreateUpscaleQuadMesh(r->Device);
