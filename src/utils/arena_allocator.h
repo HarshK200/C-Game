@@ -56,7 +56,7 @@ inline char* ArenaAlloc(ArenaAllocator* arena_allocator, size_t size)
     char* result = nullptr;
 
     /*
-        memory alignment: rounds size up to next multiple of 16 (clears last 3 bits).
+        memory alignment: rounds size up to next multiple of 16 (clears last 4 bits).
         e.g. size=20 -> 20+15=35 (0010 0011) & ~15 (1111 0000) = 32 (0010 0000)
              size=16 -> 16+15=31 (0001 1111) & ~15 (1111 0000) = 16 (0001 0000) ALREADY ALIGNED HENCE UNCHANGED
         ~15 = (1111 0000), so ANDing always zeroes the last 4 bits -> multiple of 16.
