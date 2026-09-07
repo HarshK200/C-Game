@@ -2,7 +2,7 @@
 
 [ ] Write a Texture sampler
 	[x] finish arena allocation & arena reset and what memory allignment is?
-	[ ] File IO
+	[ ] File IO with arena allocation
 	[ ] setup stb_image
 	[ ] Write CreateTexture() function *yoink code from odin code*
 	[ ] Load texture files

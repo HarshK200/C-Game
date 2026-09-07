@@ -7,9 +7,10 @@
 #include "src/utils/log.h"
 
 
-#define KiloByte 1024
-#define MegaByte ((KiloByte) * 1024)
-#define GigaByte ((MegaByte) * 1024)
+// ULL here means unsigned long long
+#define KiloByte 1024ULL
+#define MegaByte ((KiloByte) * 1024ULL)
+#define GigaByte ((MegaByte) * 1024ULL)
 
 struct ArenaAllocator
 {
