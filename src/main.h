@@ -10,7 +10,7 @@ PlatformWindow* PlatformOpenWindow();
 // TODO(harsh): input layer services implement a input manager which keep's
 // track of an action map
 struct InputManager;
-void InputPollMessage(PlatformApp* App);
+void InputPollMessage(PlatformApp* app);
 
 
 // NOTE(harsh): game layer services

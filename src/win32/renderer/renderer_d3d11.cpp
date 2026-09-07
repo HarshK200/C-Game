@@ -7,7 +7,7 @@
 
 #include "mesh.h"
 #include "src/main.h"
-#include "src/game.h"
+#include "src/game/game.h"
 #include "src/utils/constants.h"
 #include "src/utils/log.h"
 #include "src/win32/win32_platform.h"

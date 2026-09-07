@@ -9,7 +9,7 @@
 #include "src/utils/constants.h"
 
 // definitions
-#include "src/game.cpp"
+#include "src/game/game.cpp"
 #include "src/win32/win32_input.cpp"
 #include "src/win32/renderer/mesh.cpp"
 #include "src/win32/renderer/shader_d3d11.cpp"

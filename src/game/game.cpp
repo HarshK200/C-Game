@@ -1,5 +1,5 @@
 #include "src/main.h"
-#include "src/game.h"
+#include "src/game/game.h"
 #include "src/utils/log.h"
 
 // creates a new game with the "new" keyword and returns the pointer to it
