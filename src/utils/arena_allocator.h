@@ -1,8 +1,6 @@
 #pragma once
 
-#include <cstddef>
-#include <cstdlib>
-#include <cstring>
+#include <cstdint>
 
 #include "src/utils/log.h"
 
@@ -14,7 +12,7 @@
 
 struct ArenaAllocator
 {
-    char* base;
+    uint8_t* base;
     size_t capacity;
     size_t used;
 };
@@ -35,7 +33,7 @@ struct AppMemory
 inline ArenaAllocator CreateArena(size_t size)
 {
     ArenaAllocator arena_allocator = {};
-    arena_allocator.base = (char*)malloc(size);
+    arena_allocator.base = (uint8_t*)malloc(size);
     if (!arena_allocator.base)
     {
         LOG_ASSERT(false, "CreateArena malloc failed");
@@ -58,9 +56,9 @@ inline ArenaAllocator CreateArena(size_t size)
     Allocates the memory of *size_t size* using the arena passed in.
     Returns a char* to allocated memory on success, otherwise returns nullptr on failure.
 */
-inline char* ArenaAlloc(ArenaAllocator* arena_allocator, size_t size)
+inline uint8_t* ArenaAlloc(ArenaAllocator* arena_allocator, size_t size)
 {
-    char* result = nullptr;
+    uint8_t* result = nullptr;
 
     /*
         memory alignment: rounds size up to next multiple of 16 (clears last 4 bits).

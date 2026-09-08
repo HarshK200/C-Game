@@ -1,5 +1,6 @@
 #pragma once
 
+#include <cstdint>
 #include <cstdio>
 #include <sys/stat.h>
 
@@ -78,7 +79,7 @@ namespace GameFileIO
         Allocates the buffer using the temp_allocator.
         Returns char* to the buffer on success, nullptr otherwise.
     */
-    inline char* ReadFile(
+    inline uint8_t* ReadFile(
         ArenaAllocator* temp_allocator,
         const char* filepath,
         int* filesize)
@@ -103,7 +104,7 @@ namespace GameFileIO
         }
 
         // allocate the buffer to read the file into of size filsize
-        char* file_buffer = ArenaAlloc(temp_allocator, *filesize);
+        uint8_t* file_buffer = ArenaAlloc(temp_allocator, *filesize);
         if (!file_buffer)
         {
             fclose(file);

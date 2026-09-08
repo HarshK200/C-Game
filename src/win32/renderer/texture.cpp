@@ -1,3 +1,5 @@
+#include <cstdint>
+
 #include "texture.h"
 
 // utils
@@ -27,8 +29,8 @@ namespace
         LOG_ASSERT(memory, "Invalid memory allocators provided");
 
         // load texture file
-        int texture_filesize;
-        char* file_buffer = GameFileIO::ReadFile(
+        int texture_filesize; // in bytes
+        uint8_t* file_buffer = GameFileIO::ReadFile(
             &memory->TempAllocator,
             texture_path,
             &texture_filesize);
@@ -39,6 +41,10 @@ namespace
         }
 
         // use stb to decode texture file
+        int width;
+        int height;
+        int channels;
+        uint8_t* pixel_data = stbi_load_from_memory(file_buffer, texture_filesize, &width, &height, &channels, 4);
 
         return nullptr;
     }
