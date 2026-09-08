@@ -19,6 +19,12 @@ struct ArenaAllocator
     size_t used;
 };
 
+struct AppMemory
+{
+    ArenaAllocator PermanentAllocator;
+    ArenaAllocator TempAllocator;
+};
+
 
 /*
     Creates an arena allocator on the stack, allocates the memory for it using

@@ -21,17 +21,15 @@ namespace
     */
     Texture2D* CreateTexture(
         const char* texture_path,
-        ArenaAllocator* permanent_allocator,
-        ArenaAllocator* temp_allocator)
+        AppMemory* memory)
     {
         LOG_ASSERT(texture_path, "Invalid texture_path provided");
-        LOG_ASSERT(permanent_allocator, "Invalid permanent_allocator provided");
-        LOG_ASSERT(temp_allocator, "Invalid temp_allocator provided");
+        LOG_ASSERT(memory, "Invalid memory allocators provided");
 
         // load texture file
         int texture_filesize;
         char* file_buffer = GameFileIO::ReadFile(
-            temp_allocator,
+            &memory->TempAllocator,
             texture_path,
             &texture_filesize);
         if (!file_buffer)
@@ -54,8 +52,7 @@ namespace
 */
 HRESULT LoadAllTextures(
     Renderer* r,
-    ArenaAllocator* permanent_allocator,
-    ArenaAllocator* temp_allocator)
+    AppMemory* memory)
 {
     const char* texture_paths[] = {
         "C:/Users/Harsh/Desktop/personal_dev/cpp_game/assets/textures/entity_texture_atlas.png",

@@ -21,6 +21,5 @@ struct PlatformApp
     Game* Game;
     Renderer* Renderer; // D3D11
 
-    ArenaAllocator PermanentAllocator;
-    ArenaAllocator TempAllocator;
+    AppMemory Memory;
 };

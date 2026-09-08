@@ -15,6 +15,6 @@ struct Mesh
 };
 
 
-Mesh* CreateUpscaleQuadMesh(ID3D11Device* device, ArenaAllocator* permanent_allocator);
-Mesh* CreateTriangleMesh(ID3D11Device* device, ArenaAllocator* permanent_allocator);
-Mesh* CreateQuadMesh(ID3D11Device* device, ArenaAllocator* permanent_allocator);
+Mesh* CreateUpscaleQuadMesh(ID3D11Device* device, AppMemory* memory);
+Mesh* CreateTriangleMesh(ID3D11Device* device, AppMemory* memory);
+Mesh* CreateQuadMesh(ID3D11Device* device, AppMemory* memory);

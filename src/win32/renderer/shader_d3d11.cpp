@@ -3,6 +3,7 @@
 #include <iterator>
 
 #include "src/main.h"
+#include "src/utils/arena_allocator.h"
 #include "src/utils/log.h"
 #include "src/win32/renderer/renderer_d3d11.h"
 #include "src/win32/renderer/shader_d3d11.h"
@@ -18,7 +19,7 @@
 */
 Shader* CreateShader(
     Renderer* r,
-    ArenaAllocator* permanent_allocator,
+    AppMemory* memory,
     ShaderID shader_id,
     const wchar_t* shader_file_path,
     UINT compile_options,
@@ -26,7 +27,7 @@ Shader* CreateShader(
     UINT input_element_count)
 {
     ID3DBlob *vs_blob = nullptr, *ps_blob = nullptr, *error_blob = nullptr;
-    Shader* shader = (Shader*)ArenaAlloc(permanent_allocator, sizeof(Shader));
+    Shader* shader = (Shader*)ArenaAlloc(&memory->PermanentAllocator, sizeof(Shader));
 
     HRESULT result;
 
@@ -134,7 +135,7 @@ cleanup:
 
     On Success returns 0, otherwise returns -1 on failure.
 */
-int LoadAllShaders(Renderer* r, ArenaAllocator* permanent_allocator)
+int LoadAllShaders(Renderer* r, AppMemory* memory)
 {
     UINT compile_options = D3DCOMPILE_ENABLE_STRICTNESS;
 #if defined(ISEKAIED_DEBUG)
@@ -148,7 +149,7 @@ int LoadAllShaders(Renderer* r, ArenaAllocator* permanent_allocator)
     };
     Shader* default_shader = CreateShader(
         r,
-        permanent_allocator,
+        memory,
         Shader_Default,
         L"C:/Users/Harsh/Desktop/personal_dev/cpp_game/src/win32/renderer/shaders_d3d11/default.hlsl",
         compile_options,
@@ -165,7 +166,7 @@ int LoadAllShaders(Renderer* r, ArenaAllocator* permanent_allocator)
     };
     Shader* upscale_shader = CreateShader(
         r,
-        permanent_allocator,
+        memory,
         Shader_Upscale,
         L"C:/Users/Harsh/Desktop/personal_dev/cpp_game/src/win32/renderer/shaders_d3d11/upscale.hlsl",
         compile_options,

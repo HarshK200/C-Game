@@ -8,6 +8,7 @@
 #include "mesh.h"
 #include "src/main.h"
 #include "src/game/game.h"
+#include "src/utils/arena_allocator.h"
 #include "src/utils/constants.h"
 #include "src/utils/log.h"
 #include "src/win32/win32_platform.h"
@@ -294,10 +295,10 @@ namespace
     NOTE(harsh): allocates using provided permanent_allocator for initialization,
     and Any temporary allocation are done using the provided temp_allocator.
 */
-Renderer* RendererCreateAndInit(PlatformWindow* window, ArenaAllocator* permanent_allocator, ArenaAllocator* temp_allocator)
+Renderer* RendererCreateAndInit(PlatformWindow* window, AppMemory* memory)
 {
     LOG_INFO("Renderer Init");
-    Renderer* r = (Renderer*)ArenaAlloc(permanent_allocator, sizeof(Renderer));
+    Renderer* r = (Renderer*)ArenaAlloc(&memory->PermanentAllocator, sizeof(Renderer));
 
     HRESULT result = SetupD3D11(window->Handle, r);
     if (FAILED(result))
@@ -306,7 +307,7 @@ Renderer* RendererCreateAndInit(PlatformWindow* window, ArenaAllocator* permanen
         return nullptr;
     }
 
-    result = LoadAllShaders(r, permanent_allocator);
+    result = LoadAllShaders(r, memory);
     if (result == -1)
     {
         LOG_ERRORF("D3D11 LoadAllShaders FAILED! with error code: %d", result);
@@ -328,7 +329,7 @@ Renderer* RendererCreateAndInit(PlatformWindow* window, ArenaAllocator* permanen
     }
 
     // load all texture
-    result = LoadAllTextures(r, permanent_allocator, temp_allocator);
+    result = LoadAllTextures(r, memory);
     if (FAILED(result))
     {
         LOG_ERRORF("D3D11 LoadAllTextures FAILED! with error code: %d", result);
@@ -336,9 +337,9 @@ Renderer* RendererCreateAndInit(PlatformWindow* window, ArenaAllocator* permanen
     }
 
     // upload mesh vertex/index buffers
-    r->UpscaleQuadMesh = CreateUpscaleQuadMesh(r->Device, permanent_allocator);
-    r->TriangleMesh = CreateTriangleMesh(r->Device, permanent_allocator);
-    r->QuadMesh = CreateQuadMesh(r->Device, permanent_allocator);
+    r->UpscaleQuadMesh = CreateUpscaleQuadMesh(r->Device, memory);
+    r->TriangleMesh = CreateTriangleMesh(r->Device, memory);
+    r->QuadMesh = CreateQuadMesh(r->Device, memory);
 
     return r;
 }

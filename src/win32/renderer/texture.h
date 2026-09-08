@@ -13,5 +13,4 @@ struct Texture2D
 
 HRESULT LoadAllTextures(
     Renderer* r,
-    ArenaAllocator* permanent_allocator,
-    ArenaAllocator* temp_allocator);
+    AppMemory* memory);

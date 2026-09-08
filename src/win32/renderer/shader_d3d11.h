@@ -2,6 +2,7 @@
 
 #include <d3d11.h>
 #include "src/main.h"
+#include "src/utils/arena_allocator.h"
 
 enum ShaderID
 {
@@ -19,7 +20,7 @@ struct Shader
 
 Shader* CreateShader(
     Renderer* r,
-    ArenaAllocator* permanent_allocator,
+    AppMemory* memory,
     ShaderID shader_id,
     const wchar_t* shader_file_path,
     UINT compile_options,
@@ -27,4 +28,4 @@ Shader* CreateShader(
     UINT input_element_count);
 
 
-int LoadAllShaders(Renderer* r, ArenaAllocator* permanent_allocator);
+int LoadAllShaders(Renderer* r, AppMemory* memory);

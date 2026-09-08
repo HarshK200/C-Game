@@ -6,11 +6,11 @@
 // creates a new game with the "new" keyword and returns the pointer to it
 // NOTE(harsh): the allocated memory is not tracker you must track and free the game
 // yourself or use an arena allocater, i gotta imlement that allocater first > o <
-Game* GameCreateAndInit(ArenaAllocator* persistent_allocator)
+Game* GameCreateAndInit(AppMemory* memory)
 {
     LOG_INFO("Game Init");
 
-    Game* g = (Game*)ArenaAlloc(persistent_allocator, sizeof(Game));
+    Game* g = (Game*)ArenaAlloc(&memory->PermanentAllocator, sizeof(Game));
 
     return g;
 }

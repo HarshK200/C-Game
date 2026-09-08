@@ -24,11 +24,11 @@ int main()
     PlatformApp App = {};
     App.ShouldClose = false;
     // TODO(harsh): maybe? create one allocator per system like: game_allocator, renderer_allocator, input_allocator
-    App.PermanentAllocator = CreateArena(64 * MegaByte);
-    App.TempAllocator = CreateArena(512 * MegaByte);
+    App.Memory.PermanentAllocator = CreateArena(64 * MegaByte);
+    App.Memory.TempAllocator = CreateArena(512 * MegaByte);
 
     // Open Platform agnostic Window
-    App.Window = PlatformOpenWindow(&App.PermanentAllocator);
+    App.Window = PlatformOpenWindow(&App.Memory);
     if (!App.Window)
     {
         LOG_ASSERT(false, "OpenWindow failed. Exiting program...");
@@ -37,7 +37,7 @@ int main()
     }
 
     // Create & Init Game instance
-    App.Game = GameCreateAndInit(&App.PermanentAllocator);
+    App.Game = GameCreateAndInit(&App.Memory);
     if (!App.Game)
     {
         LOG_ASSERT(false, "Game init failed. Exiting program...");
@@ -46,7 +46,7 @@ int main()
     }
 
     // Create & Init Renderer instance
-    App.Renderer = RendererCreateAndInit(App.Window, &App.PermanentAllocator, &App.TempAllocator);
+    App.Renderer = RendererCreateAndInit(App.Window, &App.Memory);
     if (!App.Renderer)
     {
         LOG_ASSERT(false, "Renderer init failed. Exiting program...");

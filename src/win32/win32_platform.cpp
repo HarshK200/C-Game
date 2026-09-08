@@ -1,3 +1,4 @@
+#include "src/utils/arena_allocator.h"
 #define WIN32_LEAN_AND_MEAN
 #include <Windows.h>
 
@@ -14,9 +15,9 @@
     Creates a window using win32 api and returns the PlatformWindow* on success,
     otherwise returns nullptr on failure
 */
-PlatformWindow* PlatformOpenWindow(ArenaAllocator* permanent_allocator)
+PlatformWindow* PlatformOpenWindow(AppMemory* memory)
 {
-    PlatformWindow* window = (PlatformWindow*)ArenaAlloc(permanent_allocator, sizeof(PlatformWindow));
+    PlatformWindow* window = (PlatformWindow*)ArenaAlloc(&memory->PermanentAllocator, sizeof(PlatformWindow));
 
     HINSTANCE instance = GetModuleHandle(0);
     WNDCLASS window_class = {};
