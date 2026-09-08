@@ -101,7 +101,7 @@ namespace
         result = r->Device->CreateTexture2D(&internal_texture_desc, NULL, &r->InternalRenderTexture);
         if (FAILED(result))
         {
-            // PlatformPrintDebugF("[ERROR] Creating internal render texture FAILED! with error code: %d", result);
+            LOG_ERRORF("Creating internal render texture FAILED! with error code: %d", result);
             return result;
         }
 
@@ -109,13 +109,13 @@ namespace
         result = r->Device->CreateRenderTargetView(r->InternalRenderTexture, NULL, &r->InternalRTV);
         if (FAILED(result))
         {
-            // PlatformPrintDebugF("[ERROR] Creating internal_texture RenderTargetView FAILED! with error code: %d", result);
+            LOG_ERRORF("Creating internal_texture RenderTargetView FAILED! with error code: %d", result);
             return result;
         }
         result = r->Device->CreateShaderResourceView(r->InternalRenderTexture, NULL, &r->InternalSRV);
         if (FAILED(result))
         {
-            // PlatformPrintDebugF("[ERROR] Creating internal_texture ShaderResourceView FAILED! with error code: %d", result);
+            LOG_ERRORF("Creating internal_texture ShaderResourceView FAILED! with error code: %d", result);
             return result;
         }
 
@@ -125,7 +125,7 @@ namespace
         result = r->SwapChain->GetBuffer(0, __uuidof(ID3D11Texture2D), (void**)&back_buffer_texture);
         if (FAILED(result))
         {
-            // PlatformPrintDebugF("[ERROR] SetupPixelartRenderTargets SwapChain Getting buffer FAILED! with error code: %d", result);
+            LOG_ERRORF("SetupPixelartRenderTargets SwapChain Getting buffer FAILED! with error code: %d", result);
             return result;
         }
 
@@ -133,7 +133,7 @@ namespace
         result = r->Device->CreateRenderTargetView(back_buffer_texture, NULL, &r->BackBufferRTV);
         if (FAILED(result))
         {
-            // PlatformPrintDebugF("[ERROR] SetupPixelartRenderTargets Render Target View Creation FAILED! with error code: %d", result);
+            LOG_ERRORF("SetupPixelartRenderTargets Render Target View Creation FAILED! with error code: %d", result);
             return result;
         }
         back_buffer_texture->Release();
@@ -281,6 +281,11 @@ namespace
         r->DeviceContext->PSSetShaderResources(0, 1, &null_srv);
     }
 
+    HRESULT LoadAllTextures()
+    {
+        return S_OK;
+    }
+
 } // namespace
 
 
@@ -301,32 +306,33 @@ Renderer* RendererCreateAndInit(PlatformWindow* window, ArenaAllocator* permanen
     HRESULT result = SetupD3D11(window->Handle, r);
     if (FAILED(result))
     {
-        // PlatformPrintDebugF( "[ERROR] SetupD3D11 FAILED! with error code: %d", result);
+        LOG_ERRORF("SetupD3D11 FAILED! with error code: %d", result);
         return nullptr;
     }
 
     result = LoadAllShaders(r, permanent_allocator);
     if (result == -1)
     {
-        // PlatformPrintDebugF( "[ERROR] D3D11 LoadAllShaders FAILED! with error code: %d", result);
+        LOG_ERRORF("D3D11 LoadAllShaders FAILED! with error code: %d", result);
         return nullptr;
     }
 
     result = CreateAndSetRenderTextures(r);
     if (FAILED(result))
     {
-        // PlatformPrintDebugF( "[ERROR] D3D11 CreateAndSetRenderTextures FAILED! with error code: %d", result);
+        LOG_ERRORF("D3D11 CreateAndSetRenderTextures FAILED! with error code: %d", result);
         return nullptr;
     }
 
     result = CreateAndSetPointSampler(r);
     if (FAILED(result))
     {
-        // PlatformPrintDebugF( "[ERROR] D3D11 CreateAndSetPointSampler FAILED! with error code: %d", result);
+        LOG_ERRORF("D3D11 CreateAndSetPointSampler FAILED! with error code: %d", result);
         return nullptr;
     }
 
-    // load all texture
+    // TODO(harsh): load all texture
+    result = LoadAllTextures();
 
     // upload mesh vertex/index buffers
     r->UpscaleQuadMesh = CreateUpscaleQuadMesh(r->Device, permanent_allocator);

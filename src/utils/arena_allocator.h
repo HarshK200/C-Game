@@ -50,7 +50,6 @@ inline ArenaAllocator CreateArena(size_t size)
     to return a 16 bytes aligned pointer *Which is does on 64 bit systems*
 
     Allocates the memory of *size_t size* using the arena passed in.
-    The returned memory *IS SET TO ZERO* using memset()
     Returns a char* to allocated memory on success, otherwise returns nullptr on failure.
 */
 inline char* ArenaAlloc(ArenaAllocator* arena_allocator, size_t size)
@@ -72,20 +71,17 @@ inline char* ArenaAlloc(ArenaAllocator* arena_allocator, size_t size)
     }
 
     result = arena_allocator->base + arena_allocator->used;
-    // zero out the memory
-    memset((void*)result, 0, alignment_size);
     arena_allocator->used += alignment_size;
 
     return result;
 }
 
 /*
-    NOTE(harsh): this *DOES NOT* zero out the memory of the arena it just resets the
-    arena allocator used pointer to 0.
-
+    NOTE(harsh): *ZERO OUT* the *USED* memory of arena with memset()
     Resets the arena used pointer to 0, hence reseting the arena
 */
 inline void ArenaReset(ArenaAllocator* arena_allocator)
 {
+    memset(arena_allocator->base, 0, arena_allocator->used);
     arena_allocator->used = 0;
 }

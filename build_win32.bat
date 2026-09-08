@@ -35,7 +35,7 @@ for /f "delims=" %%A in ('powershell -NoProfile -Command "[System.Diagnostics.St
 :: compile with cl i.e. msvc compiler so its fully compatible with visual studio debugger
 :: cl src\win32_main.cpp /Zi /Fo:build\debug\ /Fe:build\debug\win32_d3d11_main.exe /link /SUBSYSTEM:WINDOWS user32.lib
 
-set "defines=-DISEKAIED_DEBUG"
+set "defines=-DISEKAIED_DEBUG -D_CRT_SECURE_NO_WARNINGS"
 set "libs=-luser32 -ld3d11 -ld3dcompiler"
 set "warnings=-Wno-format-security"
 

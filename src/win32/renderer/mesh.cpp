@@ -2,6 +2,7 @@
 #include <iterator>
 
 #include "src/win32/renderer/mesh.h"
+#include "src/utils/log.h"
 
 
 /*
@@ -51,7 +52,7 @@ Mesh* CreateUpscaleQuadMesh(ID3D11Device* device, ArenaAllocator* permanent_allo
     HRESULT result = device->CreateBuffer(&vertex_buffer_desc, &vertex_sr_data, &upscale_quad_mesh->VertexBuffer);
     if (FAILED(result))
     {
-        // PlatformPrintDebugF( "[ERROR] D3D11 Quad Vertex Buffer creation FAILED! with error code: %d", result);
+        LOG_ERRORF("D3D11 Quad Vertex Buffer creation FAILED! with error code: %d", result);
         return nullptr;
     }
 
@@ -69,7 +70,7 @@ Mesh* CreateUpscaleQuadMesh(ID3D11Device* device, ArenaAllocator* permanent_allo
     result = device->CreateBuffer(&index_buffer_desc, &index_sr_data, &upscale_quad_mesh->IndexBuffer);
     if (FAILED(result))
     {
-        // PlatformPrintDebugF( "[ERROR] D3D11 Quad Index Buffer creation FAILED! with error code: %d", result);
+        LOG_ERRORF("D3D11 Quad Index Buffer creation FAILED! with error code: %d", result);
         return nullptr;
     }
 
@@ -116,7 +117,7 @@ Mesh* CreateTriangleMesh(ID3D11Device* device, ArenaAllocator* permanent_allocat
         &triangle_mesh->VertexBuffer);
     if (FAILED(result))
     {
-        // PlatformPrintDebugF( "[ERROR] D3D11 Triangle Vertex Buffer creation FAILED! with error code: %d", result);
+        LOG_ERRORF("D3D11 Triangle Vertex Buffer creation FAILED! with error code: %d", result);
         return nullptr;
     }
 
@@ -165,7 +166,7 @@ Mesh* CreateQuadMesh(ID3D11Device* device, ArenaAllocator* permanent_allocator)
     HRESULT result = device->CreateBuffer(&vertex_buffer_desc, &vertex_sr_data, &quad_mesh->VertexBuffer);
     if (FAILED(result))
     {
-        // PlatformPrintDebugF( "[ERROR] D3D11 Quad Vertex Buffer creation FAILED! with error code: %d", result);
+        LOG_ERRORF("D3D11 Quad Vertex Buffer creation FAILED! with error code: %d", result);
         return nullptr;
     }
 
@@ -183,7 +184,7 @@ Mesh* CreateQuadMesh(ID3D11Device* device, ArenaAllocator* permanent_allocator)
     result = device->CreateBuffer(&index_buffer_desc, &index_sr_data, &quad_mesh->IndexBuffer);
     if (FAILED(result))
     {
-        // PlatformPrintDebugF( "[ERROR] D3D11 Quad Index Buffer creation FAILED! with error code: %d", result);
+        LOG_ERRORF("D3D11 Quad Index Buffer creation FAILED! with error code: %d", result);
         return nullptr;
     }
 
