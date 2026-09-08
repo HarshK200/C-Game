@@ -2,7 +2,7 @@
 
 [ ] Write a Texture sampler
 	[x] finish arena allocation & arena reset and what memory allignment is?
-	[ ] Maybe create a context? which will hold ctx.permanent_allocator and ctx.temp_allocator
+	[x] Maybe create a AppMemory struct? which will hold AppMemory.PermanentAllocator and AppMemory.TempAllocator
 	[x] File IO with arena allocation
 	[x] setup stb_image
 	[ ] Write CreateTexture() function *yoink code from odin code*

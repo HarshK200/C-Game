@@ -12,7 +12,7 @@
 #include "src/utils/constants.h"
 #include "src/utils/log.h"
 #include "src/win32/win32_platform.h"
-#include "src/win32/renderer/texture.h"
+#include "src/win32/renderer/texture_d3d11.h"
 #include "src/win32/renderer/renderer_d3d11.h"
 
 

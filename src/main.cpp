@@ -10,7 +10,7 @@
 #include "src/win32/win32_input.cpp"
 #include "src/win32/renderer/draw/draw.cpp"
 #include "src/win32/renderer/mesh.cpp"
-#include "src/win32/renderer/texture.cpp"
+#include "src/win32/renderer/texture_d3d11.h"
 #include "src/win32/renderer/shader_d3d11.cpp"
 #include "src/win32/renderer/renderer_d3d11.cpp"
 

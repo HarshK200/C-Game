@@ -1,6 +1,6 @@
 #include <cstdint>
 
-#include "texture.h"
+#include "src/win32/renderer/texture_d3d11.h"
 
 // utils
 #include "src/utils/arena_allocator.h"
@@ -40,11 +40,14 @@ namespace
             return nullptr;
         }
 
-        // use stb to decode texture file
+        // decod texture file to pixel_data with stbi
         int width;
         int height;
         int channels;
         uint8_t* pixel_data = stbi_load_from_memory(file_buffer, texture_filesize, &width, &height, &channels, 4);
+
+        // create texture on d3d11
+
 
         return nullptr;
     }
