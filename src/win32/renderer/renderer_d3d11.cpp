@@ -327,8 +327,13 @@ Renderer* RendererCreateAndInit(PlatformWindow* window, ArenaAllocator* permanen
         return nullptr;
     }
 
-    // TODO(harsh): load all texture
-    LoadAllTextures(r, temp_allocator);
+    // load all texture
+    result = LoadAllTextures(r, permanent_allocator, temp_allocator);
+    if (FAILED(result))
+    {
+        LOG_ERRORF("D3D11 LoadAllTextures FAILED! with error code: %d", result);
+        return nullptr;
+    }
 
     // upload mesh vertex/index buffers
     r->UpscaleQuadMesh = CreateUpscaleQuadMesh(r->Device, permanent_allocator);

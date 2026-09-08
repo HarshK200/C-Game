@@ -11,4 +11,7 @@ struct Texture2D
 };
 
 
-void LoadAllTextures(Renderer* r, ArenaAllocator* temp_allocator);
+HRESULT LoadAllTextures(
+    Renderer* r,
+    ArenaAllocator* permanent_allocator,
+    ArenaAllocator* temp_allocator);

@@ -4,7 +4,7 @@
 	[x] finish arena allocation & arena reset and what memory allignment is?
 	[ ] Maybe create a context? which will hold ctx.permanent_allocator and ctx.temp_allocator
 	[x] File IO with arena allocation
-	[ ] setup stb_image
+	[x] setup stb_image
 	[ ] Write CreateTexture() function *yoink code from odin code*
 	[ ] Load texture files
 	[ ] Modify default.hlsl shader so it takes uv/texcoords as input
