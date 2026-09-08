@@ -1,19 +1,11 @@
-#include <cstdio>
 #define WIN32_LEAN_AND_MEAN
 #include <Windows.h>
 
-// declarations
-#include "src/main.h"
 
-// constants
 #include "src/utils/constants.h"
-
-// definitions
-#include "src/game/game.cpp"
-#include "src/win32/win32_input.cpp"
-#include "src/win32/renderer/mesh.cpp"
-#include "src/win32/renderer/shader_d3d11.cpp"
-#include "src/win32/renderer/renderer_d3d11.cpp"
+#include "src/utils/log.h"
+#include "src/win32/win32_platform.h"
+#include "src/win32/win32_input.h"
 
 
 // ================== Platform Layer Services Definitions ==================
@@ -22,11 +14,11 @@
     Creates a window using win32 api and returns the PlatformWindow* on success,
     otherwise returns nullptr on failure
 */
-PlatformWindow* PlatformOpenWindow()
+PlatformWindow* PlatformOpenWindow(ArenaAllocator* permanent_allocator)
 {
-    HINSTANCE instance = GetModuleHandle(0);
-    PlatformWindow* window = new PlatformWindow{};
+    PlatformWindow* window = (PlatformWindow*)ArenaAlloc(permanent_allocator, sizeof(PlatformWindow));
 
+    HINSTANCE instance = GetModuleHandle(0);
     WNDCLASS window_class = {};
     window_class.style = CS_OWNDC;
     window_class.lpfnWndProc = InputWindowCallback;
@@ -37,7 +29,7 @@ PlatformWindow* PlatformOpenWindow()
     window_class.lpszClassName = "isekaied_class";
     if (RegisterClass(&window_class) == 0)
     {
-        OutputDebugString("\n[ERROR] Registering window failed\n");
+        LOG_ERROR("Registering window failed.");
         return nullptr;
     }
     window->Handle = CreateWindowEx(
@@ -56,6 +48,7 @@ PlatformWindow* PlatformOpenWindow()
     if (!window->Handle)
     {
         OutputDebugString("\n[ERROR] Unable to create window\n");
+        return nullptr;
     }
 
     return window;

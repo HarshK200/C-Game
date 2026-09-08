@@ -1,12 +1,23 @@
+// Declarations ordered
 #include "main.h"
-#include "utils/arena_allocator.h"
+
 
 #ifdef _WIN32
+
+// Definitions *unordered*
 #include "src/win32/win32_platform.cpp"
+#include "src/game/game.cpp"
+#include "src/win32/win32_input.cpp"
+#include "src/win32/renderer/draw/draw.cpp"
+#include "src/win32/renderer/mesh.cpp"
+#include "src/win32/renderer/texture.cpp"
+#include "src/win32/renderer/shader_d3d11.cpp"
+#include "src/win32/renderer/renderer_d3d11.cpp"
+
 #endif
 
 
-// ================== Windows Application Entry Point ==================
+// ================== Application Entry Point ==================
 int main()
 {
     // create app *on the stack*
@@ -16,16 +27,16 @@ int main()
     App.PermanentAllocator = CreateArena(64 * MegaByte);
     App.TempAllocator = CreateArena(512 * MegaByte);
 
-    // open window
-    App.Window = PlatformOpenWindow();
-    if (!App.Window->Handle)
+    // Open Platform agnostic Window
+    App.Window = PlatformOpenWindow(&App.PermanentAllocator);
+    if (!App.Window)
     {
         LOG_ASSERT(false, "OpenWindow failed. Exiting program...");
         App.ExitCode = -1;
         goto program_exit;
     }
 
-    // Create Game and Renderer instance
+    // Create & Init Game instance
     App.Game = GameCreateAndInit(&App.PermanentAllocator);
     if (!App.Game)
     {
@@ -33,7 +44,9 @@ int main()
         App.ExitCode = -1;
         goto program_exit;
     }
-    App.Renderer = RendererCreateAndInit(App.Window, &App.PermanentAllocator);
+
+    // Create & Init Renderer instance
+    App.Renderer = RendererCreateAndInit(App.Window, &App.PermanentAllocator, &App.TempAllocator);
     if (!App.Renderer)
     {
         LOG_ASSERT(false, "Renderer init failed. Exiting program...");

@@ -8,4 +8,5 @@ struct InputManager
 };
 
 
+LRESULT CALLBACK InputWindowCallback(HWND window, UINT message, WPARAM wparam, LPARAM lparam);
 void InputPollMessage(PlatformApp* app);

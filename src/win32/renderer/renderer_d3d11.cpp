@@ -1,8 +1,8 @@
+#include <assert.h>
+
 #include <Windows.h>
 #include <d3d11.h>
 #include <d3dcompiler.h>
-
-#include <assert.h>
 #include <dxgiformat.h>
 
 #include "mesh.h"
@@ -11,6 +11,7 @@
 #include "src/utils/constants.h"
 #include "src/utils/log.h"
 #include "src/win32/win32_platform.h"
+#include "src/win32/renderer/texture.h"
 #include "src/win32/renderer/renderer_d3d11.h"
 
 
@@ -281,11 +282,6 @@ namespace
         r->DeviceContext->PSSetShaderResources(0, 1, &null_srv);
     }
 
-    HRESULT LoadAllTextures()
-    {
-        return S_OK;
-    }
-
 } // namespace
 
 
@@ -295,10 +291,10 @@ namespace
     Creates and initializes a D3D11 renderer (allocates renderer).
     Returns Renderer* if succeeds otherwise returns nullptr.
 
-    NOTE(harsh): allocates using passed in permanent_allocator, any temporary variables
-    lives on the stack and automatically popped when function returns
+    NOTE(harsh): allocates using provided permanent_allocator for initialization,
+    and Any temporary allocation are done using the provided temp_allocator.
 */
-Renderer* RendererCreateAndInit(PlatformWindow* window, ArenaAllocator* permanent_allocator)
+Renderer* RendererCreateAndInit(PlatformWindow* window, ArenaAllocator* permanent_allocator, ArenaAllocator* temp_allocator)
 {
     LOG_INFO("Renderer Init");
     Renderer* r = (Renderer*)ArenaAlloc(permanent_allocator, sizeof(Renderer));
@@ -332,7 +328,7 @@ Renderer* RendererCreateAndInit(PlatformWindow* window, ArenaAllocator* permanen
     }
 
     // TODO(harsh): load all texture
-    result = LoadAllTextures();
+    LoadAllTextures(r, temp_allocator);
 
     // upload mesh vertex/index buffers
     r->UpscaleQuadMesh = CreateUpscaleQuadMesh(r->Device, permanent_allocator);
@@ -342,11 +338,13 @@ Renderer* RendererCreateAndInit(PlatformWindow* window, ArenaAllocator* permanen
     return r;
 }
 
-// GAME_PASS: game render on InternalRenderTexture's RenderTargetView.
-// UPSCALE_PASS: take that InternalRenderTexture and pass that to a upscale shader which samples
-// internal render texture with a PointSampler i.e. NearestNeighbourSampling onto the
-// BackBufferRenderTargetView.
-// Then finally present's the backbuffer
+/*
+    1. GAME_PASS: game render on InternalRenderTexture's RenderTargetView.
+    2. UPSCALE_PASS: takes that InternalRenderTexture and pass that to a upscale shader which samples
+                     internal render texture with a PointSampler i.e. NearestNeighbourSampling onto the
+                     BackBufferRenderTargetView.
+    3. Finally present's the backbuffer by DXGI_SWAP_EFFECT_FLIP_DISCARD, switching the backbuffer with front
+*/
 void RendererUpdate(Renderer* r, Game* g, PlatformWindow* window)
 {
 
