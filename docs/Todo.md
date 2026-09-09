@@ -7,8 +7,12 @@
 	[x] setup stb_image
 	[x] Write CreateTexture() function *yoink code from odin code*
 	[x] Load texture files
-	[ ] Modify default.hlsl shader so it takes uv/texcoords as input'
-	[ ] Test the texture loading implemention and default.hlsl by sampling a texture.
+	[x] Modify default.hlsl shader so it takes uv/texcoords as input'
+	[x] Test the texture loading implemention and default.hlsl by sampling a texture.
+		[x] Fix sRGB bug. (FIXED BY load texture as sRGB *d3d11 automatically converts sRGB -> linear, internal Texture*
+		*format remain non-sRGB i.e. linear, and finally BackBuffer's RenderTargetView set as sRGB, so d3d11 automatically*
+		*converts Linear -> sRGB*
+		[x] Fix wonky aaa BUG texture sampling. *DON'T FORGET THE D3D11_APPEND_ALIGNED_ELEMENT when editing shaders you dumbass*
 	[ ] In draw.h and draw.cpp write the draw game function which is the master draw function
 [ ] Write the InputManager and figure out how to split it for cross platform
 	- NOTE: maybe write win32/input.h and win32/input.cpp and implement them for each platform
