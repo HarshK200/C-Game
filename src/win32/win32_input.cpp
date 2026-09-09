@@ -1,13 +1,15 @@
 #include <Windows.h>
+#include <winuser.h>
 
-#include "src/main.h"
-#include "src/utils/log.h"
 #include "src/win32/win32_input.h"
 
 // ================== Internal functions only to be used by win32_platform ==================
 
-// Handles the window messages and input
-LRESULT CALLBACK InputWindowCallback(HWND window, UINT message, WPARAM wparam, LPARAM lparam)
+/*
+    Windows message callback. This function gets called everytime windows Dispatch's a message
+    i.e. everytime DispatchMessage() is called.
+*/
+LRESULT CALLBACK WindowMessageCallback(HWND window, UINT message, WPARAM wparam, LPARAM lparam)
 {
 
     LRESULT result = 0;
@@ -46,24 +48,29 @@ LRESULT CALLBACK InputWindowCallback(HWND window, UINT message, WPARAM wparam, L
     return result;
 }
 
-void InputPollMessage(PlatformApp* app)
+/*
+    Proccess all the input events in the Window Message Queue
+    If message is WM_QUIT returns WM_QUIT
+    otherwise returns 0 on successful finish
+
+    NOTE(harsh): for now this function does not fail.
+    if it fails means shit really went wrong
+
+    TODO(harsh): see if PeekMessage can fail or not? if it can handle that)
+*/
+int ProcessInput()
 {
-    MSG Message;
-    BOOL result = GetMessage(&Message, NULL, 0, 0);
-    if (result == 0)
+    MSG message;
+    int result = 0;
+
+    while (PeekMessage(&message, NULL, 0, 0, PM_REMOVE))
     {
-        LOG_INFO("Close key pressed exiting...");
-        app->ShouldClose = true;
-        app->ExitCode = 0;
-        return;
+        TranslateMessage(&message);
+        DispatchMessage(&message);
+
+        if (message.message == WM_QUIT)
+            result = WM_QUIT;
     }
-    if (result < 0)
-    {
-        LOG_ASSERT(false, "failed processing input, exiting...");
-        app->ShouldClose = true;
-        app->ExitCode = -1;
-        return;
-    }
-    TranslateMessage(&Message);
-    DispatchMessage(&Message);
+
+    return result;
 }

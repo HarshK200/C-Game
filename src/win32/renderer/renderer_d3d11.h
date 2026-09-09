@@ -3,6 +3,8 @@
 #include <d3d11.h>
 
 #include "src/utils/game_math.h"
+#include "src/utils/globals.h"
+
 #include "src/win32/renderer/mesh.h"
 #include "src/win32/renderer/shader_d3d11.h"
 #include "src/win32/renderer/texture_d3d11.h"

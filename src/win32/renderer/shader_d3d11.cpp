@@ -2,10 +2,9 @@
 #include <d3dcompiler.h>
 #include <iterator>
 
-#include "src/main.h"
-#include "src/utils/arena_allocator.h"
+#include "src/utils/globals.h"
 #include "src/utils/log.h"
-#include "src/win32/renderer/renderer_d3d11.h"
+
 #include "src/win32/renderer/shader_d3d11.h"
 
 
@@ -18,7 +17,7 @@
     Returns Shader* on success, otherwise returns nullptr on failure.
 */
 Shader* CreateShader(
-    Renderer* r,
+    ID3D11Device* device,
     AppMemory* memory,
     ShaderID shader_id,
     const wchar_t* shader_file_path,
@@ -44,7 +43,7 @@ Shader* CreateShader(
         &error_blob);
     if (FAILED(result))
         goto cleanup;
-    result = r->Device->CreateVertexShader(
+    result = device->CreateVertexShader(
         vs_blob->GetBufferPointer(),
         vs_blob->GetBufferSize(),
         NULL,
@@ -75,7 +74,7 @@ Shader* CreateShader(
         &error_blob);
     if (FAILED(result))
         goto cleanup;
-    result = r->Device->CreatePixelShader(
+    result = device->CreatePixelShader(
         ps_blob->GetBufferPointer(),
         ps_blob->GetBufferSize(),
         NULL,
@@ -86,7 +85,7 @@ Shader* CreateShader(
     // Input Layout setup for the shader
     if (input_element_desc)
     {
-        result = r->Device->CreateInputLayout(
+        result = device->CreateInputLayout(
             input_element_desc,
             input_element_count,
             vs_blob->GetBufferPointer(),
@@ -128,20 +127,22 @@ cleanup:
     TODO(harsh): implement shader compilation caching,
     also load complied shaders from cache for faster build times.
 
-    Loads all the vertex & pixel shaders
+    Loads all the vertex & pixel shaders.
     If no cache found Compiles the shaders and creates there input layouts.
-    Creates a Shader struct containing pointers to the input_layout, vertex & fragment shaders,
-    and writes them into the Shaders[] on the renderer
+    Creates a Shader struct containing pointers to the input_layout, vertex & fragment shaders.
+    Shader* for the created shaders are stored on the shader_array_buffer passed in
 
     On Success returns 0, otherwise returns -1 on failure.
 */
-int LoadAllShaders(Renderer* r, AppMemory* memory)
+int LoadAllShaders(
+    AppMemory* memory,
+    ID3D11Device* device,
+    Shader* (&shader_array_buffer)[SHADER_COUNT])
 {
     UINT compile_options = D3DCOMPILE_ENABLE_STRICTNESS;
 #if defined(ISEKAIED_DEBUG)
     compile_options |= D3DCOMPILE_DEBUG;
 #endif
-
 
     // loading default shader
     D3D11_INPUT_ELEMENT_DESC default_input_element_desc[] = {
@@ -149,7 +150,7 @@ int LoadAllShaders(Renderer* r, AppMemory* memory)
         {"TEXCOORD", 0, DXGI_FORMAT_R32G32_FLOAT, 0, D3D11_APPEND_ALIGNED_ELEMENT, D3D11_INPUT_PER_VERTEX_DATA, 0},
     };
     Shader* default_shader = CreateShader(
-        r,
+        device,
         memory,
         SHADER_DEFAULT,
         L"C:/Users/Harsh/Desktop/personal_dev/cpp_game/src/win32/renderer/shaders_d3d11/default.hlsl",
@@ -158,7 +159,7 @@ int LoadAllShaders(Renderer* r, AppMemory* memory)
         std::size(default_input_element_desc));
     if (default_shader == nullptr)
         return -1;
-    r->Shaders[SHADER_DEFAULT] = default_shader;
+    shader_array_buffer[SHADER_DEFAULT] = default_shader;
 
     // loading pixelart upscale shader
     D3D11_INPUT_ELEMENT_DESC upscale_input_element_desc[] = {
@@ -166,7 +167,7 @@ int LoadAllShaders(Renderer* r, AppMemory* memory)
         {"TEXCOORD", 0, DXGI_FORMAT_R32G32_FLOAT, 0, D3D11_APPEND_ALIGNED_ELEMENT, D3D11_INPUT_PER_VERTEX_DATA, 0},
     };
     Shader* upscale_shader = CreateShader(
-        r,
+        device,
         memory,
         SHADER_UPSCALE,
         L"C:/Users/Harsh/Desktop/personal_dev/cpp_game/src/win32/renderer/shaders_d3d11/upscale.hlsl",
@@ -175,7 +176,7 @@ int LoadAllShaders(Renderer* r, AppMemory* memory)
         std::size(upscale_input_element_desc));
     if (upscale_shader == nullptr)
         return -1;
-    r->Shaders[SHADER_UPSCALE] = upscale_shader;
+    shader_array_buffer[SHADER_UPSCALE] = upscale_shader;
 
     return 0;
 }

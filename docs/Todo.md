@@ -13,6 +13,12 @@
 		*format remain non-sRGB i.e. linear, and finally BackBuffer's RenderTargetView set as sRGB, so d3d11 automatically*
 		*converts Linear -> sRGB*
 		[x] Fix wonky aaa BUG texture sampling. *DON'T FORGET THE D3D11_APPEND_ALIGNED_ELEMENT when editing shaders you dumbass*
+		[x] *RenderDoc is the GOAT!!!!*
+	[x] Write Matrix tranformation functions in game_math.cpp *Yoink from odin code*
+	[ ] create camera2d with camera camera_view_matrix() function in game/camera2d.cpp
+	[ ] create projection matrix in utils/game_math.cpp
+	[ ] create model matrix per entity draw call
+	[ ] Figure out how to upload uniforms to D3D11 shaders
 	[ ] In draw.h and draw.cpp write the draw game function which is the master draw function
 [ ] Write the InputManager and figure out how to split it for cross platform
 	- NOTE: maybe write win32/input.h and win32/input.cpp and implement them for each platform
@@ -73,3 +79,45 @@
 [x] Create the logger with assert
 [x] Create a Arena Allocation system
     - NOTE: watch handmade hero and also check randy's resources
+
+# Inspiration
+	Dungeon environment inspired by anime *Delicious in Dungeon*
+	Adventures guild/quests inspired by anime *Overlord*
+	Combat inspirted by game *Hyperlight Drifter*
+	Skill tree inspired by a combination of games *Avencast + PathOfExile*
+	Dungeon corruption spread highly inspired by game *Terraria*
+
+# Gameplay loop:
+	*NOT LORE HEAVY, just slight lore about each continent boss in inscriptions like Hyperlight drifter*
+	Procedurally generated world, villages and dungeon, *3 Continents Human, Elf, Demon*
+	Player can choose to play either of the character.
+	First spawn at the starter town, near the edge of a forest with rags + rusty sword.
+	Get quests from adventurers guild,
+	Kill monsters in dungeon -> monster drops items -> Sell items
+	-> Get better gear *More Power* -> Complete difficult quest *Higher rank quest unlocks*
+	-> Player level go++ *Each level give stats to spend on skill tree*
+	-> Unlock skill get strong -> Harder quests difficult enemies
+	-> Enventually defeat the human continents dungeon boss
+	-> Unlock travel to Elf then Demon contienet clear the continents
+	-> Colonize *Monsters don't respawn every time you clear an area/continent that place is your to keep*
+	
+	*Game's END GOAL* Kill the final boss of each dungeon free continent from the demon taking over.
+	*Dungeons spread like corruption in terraria*
+	You clear the dungeon the dungeon corruption goes away, demons stop spawning.
+
+# First Play (5-10 Minutes of FUN):
+	Spawn in the forest
+	Player goes to the village to explore *main building Adventurers Guild used to get dungeon quests*
+	Register as adventurer
+	Go to dungeon kill enemies, find treasure and useful items not just useless bullshit
+	Items drops based on the area difficulty
+	*Higher area difficulty = Better reward/ rare treasure & items drops*
+	Each dungeon has a type like a pokemon lighting/grass/blood/fire, etc...
+	Clear level and the final level for each dungeon has a boss based on dungeon type.
+	Dungeon clear = defeat final boss/ dungeon stop spreading/corrupting world, monster spawn stops.
+	
+	*Player Goals*
+	- Clear all dungeons
+	- Get stronger
+	- Get better gear
+	- Final endgame Travel to Demon Continent and defeat Demon queen *or spare her for a secret*

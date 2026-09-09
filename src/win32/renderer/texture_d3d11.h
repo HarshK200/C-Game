@@ -2,15 +2,8 @@
 
 #include <d3d11.h>
 
-#include "src/main.h"
+#include "src/utils/globals.h"
 #include "src/utils/arena_allocator.h"
-
-enum TextureID
-{
-    TEXTURE_ENTITY_ATLAS = 0,
-    TEXTURE_TILEMAP_ATLAS = 1,
-    TEXTURE_COUNT
-};
 
 struct Texture2D
 {
@@ -22,5 +15,6 @@ struct Texture2D
 
 
 int LoadAllTextures(
-    Renderer* r,
-    AppMemory* memory);
+    AppMemory* memory,
+    ID3D11Device* device,
+    Texture2D* (&texture_array_buffer)[TEXTURE_COUNT]);

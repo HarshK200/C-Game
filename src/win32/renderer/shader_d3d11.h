@@ -1,15 +1,10 @@
 #pragma once
 
 #include <d3d11.h>
-#include "src/main.h"
-#include "src/utils/arena_allocator.h"
 
-enum ShaderID
-{
-    SHADER_DEFAULT = 0,
-    SHADER_UPSCALE = 1,
-    SHADER_COUNT // always the last gives the Shader* array size for free
-};
+#include "src/utils/arena_allocator.h"
+#include "src/utils/globals.h"
+
 struct Shader
 {
     ID3D11VertexShader* VertexShader;
@@ -19,7 +14,7 @@ struct Shader
 
 
 Shader* CreateShader(
-    Renderer* r,
+    ID3D11Device* device,
     AppMemory* memory,
     ShaderID shader_id,
     const wchar_t* shader_file_path,
@@ -28,4 +23,7 @@ Shader* CreateShader(
     UINT input_element_count);
 
 
-int LoadAllShaders(Renderer* r, AppMemory* memory);
+int LoadAllShaders(
+    AppMemory* memory,
+    ID3D11Device* device,
+    Shader* (&shader_array_buffer)[SHADER_COUNT]);

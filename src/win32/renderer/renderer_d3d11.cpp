@@ -1,16 +1,19 @@
 #include <assert.h>
 
+// windows/d3d11
 #include <Windows.h>
 #include <d3d11.h>
 #include <d3dcompiler.h>
 #include <dxgiformat.h>
 
-#include "mesh.h"
+// utils
+#include "src/utils/log.h"
+#include "src/utils/globals.h"
+#include "src/utils/arena_allocator.h"
+
 #include "src/main.h"
 #include "src/game/game.h"
-#include "src/utils/arena_allocator.h"
-#include "src/utils/constants.h"
-#include "src/utils/log.h"
+#include "src/win32/renderer/mesh.h"
 #include "src/win32/win32_platform.h"
 #include "src/win32/renderer/texture_d3d11.h"
 #include "src/win32/renderer/renderer_d3d11.h"
@@ -334,7 +337,7 @@ Renderer* RendererCreateAndInit(PlatformWindow* window, AppMemory* memory)
         return nullptr;
     }
 
-    result = LoadAllShaders(r, memory);
+    result = LoadAllShaders(memory, r->Device, r->Shaders);
     if (result == -1)
     {
         LOG_ERRORF("D3D11 LoadAllShaders FAILED! with error code: %d", result);
@@ -356,7 +359,7 @@ Renderer* RendererCreateAndInit(PlatformWindow* window, AppMemory* memory)
     }
 
     // load all texture
-    int texture_result = LoadAllTextures(r, memory);
+    int texture_result = LoadAllTextures(memory, r->Device, r->Textures);
     if (texture_result < 0)
     {
         LOG_ERRORF("D3D11 LoadAllTextures FAILED! with error code: %d", result);

@@ -1,9 +1,12 @@
-// Declarations ordered
+
+// Declarations *ordered*
 #include "main.h"
 
 
 #ifdef _WIN32
 
+// windows specific defines
+#define WIN32_LEAN_AND_MEAN
 // Definitions *unordered*
 #include "src/win32/win32_platform.cpp"
 #include "src/game/game.cpp"
@@ -58,7 +61,8 @@ int main()
     while (App.ShouldClose == false)
     {
         // TODO(Create an input manager and pass that in instead of the whole App instance):
-        InputPollMessage(&App);
+        if (ProcessInput() == WM_QUIT)
+            App.ShouldClose = true;
 
         GameUpdate(App.Game);
         RendererUpdate(App.Renderer, App.Game, App.Window);

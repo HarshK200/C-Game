@@ -3,7 +3,6 @@
 #include <dxgiformat.h>
 
 #include "src/win32/renderer/texture_d3d11.h"
-#include "src/win32/renderer/renderer_d3d11.h"
 
 // utils
 #include "src/utils/arena_allocator.h"
@@ -119,11 +118,12 @@ namespace
     Loads and Uploads all texture to the GPU Memory, All the temporary allocation required
     are done using the temp allocator.
     All the Texture2D allocated on the renderer are allocated using permanent_allocator.
-    Textures are stored on the renderer Textures array.
+    Texture2D* for the created textures are stored on the texture_array_buffer passed in
 */
 int LoadAllTextures(
-    Renderer* r,
-    AppMemory* memory)
+    AppMemory* memory,
+    ID3D11Device* device,
+    Texture2D* (&texture_array_buffer)[TEXTURE_COUNT])
 {
     const char* texture_paths[TEXTURE_COUNT] = {
         /* TEXTURE_ENTITY_ATLAS */ "C:/Users/Harsh/Desktop/personal_dev/cpp_game/assets/textures/entity_texture_atlas.png",
@@ -132,11 +132,11 @@ int LoadAllTextures(
 
 
     // create and set all texture on the renderer struct
-    r->Textures[TEXTURE_ENTITY_ATLAS] = CreateTexture(r->Device, texture_paths[TEXTURE_ENTITY_ATLAS], memory);
-    if (!r->Textures[TEXTURE_ENTITY_ATLAS])
+    texture_array_buffer[TEXTURE_ENTITY_ATLAS] = CreateTexture(device, texture_paths[TEXTURE_ENTITY_ATLAS], memory);
+    if (!texture_array_buffer[TEXTURE_ENTITY_ATLAS])
         return -1;
-    r->Textures[TEXTURE_TILEMAP_ATLAS] = CreateTexture(r->Device, texture_paths[TEXTURE_TILEMAP_ATLAS], memory);
-    if (!r->Textures[TEXTURE_TILEMAP_ATLAS])
+    texture_array_buffer[TEXTURE_TILEMAP_ATLAS] = CreateTexture(device, texture_paths[TEXTURE_TILEMAP_ATLAS], memory);
+    if (!texture_array_buffer[TEXTURE_TILEMAP_ATLAS])
         return -1;
 
 

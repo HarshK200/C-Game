@@ -1,11 +1,11 @@
 #include <d3d11.h>
 #include <iterator>
 
-#include "src/win32/renderer/mesh.h"
-
 // utils
 #include "src/utils/arena_allocator.h"
 #include "src/utils/log.h"
+
+#include "src/win32/renderer/mesh.h"
 
 
 /*

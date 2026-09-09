@@ -52,6 +52,8 @@ inline ArenaAllocator CreateArena(size_t size)
 /*
     NOTE(harsh): allocates memory alligned to 16 bytes, expects that malloc() used in CreateArena()
     to return a 16 bytes aligned pointer *Which is does on 64 bit systems*
+    *DOES NOT ZERO OUT MEMORY* your allocator should already have the whole memory zeroed out.
+    Which it would have if it was reset with ArenaReset or created with CreateArena.
 
     Allocates the memory of *size_t size* using the arena passed in.
     Returns a char* to allocated memory on success, otherwise returns nullptr on failure.
