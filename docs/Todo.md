@@ -5,9 +5,10 @@
 	[x] Maybe create a AppMemory struct? which will hold AppMemory.PermanentAllocator and AppMemory.TempAllocator
 	[x] File IO with arena allocation
 	[x] setup stb_image
-	[ ] Write CreateTexture() function *yoink code from odin code*
-	[ ] Load texture files
-	[ ] Modify default.hlsl shader so it takes uv/texcoords as input
+	[x] Write CreateTexture() function *yoink code from odin code*
+	[x] Load texture files
+	[ ] Modify default.hlsl shader so it takes uv/texcoords as input'
+	[ ] Test the texture loading implemention and default.hlsl by sampling a texture.
 	[ ] In draw.h and draw.cpp write the draw game function which is the master draw function
 [ ] Write the InputManager and figure out how to split it for cross platform
 	- NOTE: maybe write win32/input.h and win32/input.cpp and implement them for each platform

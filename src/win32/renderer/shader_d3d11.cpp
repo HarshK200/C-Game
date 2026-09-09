@@ -146,18 +146,19 @@ int LoadAllShaders(Renderer* r, AppMemory* memory)
     // loading default shader
     D3D11_INPUT_ELEMENT_DESC default_input_element_desc[] = {
         {"POS", 0, DXGI_FORMAT_R32G32B32_FLOAT, 0, 0, D3D11_INPUT_PER_VERTEX_DATA, 0},
+        {"TEXCOORD", 0, DXGI_FORMAT_R32G32_FLOAT, 0, 0, D3D11_INPUT_PER_VERTEX_DATA, 0},
     };
     Shader* default_shader = CreateShader(
         r,
         memory,
-        Shader_Default,
+        SHADER_DEFAULT,
         L"C:/Users/Harsh/Desktop/personal_dev/cpp_game/src/win32/renderer/shaders_d3d11/default.hlsl",
         compile_options,
         default_input_element_desc,
         std::size(default_input_element_desc));
     if (default_shader == nullptr)
         return -1;
-    r->Shaders[Shader_Default] = default_shader;
+    r->Shaders[SHADER_DEFAULT] = default_shader;
 
     // loading pixelart upscale shader
     D3D11_INPUT_ELEMENT_DESC upscale_input_element_desc[] = {
@@ -167,14 +168,14 @@ int LoadAllShaders(Renderer* r, AppMemory* memory)
     Shader* upscale_shader = CreateShader(
         r,
         memory,
-        Shader_Upscale,
+        SHADER_UPSCALE,
         L"C:/Users/Harsh/Desktop/personal_dev/cpp_game/src/win32/renderer/shaders_d3d11/upscale.hlsl",
         compile_options,
         upscale_input_element_desc,
         std::size(upscale_input_element_desc));
     if (upscale_shader == nullptr)
         return -1;
-    r->Shaders[Shader_Upscale] = upscale_shader;
+    r->Shaders[SHADER_UPSCALE] = upscale_shader;
 
     return 0;
 }

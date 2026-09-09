@@ -81,7 +81,8 @@ namespace
 #define LOG_WARN(msg) _log(TEXT_COLOR_BOLD_YELLOW, "[WARN]:", msg);
 #define LOG_ERROR(msg) _log(TEXT_COLOR_BOLD_RED, "[ERROR]:", msg);
 
-#define LOG_INFOF(msg, ...) _logf(TEXT_COLOR_BOLD_WHITE, "[OK]:", msg, ##__VA_ARGS__);
+#define LOG_INFOF(msg, ...) _logf(TEXT_COLOR_BOLD_WHITE, "[INFO]:", msg, ##__VA_ARGS__);
+#define LOG_OKF(msg, ...) _logf(TEXT_COLOR_BOLD_GREEN, "[OK]:", msg, ##__VA_ARGS__);
 #define LOG_WARNF(msg, ...) _logf(TEXT_COLOR_BOLD_RED, "[WARN]:", msg, ##__VA_ARGS__);
 #define LOG_ERRORF(msg, ...) _logf(TEXT_COLOR_BOLD_RED, "[ERROR]:", msg, ##__VA_ARGS__);
 

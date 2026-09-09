@@ -5,6 +5,7 @@
 #include "src/utils/game_math.h"
 #include "src/win32/renderer/mesh.h"
 #include "src/win32/renderer/shader_d3d11.h"
+#include "src/win32/renderer/texture_d3d11.h"
 
 
 struct Renderer
@@ -18,7 +19,8 @@ struct Renderer
     ID3D11RenderTargetView* InternalRTV;
     ID3D11ShaderResourceView* InternalSRV;
 
-    Shader* Shaders[Shader_Count];
+    Shader* Shaders[SHADER_COUNT];
+    Texture2D* Textures[TEXTURE_COUNT];
     ID3D11SamplerState* PointSampler; // TODO(harsh): maybe create a ID3D11SamplerState* array like the shader arary?
 
     Mesh* UpscaleQuadMesh;

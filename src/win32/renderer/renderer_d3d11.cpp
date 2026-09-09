@@ -108,13 +108,21 @@ namespace
         }
 
         // create render target view and shader resource view (not passing any desc so just default)
-        result = r->Device->CreateRenderTargetView(r->InternalRenderTexture, NULL, &r->InternalRTV);
+        D3D11_RENDER_TARGET_VIEW_DESC internal_rtv_desc = {};
+        internal_rtv_desc.Format = internal_texture_desc.Format;
+        internal_rtv_desc.ViewDimension = D3D11_RTV_DIMENSION_TEXTURE2D;
+        result = r->Device->CreateRenderTargetView(r->InternalRenderTexture, &internal_rtv_desc, &r->InternalRTV);
         if (FAILED(result))
         {
             LOG_ERRORF("Creating internal_texture RenderTargetView FAILED! with error code: %d", result);
             return result;
         }
-        result = r->Device->CreateShaderResourceView(r->InternalRenderTexture, NULL, &r->InternalSRV);
+        D3D11_SHADER_RESOURCE_VIEW_DESC internal_srv_desc = {};
+        internal_srv_desc.Format = internal_texture_desc.Format;
+        internal_srv_desc.ViewDimension = D3D11_SRV_DIMENSION_TEXTURE2D;
+        internal_srv_desc.Texture2D.MostDetailedMip = 0;
+        internal_srv_desc.Texture2D.MipLevels = 1;
+        result = r->Device->CreateShaderResourceView(r->InternalRenderTexture, &internal_srv_desc, &r->InternalSRV);
         if (FAILED(result))
         {
             LOG_ERRORF("Creating internal_texture ShaderResourceView FAILED! with error code: %d", result);
@@ -132,7 +140,15 @@ namespace
         }
 
         // Create RenderTargetView for the back-buffer
-        result = r->Device->CreateRenderTargetView(back_buffer_texture, NULL, &r->BackBufferRTV);
+        D3D11_RENDER_TARGET_VIEW_DESC backbuffer_rtv_desc = {};
+        // the backbuffer is sRGB so all the internal linear calculations for lighting
+        // finally converts to sRGB encoded colors
+        backbuffer_rtv_desc.Format = DXGI_FORMAT_R8G8B8A8_UNORM_SRGB;
+        backbuffer_rtv_desc.ViewDimension = D3D11_RTV_DIMENSION_TEXTURE2D;
+        result = r->Device->CreateRenderTargetView(
+            back_buffer_texture,
+            &backbuffer_rtv_desc,
+            &r->BackBufferRTV);
         if (FAILED(result))
         {
             LOG_ERRORF("SetupPixelartRenderTargets Render Target View Creation FAILED! with error code: %d", result);
@@ -146,6 +162,9 @@ namespace
     /*
         Creates the point sampler and sets it on the Renderer PointSampler field
         On Sucess returns S_OK, otherwise returns the failure HRESULT code
+
+        NOTE(harsh): the internal render texture is non sRGB for linear lighting/blending calculations
+        and the final back buffer Render Target View is sRGB so all the linear values get encoded to sRGB again.
     */
     HRESULT CreateAndSetPointSampler(Renderer* r)
     {
@@ -170,8 +189,8 @@ namespace
         // set internal texture as render target
         r->DeviceContext->OMSetRenderTargets(1, &r->InternalRTV, NULL);
 
-        // clear the internal render target with pastel green
-        float background_colour[4] = {119.0f / 255.0f, 221.0f / 255.0f, 119.0f / 255.0f, 1.0f};
+        // clear the internal render target with black color
+        float background_colour[4] = {0.0f, 0.0f, 0.0f, 1.0f};
         r->DeviceContext->ClearRenderTargetView(r->InternalRTV, background_colour);
 
         // set the internal render viewport
@@ -190,7 +209,7 @@ namespace
         r->DeviceContext->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
 
         // set vertex & pixel shader and input layout to be used
-        Shader* default_shader = r->Shaders[Shader_Default];
+        Shader* default_shader = r->Shaders[SHADER_DEFAULT];
         r->DeviceContext->VSSetShader(default_shader->VertexShader, NULL, 0);
         r->DeviceContext->PSSetShader(default_shader->PixelShader, NULL, 0);
         r->DeviceContext->IASetInputLayout(default_shader->InputLayout);
@@ -210,13 +229,21 @@ namespace
         r->DeviceContext->IASetIndexBuffer(
             r->QuadMesh->IndexBuffer,
             DXGI_FORMAT_R32_UINT,
-            0);
+            r->QuadMesh->IndexOffset);
+
+        // bind texture shader resource view and the sampler i.e. PointSampler
+        r->DeviceContext->PSSetShaderResources(0, 1, &r->Textures[TEXTURE_ENTITY_ATLAS]->SRV);
+        r->DeviceContext->PSSetSamplers(0, 1, &r->PointSampler);
 
         // make the draw call
         r->DeviceContext->DrawIndexed(
             r->QuadMesh->IndexCount,
             r->QuadMesh->IndexOffset,
             r->QuadMesh->VertexOffset);
+
+        // unbind the TextureSRV
+        ID3D11ShaderResourceView* null_srv = NULL;
+        r->DeviceContext->PSSetShaderResources(0, 1, &null_srv);
 
         // ==========================================================================
     }
@@ -246,7 +273,7 @@ namespace
         r->DeviceContext->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
 
         // set the vertex & pixel shader and input layout
-        Shader* upscale_shader = r->Shaders[Shader_Upscale];
+        Shader* upscale_shader = r->Shaders[SHADER_UPSCALE];
         r->DeviceContext->VSSetShader(upscale_shader->VertexShader, NULL, 0);
         r->DeviceContext->PSSetShader(upscale_shader->PixelShader, NULL, 0);
         r->DeviceContext->IASetInputLayout(upscale_shader->InputLayout);
@@ -329,8 +356,8 @@ Renderer* RendererCreateAndInit(PlatformWindow* window, AppMemory* memory)
     }
 
     // load all texture
-    result = LoadAllTextures(r, memory);
-    if (FAILED(result))
+    int texture_result = LoadAllTextures(r, memory);
+    if (texture_result < 0)
     {
         LOG_ERRORF("D3D11 LoadAllTextures FAILED! with error code: %d", result);
         return nullptr;

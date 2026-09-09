@@ -6,7 +6,7 @@ struct vs_in {
 // output struct
 struct vs_out {
     float4 pos : SV_POSITION;
-    float2 uv : TEXCOORD0; // required output of VS
+    float2 uv : TEXCOORD0;
 };
 
 vs_out vs_main(vs_in input) {
