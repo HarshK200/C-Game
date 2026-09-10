@@ -20,21 +20,11 @@ struct Renderer
     ID3D11ShaderResourceView* InternalSRV;
 
     Shader* Shaders[SHADER_COUNT];
+    ID3D11Buffer* UniformBuffers[UNIFORM_BUFFER_COUNT];
     Texture2D* Textures[TEXTURE_COUNT];
     ID3D11SamplerState* PointSampler; // TODO(harsh): maybe create a ID3D11SamplerState* array like the shader arary?
 
     Mesh* UpscaleQuadMesh;
     Mesh* TriangleMesh;
     Mesh* QuadMesh;
-};
-
-struct FrameUniforms
-{
-    Mat4 View;
-    Mat4 Projection;
-};
-struct EntityUniforms
-{
-    Mat4 Model;
-    // TODO(harsh): maybe add a AlbedoOverride in the future for damage taken flashs
 };

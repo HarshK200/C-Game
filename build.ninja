@@ -6,11 +6,12 @@ builddir = build/debug
 outexe = win32_d3d11.exe
 
 cxx = clang++
-cxxflags = -std=c++20 -I. -g
+cxxflags = -std=c++20 -I. -g -gcodeview
 
 defines = -DISEKAIED_DEBUG -D_CRT_SECURE_NO_WARNINGS
 libs = -luser32 -ld3d11 -ld3dcompiler
-warnings= -Wno-format-security
+warnings = -Wno-format-security
+linkflags = -Wl,/DEBUG
 
 
 # ================== PCH ==================
@@ -33,7 +34,7 @@ build $builddir/main.o: compile src/main.cpp | $builddir/pch.pch
 
 # ================= Linking =================
 rule link
-    command = $cxx $in -o $out $libs
+    command = $cxx $in -o $out $libs $linkflags
     description = Linking $out
 
 build $builddir/$outexe: link $builddir/main.o

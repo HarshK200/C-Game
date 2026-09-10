@@ -78,31 +78,6 @@ inline Vec4 operator*(Mat4 m, Vec4 v)
     return result;
 }
 
-/*
-    Multiplies two Column Major Mat4, Read right -> Left in order *NON-COMMUTATIVE*
-*/
-inline Mat4 Mat4xMat4(Mat4 left, Mat4 right)
-{
-    Mat4 result;
-
-    // result[column]
-    for (int col = 0; col < 4; col++)
-    {
-        // result[column][row]
-        for (int row = 0; row < 4; row++)
-        {
-            // multiplication
-            for (int x = 0; x < 4; x++)
-            {
-                result[col][row] += right[col][x] * left[x][row];
-            }
-        }
-    }
-
-
-    return result;
-}
-
 
 /*
     TODO(harsh): write the Normalize function and overload it with Vec2, Vec3 and Vec4
@@ -140,6 +115,31 @@ inline Mat4 Identity_Mat4()
 }
 
 /*
+    Multiplies two Column Major Mat4, Read right -> Left in order *NON-COMMUTATIVE*
+*/
+inline Mat4 Mat4xMat4(Mat4 left, Mat4 right)
+{
+    Mat4 result = {};
+
+    // result[column]
+    for (int col = 0; col < 4; col++)
+    {
+        // result[column][row]
+        for (int row = 0; row < 4; row++)
+        {
+            // multiplication
+            for (int x = 0; x < 4; x++)
+            {
+                result[col][row] += right[col][x] * left[x][row];
+            }
+        }
+    }
+
+
+    return result;
+}
+
+/*
     Returns a 4x4 scale matrix that scales a Vec3 by provided vec3
 
     visualized:
@@ -150,7 +150,7 @@ inline Mat4 Identity_Mat4()
 */
 inline Mat4 Scale_Mat4(Vec3 scale)
 {
-    Mat4 m = {};
+    Mat4 m = Identity_Mat4();
     m[0].x = scale.x;
     m[1].y = scale.y;
     m[2].z = scale.z;

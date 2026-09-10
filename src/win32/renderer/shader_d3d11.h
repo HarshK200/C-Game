@@ -1,6 +1,7 @@
 #pragma once
 
 #include <d3d11.h>
+#include <winnt.h>
 
 #include "src/utils/arena_allocator.h"
 #include "src/utils/globals.h"
@@ -27,3 +28,23 @@ int LoadAllShaders(
     AppMemory* memory,
     ID3D11Device* device,
     Shader* (&shader_array_buffer)[SHADER_COUNT]);
+
+
+// Uniform Buffers Layouts
+struct FrameUniforms
+{
+    Mat4 View;
+    Mat4 Projection;
+};
+struct EntityUniforms
+{
+    Mat4 Model;
+    // TODO(harsh): maybe add a AlbedoOverride in the future for damage taken flashs
+};
+
+
+HRESULT CreateAllUniformBuffers(
+    ID3D11Device* device,
+    ID3D11Buffer* (&uniform_buffers_array)[UNIFORM_BUFFER_COUNT]);
+
+HRESULT UploadUniformBufferData(ID3D11Device* device);

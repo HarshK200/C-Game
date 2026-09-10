@@ -22,3 +22,10 @@ enum ShaderID
     SHADER_UPSCALE = 1,
     SHADER_COUNT // always the last gives the Shader* array size for free
 };
+
+enum UniformBufferID
+{
+    UNIFORM_PER_FRAME_BUFFER = 0,
+    UNIFORM_PER_ENTITY_BUFFER = 1,
+    UNIFORM_BUFFER_COUNT
+};

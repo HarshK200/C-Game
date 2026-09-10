@@ -1,4 +1,5 @@
 #include <assert.h>
+#include <d3d11.h>
 
 // utils
 #include "src/game2d/camera2d.h"
@@ -6,6 +7,7 @@
 #include "src/utils/log.h"
 #include "src/utils/globals.h"
 #include "src/utils/arena_allocator.h"
+#include "src/win32/renderer/shader_d3d11.h"
 
 #include "src/main.h"
 #include "src/game2d/game2d.h"
@@ -183,11 +185,6 @@ namespace
         return S_OK;
     }
 
-    HRESULT CreateUniformBuffers(Renderer* r)
-    {
-        return S_OK;
-    }
-
     void RenderPass_Game(Renderer* r, Game2d* g)
     {
         // ========================= Internal Render texture setup =========================
@@ -211,30 +208,30 @@ namespace
         // set the topology for draw calls
         r->DeviceContext->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
 
-
-        // ============================ Upload Per Frame Uniforms ============================
-        FrameUniforms frame_uniforms = {};
-        frame_uniforms.View = Camera2dGetViewMatrix(g->camera);
-        frame_uniforms.Projection = Orthograhpic_RH_ZO_Mat4(
+        // upload the Per Frame Uniform Buffer data
+        D3D11_MAPPED_SUBRESOURCE mapped = {};
+        r->DeviceContext->Map(
+            r->UniformBuffers[UNIFORM_PER_FRAME_BUFFER],
+            0,
+            D3D11_MAP_WRITE_DISCARD,
+            0,
+            &mapped);
+        FrameUniforms* frame_uniforms = (FrameUniforms*)mapped.pData;
+        frame_uniforms->View = Camera2dGetViewMatrix(g->camera);
+        frame_uniforms->Projection = Orthograhpic_RH_ZO_Mat4(
             0,
             INTERNAL_RENDER_RESOLUTION.x,
             INTERNAL_RENDER_RESOLUTION.y,
             0,
             g->camera->near_plane,
             g->camera->far_plane);
-        ID3D11Buffer* uniform_buffer = nullptr;
-        D3D11_BUFFER_DESC uniforms_buffer_desc = {};
-        uniforms_buffer_desc.ByteWidth = sizeof(FrameUniforms);
-        uniforms_buffer_desc.Usage = D3D11_USAGE_DYNAMIC;
-        // in D3D11 uniforms are CONSTANT BUFFERS
-        uniforms_buffer_desc.BindFlags = D3D11_BIND_CONSTANT_BUFFER;
-        uniforms_buffer_desc.CPUAccessFlags = D3D11_CPU_ACCESS_WRITE;
-        HRESULT result = r->Device->CreateBuffer(
-            &uniforms_buffer_desc,
-            NULL,
-            &uniform_buffer);
-
-        // upload the uniform data
+        r->DeviceContext->Unmap(r->UniformBuffers[UNIFORM_PER_FRAME_BUFFER], 0);
+        /*
+            bind the Per Frame Uniform Buffer
+            NOTE(harsh): no need to unbind it, in the next VSSetConstantBuffers(0) call the
+            buffer will be replaced with that calls pointer
+        */
+        r->DeviceContext->VSSetConstantBuffers(0, 1, &r->UniformBuffers[UNIFORM_PER_FRAME_BUFFER]);
 
 
         // ========================= Setup Shaders and Input Layout =========================
@@ -264,8 +261,10 @@ namespace
             r->DeviceContext->PSSetShaderResources(0, 1, &r->Textures[TEXTURE_ENTITY_ATLAS]->SRV);
             r->DeviceContext->PSSetSamplers(0, 1, &r->PointSampler);
 
+
+            // TODO(harsh): upload per entity uniforms buffer data
+
             // make the draw call
-            // TODO(harsh): upload per entity uniforms
             r->DeviceContext->DrawIndexed(
                 r->QuadMesh->IndexCount,
                 r->QuadMesh->IndexOffset,
@@ -392,8 +391,7 @@ Renderer* RendererCreateAndInit(PlatformWindow* window, AppMemory* memory)
         return nullptr;
     }
 
-    // create uniform buffer
-    result = CreateUniformBuffers(r);
+    result = CreateAllUniformBuffers(r->Device, r->UniformBuffers);
     if (FAILED(result))
     {
         LOG_ERRORF("D3D11 CreateUniformBuffers FAILED! with error code: %d", result);

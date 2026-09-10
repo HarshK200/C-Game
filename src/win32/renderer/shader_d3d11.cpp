@@ -180,3 +180,43 @@ int LoadAllShaders(
 
     return 0;
 }
+
+/*
+    NOTE(harsh): In D3D11 uniforms are CONSTANT BUFFERS
+
+    Creates all the uniform buffers on the GPU.
+    D3D11Buffer* for the created uniform buffers are stored on the uniform_buffers_array passed
+    in.
+
+    Returns S_OK on success, HRESULT error otherwise.
+*/
+HRESULT CreateAllUniformBuffers(
+    ID3D11Device* device,
+    ID3D11Buffer* (&uniform_buffers_array)[UNIFORM_BUFFER_COUNT])
+{
+    // ============== Create Per Frame Uniforms buffer ==============
+    D3D11_BUFFER_DESC frame_uniform_buf_desc = {};
+    frame_uniform_buf_desc.ByteWidth = sizeof(FrameUniforms);
+    frame_uniform_buf_desc.Usage = D3D11_USAGE_DYNAMIC;
+    frame_uniform_buf_desc.BindFlags = D3D11_BIND_CONSTANT_BUFFER;
+    frame_uniform_buf_desc.CPUAccessFlags = D3D11_CPU_ACCESS_WRITE;
+    HRESULT result = device->CreateBuffer(
+        &frame_uniform_buf_desc,
+        NULL,
+        &uniform_buffers_array[UNIFORM_PER_FRAME_BUFFER]);
+
+
+    // ============== Create Per Entity Uniforms buffer ==============
+    D3D11_BUFFER_DESC entity_uniform_buf_desc = {};
+    entity_uniform_buf_desc.ByteWidth = sizeof(EntityUniforms);
+    entity_uniform_buf_desc.Usage = D3D11_USAGE_DYNAMIC;
+    entity_uniform_buf_desc.BindFlags = D3D11_BIND_CONSTANT_BUFFER;
+    entity_uniform_buf_desc.CPUAccessFlags = D3D11_CPU_ACCESS_WRITE;
+    result = device->CreateBuffer(
+        &entity_uniform_buf_desc,
+        NULL,
+        &uniform_buffers_array[UNIFORM_PER_ENTITY_BUFFER]);
+
+    return S_OK;
+}
+

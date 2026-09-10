@@ -1,4 +1,8 @@
-// TODO(harsh): setup the input for PerFrame and Per Entity uniforms
+cbuffer FrameUniforms : register(b0)
+{
+    column_major float4x4 VIEW;
+    column_major float4x4 PROJECTION;
+};
 
 // input struct
 struct vs_in {
@@ -14,8 +18,15 @@ struct vs_out {
 
 vs_out vs_main(vs_in input) {
     vs_out output = (vs_out)0; // zero the memory
-    output.pos = float4(input.pos, 1.0f);
+
+    float4 position = float4(input.pos, 1.0f);
+
+    position = mul(VIEW, position);
+    position = mul(PROJECTION, position);
+
+    output.pos = position;
     output.uv = input.uv;
+
     return output;
 }
 

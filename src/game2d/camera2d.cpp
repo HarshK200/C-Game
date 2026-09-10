@@ -31,13 +31,16 @@ Mat4 Camera2dGetViewMatrix(Camera2d* camera)
 {
     LOG_ASSERT(camera, "Camera is nullptr");
     const Vec2 CAMERA_CENTER_OFFSET = {
-        (-INTERNAL_RENDER_RESOLUTION.x / 2),
-        (-INTERNAL_RENDER_RESOLUTION.y / 2),
+        (INTERNAL_RENDER_RESOLUTION.x / 2),
+        (INTERNAL_RENDER_RESOLUTION.y / 2),
     };
 
     Mat4 view_matrix = Translate_Mat4({CAMERA_CENTER_OFFSET.x, CAMERA_CENTER_OFFSET.y, 0.0f});
-    view_matrix = Mat4xMat4(Scale_Mat4({camera->zoom, camera->zoom, 1.0f}), view_matrix);
-    view_matrix = Mat4xMat4(Translate_Mat4({-camera->position.x, -camera->position.y, 0.0f}), view_matrix);
+    view_matrix = Mat4xMat4(view_matrix, Scale_Mat4({camera->zoom, camera->zoom, 1.0f}));
+    // temp
+    view_matrix = Mat4xMat4(view_matrix, Scale_Mat4({96.0f, 48.0f, 1.0f}));
+    // temp
+    view_matrix = Mat4xMat4(view_matrix, Translate_Mat4({-camera->position.x, -camera->position.y, 0.0f}));
 
     return view_matrix;
 }

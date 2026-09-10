@@ -2,7 +2,8 @@
 
 
 # TODO(harsh): pass a -debug / -release flag to this build script,
-# and based on that decide if -g flag should be add or not
+# and enable debugs flags and etc... only on debug build
+# Enable optimizations, no asserts, no bound checks, etc... on release build
 
 
 printf 'Starting Build...\n'
@@ -52,11 +53,13 @@ ninja
 #     "${defines[@]}"                                         \
 #     "${libs[@]}"                                            \
 #     "${warnings[@]}"    # -ftime-trace
-#
+
 
 # =============================================
 
 
+# Build Command Status
+build_status=$?
 
 # End Time
 end_us=${EPOCHREALTIME/./}
@@ -67,7 +70,6 @@ build_time_us=$((end_us - start_us))
 build_time_ms=$((build_time_us / 1000))
 
 
-build_status=$?
 if ((build_status != 0)) then
     printf 'Compilation %sfailed%s\n' "$PASTEL_RED" "$RESET"
     printf 'Build time: %d ms\n' "$build_time_ms"

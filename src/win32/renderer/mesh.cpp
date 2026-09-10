@@ -8,16 +8,13 @@
 
 
 /*
-    NOTE(harsh): Y+ is considered up,
+    NOTE(harsh): The Vertex Data follows Y+ UP, because no PROJECTION matrix is used
     The Upscale Quad Mesh *MUST NOT* be used anywhere other than during the
     RenderPass_Upscale.
 
 
     Uploads Upscale quad mesh vertex & index buffer to the GPU,
     Returns the resulting pointer on success, otherwise returns a nullptr on failure
-
-    TODO(harsh): The Vertex Data follows Y+ Up for the type being, Change it to Y+ Down
-    for ease and consistency and the ProjectionMatrix will then flip it
 */
 Mesh* CreateUpscaleQuadMesh(ID3D11Device* device, AppMemory* memory)
 {
@@ -86,12 +83,11 @@ Mesh* CreateUpscaleQuadMesh(ID3D11Device* device, AppMemory* memory)
 /*
     NOTE(harsh): triangle mesh does not use index buffers,
     therefore DrawIndexed() should not be called with a triangle_mesh bound.
+    NOTE(harsh): This follows Y+ Down with PROJECTION matrix flipping in the shader
 
     Uploads triangle mesh vertex buffer to the GPU.
     Returns the resulting pointer on success, otherwise returns a nullptr on failure
 
-    TODO(harsh): The Vertex Data follows Y+ Up, No Matrix multiplication happens here
-    but do come back and have a look at the way vertex are position if they are correct or not
 */
 Mesh* CreateTriangleMesh(ID3D11Device* device, AppMemory* memory)
 {
@@ -101,9 +97,9 @@ Mesh* CreateTriangleMesh(ID3D11Device* device, AppMemory* memory)
     // clang-format off
     float vertex_buffer_data[] = {
          // position            // uv
-         0.0f,  0.5f, 0.0f,     0.5, 0.0,       // top-middle
-         0.5f, -0.5f, 0.0f,     1.0, 1.0,       // bottom-right
-        -0.5f, -0.5f, 0.0f,     0.0, 1.0,       // bottom-left
+         0.0f, -0.5f, 0.0f,     0.5, 0.0,       // top-middle
+         0.5f,  0.5f, 0.0f,     1.0, 1.0,       // bottom-right
+        -0.5f,  0.5f, 0.0f,     0.0, 1.0,       // bottom-left
     };
     // clang-format on
     triangle_mesh->VertexBuffer = nullptr;
@@ -138,8 +134,7 @@ Mesh* CreateTriangleMesh(ID3D11Device* device, AppMemory* memory)
     Returns the resulting pointer on success, otherwise returns a nullptr on failure
 
 
-    TODO(harsh): The Vertex Data follows Y+ Up for the type being, Change it to Y+ Down
-    for ease and consistency and the ProjectionMatrix will then flip it
+    NOTE(harsh): This follows Y+ Down with PROJECTION matrix flipping in the shader
 */
 Mesh* CreateQuadMesh(ID3D11Device* device, AppMemory* memory)
 {
@@ -149,10 +144,10 @@ Mesh* CreateQuadMesh(ID3D11Device* device, AppMemory* memory)
     // clang-format off
     float vertex_buffer_data[] = {
          // position            // uv
-         0.5f,  0.5f, 0.0f,     1.0f, 0.0f,   // top-right
-         0.5f, -0.5f, 0.0f,     1.0f, 1.0f,   // bottom-right
-        -0.5f,  0.5f, 0.0f,     0.0f, 0.0f,   // top-left
-        -0.5f, -0.5f, 0.0f,     0.0f, 1.0f,   // bottom-left
+         0.5f, -0.5f, 0.0f,     1.0f, 0.0f,   // top-right
+         0.5f,  0.5f, 0.0f,     1.0f, 1.0f,   // bottom-right
+        -0.5f, -0.5f, 0.0f,     0.0f, 0.0f,   // top-left
+        -0.5f,  0.5f, 0.0f,     0.0f, 1.0f,   // bottom-left
     };
 
     // index buffer data

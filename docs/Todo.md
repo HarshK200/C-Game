@@ -22,6 +22,7 @@
 	[x] create camera2d with camera camera_view_matrix() function in game/camera2d.cpp
 	[x] create projection matrix in utils/game_math.cpp
 	[x] Write build script for git bash cause build.bat is utterly useless and slow *it takes 6 SECONDS!!!*
+	[x] Use ninja for PreCompiledHeader *with ninja + PreCompiledHeader the build time is 500 ms*
 	[ ] Figure out how to upload uniforms to D3D11 shaders
 		- Uniforms are just buffers in D3D11_CONSTANT_BUFFER you can set if they are modifiable
 		by the CPU or not by setting the CPUAcessFlags
