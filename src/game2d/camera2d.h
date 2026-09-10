@@ -19,5 +19,6 @@ struct Camera2d
 };
 
 
-Camera2d* CameraCreateAndInit(AppMemory* memory);
-void CameraUpdate(Camera2d* camera);
+Camera2d* Camera2dCreateAndInit(AppMemory* memory);
+void Camera2dUpdate(Camera2d* camera);
+Mat4 Camera2dGetViewMatrix(Camera2d* camera);

@@ -7,6 +7,8 @@
 #include <dxgiformat.h>
 
 // utils
+#include "src/game2d/camera2d.h"
+#include "src/utils/game_math.h"
 #include "src/utils/log.h"
 #include "src/utils/globals.h"
 #include "src/utils/arena_allocator.h"
@@ -187,17 +189,22 @@ namespace
         return S_OK;
     }
 
+    HRESULT UploadUniformBuffer()
+    {
+        return S_OK;
+    }
+
     void RenderPass_Game(Renderer* r, Game2d* g)
     {
+        // ========================= Internal Render texture setup =========================
+
         // set internal texture as render target
         r->DeviceContext->OMSetRenderTargets(1, &r->InternalRTV, NULL);
-
         // clear the internal render target with black color
         float background_colour[4] = {0.0f, 0.0f, 0.0f, 1.0f};
         r->DeviceContext->ClearRenderTargetView(r->InternalRTV, background_colour);
-
-        // set the internal render viewport
-        // NOTE(harsh): the internal render resolution is set here that determines the aspect ratio
+        // NOTE(harsh): the internal render resolution is set here that determines
+        // the aspect ratio of the viewport
         D3D11_VIEWPORT internal_render_viewport = {
             0.0f,
             0.0f,
@@ -207,48 +214,73 @@ namespace
             1.0f,
         };
         r->DeviceContext->RSSetViewports(1, &internal_render_viewport);
-
         // set the topology for draw calls
         r->DeviceContext->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
 
-        // set vertex & pixel shader and input layout to be used
+
+        // ============================ Upload Per Frame Uniforms ============================
+        FrameUniforms frame_uniforms = {};
+        frame_uniforms.View = Camera2dGetViewMatrix(g->camera);
+        frame_uniforms.Projection = Orthograhpic_RH_ZO_Mat4(
+            0,
+            INTERNAL_RENDER_RESOLUTION.x,
+            INTERNAL_RENDER_RESOLUTION.y,
+            0,
+            g->camera->near_plane,
+            g->camera->far_plane);
+        ID3D11Buffer* uniform_buffer = nullptr;
+        D3D11_BUFFER_DESC uniforms_buffer_desc = {};
+        uniforms_buffer_desc.ByteWidth = sizeof(FrameUniforms);
+        uniforms_buffer_desc.Usage = D3D11_USAGE_DYNAMIC;
+        // in D3D11 uniforms are CONSTANT BUFFERS
+        uniforms_buffer_desc.BindFlags = D3D11_BIND_CONSTANT_BUFFER;
+        uniforms_buffer_desc.CPUAccessFlags = D3D11_CPU_ACCESS_WRITE;
+        HRESULT result = r->Device->CreateBuffer(
+            &uniforms_buffer_desc,
+            NULL,
+            &uniform_buffer);
+
+        // upload the uniform data
+
+
+        // ========================= Setup Shaders and Input Layout =========================
+
         Shader* default_shader = r->Shaders[SHADER_DEFAULT];
         r->DeviceContext->VSSetShader(default_shader->VertexShader, NULL, 0);
         r->DeviceContext->PSSetShader(default_shader->PixelShader, NULL, 0);
         r->DeviceContext->IASetInputLayout(default_shader->InputLayout);
 
+        // draw calls ==================== TEMP QUAD DRAW CALL INLINE ====================
+        {
+            // bind the quad vertex buffer for drawing
+            r->DeviceContext->IASetVertexBuffers(
+                0,
+                1,
+                &r->QuadMesh->VertexBuffer,
+                &r->QuadMesh->VertexStride,
+                &r->QuadMesh->VertexOffset);
 
-        // ====================== TEMP DRAWING A RAW QUAD MESH ======================
+            // bind the quad index buffer for drawing
+            r->DeviceContext->IASetIndexBuffer(
+                r->QuadMesh->IndexBuffer,
+                DXGI_FORMAT_R32_UINT,
+                r->QuadMesh->IndexOffset);
 
-        // bind the quad vertex buffer for drawing
-        r->DeviceContext->IASetVertexBuffers(
-            0,
-            1,
-            &r->QuadMesh->VertexBuffer,
-            &r->QuadMesh->VertexStride,
-            &r->QuadMesh->VertexOffset);
+            // bind texture shader resource view and the sampler i.e. PointSampler
+            r->DeviceContext->PSSetShaderResources(0, 1, &r->Textures[TEXTURE_ENTITY_ATLAS]->SRV);
+            r->DeviceContext->PSSetSamplers(0, 1, &r->PointSampler);
 
-        // bind the quad index buffer for drawing
-        r->DeviceContext->IASetIndexBuffer(
-            r->QuadMesh->IndexBuffer,
-            DXGI_FORMAT_R32_UINT,
-            r->QuadMesh->IndexOffset);
+            // make the draw call
+            // TODO(harsh): upload per entity uniforms
+            r->DeviceContext->DrawIndexed(
+                r->QuadMesh->IndexCount,
+                r->QuadMesh->IndexOffset,
+                r->QuadMesh->VertexOffset);
 
-        // bind texture shader resource view and the sampler i.e. PointSampler
-        r->DeviceContext->PSSetShaderResources(0, 1, &r->Textures[TEXTURE_ENTITY_ATLAS]->SRV);
-        r->DeviceContext->PSSetSamplers(0, 1, &r->PointSampler);
-
-        // make the draw call
-        r->DeviceContext->DrawIndexed(
-            r->QuadMesh->IndexCount,
-            r->QuadMesh->IndexOffset,
-            r->QuadMesh->VertexOffset);
-
-        // unbind the TextureSRV
-        ID3D11ShaderResourceView* null_srv = NULL;
-        r->DeviceContext->PSSetShaderResources(0, 1, &null_srv);
-
-        // ==========================================================================
+            // unbind the TextureSRV
+            ID3D11ShaderResourceView* null_srv = NULL;
+            r->DeviceContext->PSSetShaderResources(0, 1, &null_srv);
+        }
     }
 
     void RenderPass_Upscale(Renderer* r)
@@ -344,6 +376,14 @@ Renderer* RendererCreateAndInit(PlatformWindow* window, AppMemory* memory)
         return nullptr;
     }
 
+    // load all texture
+    int texture_result = LoadAllTextures(memory, r->Device, r->Textures);
+    if (texture_result < 0)
+    {
+        LOG_ERRORF("D3D11 LoadAllTextures FAILED! with error code: %d", result);
+        return nullptr;
+    }
+
     result = CreateAndSetRenderTextures(r);
     if (FAILED(result))
     {
@@ -355,14 +395,6 @@ Renderer* RendererCreateAndInit(PlatformWindow* window, AppMemory* memory)
     if (FAILED(result))
     {
         LOG_ERRORF("D3D11 CreateAndSetPointSampler FAILED! with error code: %d", result);
-        return nullptr;
-    }
-
-    // load all texture
-    int texture_result = LoadAllTextures(memory, r->Device, r->Textures);
-    if (texture_result < 0)
-    {
-        LOG_ERRORF("D3D11 LoadAllTextures FAILED! with error code: %d", result);
         return nullptr;
     }
 

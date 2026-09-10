@@ -20,9 +20,26 @@
 		[x] Write Mat4xMat4()
 		[x] For Vec3 x Mat4 multiplications overload *operator
 	[x] create camera2d with camera camera_view_matrix() function in game/camera2d.cpp
-	[ ] create projection matrix in utils/game_math.cpp
-	[ ] create model matrix per entity draw call
+	[x] create projection matrix in utils/game_math.cpp
+	[x] Write build script for git bash cause build.bat is utterly useless and slow *it takes 6 SECONDS!!!*
 	[ ] Figure out how to upload uniforms to D3D11 shaders
+		- Uniforms are just buffers in D3D11_CONSTANT_BUFFER you can set if they are modifiable
+		by the CPU or not by setting the CPUAcessFlags
+		- On the Renderer create a shader uniforms array which will have `D3D11Buffer* array`
+		the buffer pointer array will be similar to Textures array on the Renderer with an
+		enum used for indexing.
+		- The `ID3D11Buffer* ShaderUniforms[UNIFORM_COUNT];` will be populated by the function
+		`HRESULT CreateShaderUniformBuffers(); wihc calls r->Device->CreateBuffer();`
+		- And then when making draw calls you can just upload uniform data to these buffers by just
+		calling `r->DeviceContext->Map()`.
+		NOTE(harsh): during data upload `DeviceContext->Map()` takes a `ID3D11Resource` and since
+		`ID3D11Buffer` inherits `ID3D11Resource` you just put the ID3D11Buffer pointer there.
+		The main data is put in `D3D11_MAPPED_SUBRESOURCE.pData` where pData is a void pointer like
+		so: `void *pData;` just type cast the pointer to `FrameUniforms` or whatever uniform struct
+		derefrence it and fill the values in from there.
+		Make sure you call `DeviceContext->Map()` first on the `D3D11_MAPPED_SUBRESOURCE` so the
+		`void*` points to allocated memory to fill in the struct.
+	[ ] create model matrix per entity draw call
 	[ ] In draw.h and draw.cpp write the draw game function which is the master draw function
 [ ] Write the InputManager and figure out how to split it for cross platform
 	- NOTE: maybe write win32/input.h and win32/input.cpp and implement them for each platform

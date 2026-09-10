@@ -3,6 +3,7 @@
 #include "src/utils/log.h"
 
 #include "src/game2d/game2d.h"
+#include "src/game2d/camera2d.h"
 
 // creates a new game with the "new" keyword and returns the pointer to it
 // NOTE(harsh): the allocated memory is not tracker you must track and free the game
@@ -12,8 +13,12 @@ Game2d* GameCreateAndInit(AppMemory* memory)
     LOG_INFO("Game Init");
 
     Game2d* g = (Game2d*)ArenaAlloc(&memory->PermanentAllocator, sizeof(Game2d));
+    g->camera = Camera2dCreateAndInit(memory);
 
     return g;
 }
 
-void GameUpdate(Game2d* g) {}
+void GameUpdate(Game2d* g)
+{
+    Camera2dUpdate(g->camera);
+}

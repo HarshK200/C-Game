@@ -1,3 +1,5 @@
+// TODO(harsh): setup the input for PerFrame and Per Entity uniforms
+
 // input struct
 struct vs_in {
     float3 pos : POS0;

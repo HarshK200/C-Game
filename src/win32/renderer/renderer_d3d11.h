@@ -29,3 +29,14 @@ struct Renderer
     Mesh* TriangleMesh;
     Mesh* QuadMesh;
 };
+
+struct FrameUniforms
+{
+    Mat4 View;
+    Mat4 Projection;
+};
+struct EntityUniforms
+{
+    Mat4 Model;
+    // TODO(harsh): maybe add a AlbedoOverride in the future for damage taken flashs
+};

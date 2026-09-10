@@ -3,14 +3,26 @@
   "tasks": [
     {
       "label": "build-debug-win32-d3d11",
-      "command": "build_win32.bat",
+      "command": "./build_win32.sh",
+      "options": {
+        "shell": {
+          "executable": "sh.exe",
+          "args": ["-c"]
+        }
+      },
       "presentation": {
         "focus": false
       }
     },
     {
       "label": "build-run-debug-win32-d3d11",
-      "command": "build_win32.bat && build\\debug\\win32_d3d11_main.exe",
+      "command": "./build_win32.sh && ./build/debug/win32_d3d11.exe",
+      "options": {
+        "shell": {
+          "executable": "sh.exe",
+          "args": ["-c"]
+        }
+      },
       "presentation": {
         "focus": true
       }

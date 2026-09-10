@@ -2,6 +2,7 @@
 #include "src/utils/globals.h"
 #include "src/utils/game_math.h"
 #include "src/utils/arena_allocator.h"
+#include "src/utils/log.h"
 
 #include "src/game2d/camera2d.h"
 
@@ -28,6 +29,7 @@ void Camera2dUpdate(Camera2d* camera)
 
 Mat4 Camera2dGetViewMatrix(Camera2d* camera)
 {
+    LOG_ASSERT(camera, "Camera is nullptr");
     const Vec2 CAMERA_CENTER_OFFSET = {
         (-INTERNAL_RENDER_RESOLUTION.x / 2),
         (-INTERNAL_RENDER_RESOLUTION.y / 2),
