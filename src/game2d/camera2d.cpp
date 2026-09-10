@@ -37,9 +37,6 @@ Mat4 Camera2dGetViewMatrix(Camera2d* camera)
 
     Mat4 view_matrix = Translate_Mat4({CAMERA_CENTER_OFFSET.x, CAMERA_CENTER_OFFSET.y, 0.0f});
     view_matrix = Mat4xMat4(view_matrix, Scale_Mat4({camera->zoom, camera->zoom, 1.0f}));
-    // temp
-    view_matrix = Mat4xMat4(view_matrix, Scale_Mat4({96.0f, 48.0f, 1.0f}));
-    // temp
     view_matrix = Mat4xMat4(view_matrix, Translate_Mat4({-camera->position.x, -camera->position.y, 0.0f}));
 
     return view_matrix;

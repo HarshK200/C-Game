@@ -3,6 +3,10 @@ cbuffer FrameUniforms : register(b0)
     column_major float4x4 VIEW;
     column_major float4x4 PROJECTION;
 };
+cbuffer EntityUniforms : register(b1)
+{
+    column_major float4x4 MODEL;
+};
 
 // input struct
 struct vs_in {
@@ -21,6 +25,7 @@ vs_out vs_main(vs_in input) {
 
     float4 position = float4(input.pos, 1.0f);
 
+    position = mul(MODEL, position);
     position = mul(VIEW, position);
     position = mul(PROJECTION, position);
 

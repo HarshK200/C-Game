@@ -47,4 +47,8 @@ HRESULT CreateAllUniformBuffers(
     ID3D11Device* device,
     ID3D11Buffer* (&uniform_buffers_array)[UNIFORM_BUFFER_COUNT]);
 
-HRESULT UploadUniformBufferData(ID3D11Device* device);
+template <typename T>
+HRESULT UploadUniformBufferData(
+    ID3D11DeviceContext* device_context,
+    ID3D11Buffer* uniform_buffer,
+    T& uniform_data);

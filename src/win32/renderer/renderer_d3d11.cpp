@@ -2,6 +2,7 @@
 #include <d3d11.h>
 
 // utils
+#include "shader_d3d11.h"
 #include "src/game2d/camera2d.h"
 #include "src/utils/game_math.h"
 #include "src/utils/log.h"
@@ -208,24 +209,21 @@ namespace
         // set the topology for draw calls
         r->DeviceContext->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
 
+
         // upload the Per Frame Uniform Buffer data
-        D3D11_MAPPED_SUBRESOURCE mapped = {};
-        r->DeviceContext->Map(
-            r->UniformBuffers[UNIFORM_PER_FRAME_BUFFER],
-            0,
-            D3D11_MAP_WRITE_DISCARD,
-            0,
-            &mapped);
-        FrameUniforms* frame_uniforms = (FrameUniforms*)mapped.pData;
-        frame_uniforms->View = Camera2dGetViewMatrix(g->camera);
-        frame_uniforms->Projection = Orthograhpic_RH_ZO_Mat4(
+        FrameUniforms frame_uniforms = {};
+        frame_uniforms.View = Camera2dGetViewMatrix(g->camera);
+        frame_uniforms.Projection = Orthograhpic_RH_ZO_Mat4(
             0,
             INTERNAL_RENDER_RESOLUTION.x,
             INTERNAL_RENDER_RESOLUTION.y,
             0,
             g->camera->near_plane,
             g->camera->far_plane);
-        r->DeviceContext->Unmap(r->UniformBuffers[UNIFORM_PER_FRAME_BUFFER], 0);
+        UploadUniformBufferData(
+            r->DeviceContext,
+            r->UniformBuffers[UNIFORM_PER_FRAME_BUFFER],
+            frame_uniforms);
         /*
             bind the Per Frame Uniform Buffer
             NOTE(harsh): no need to unbind it, in the next VSSetConstantBuffers(0) call the
@@ -263,6 +261,18 @@ namespace
 
 
             // TODO(harsh): upload per entity uniforms buffer data
+            EntityUniforms entity_uniforms = {};
+            entity_uniforms.Model = Scale_Mat4({
+                (float)r->Textures[TEXTURE_ENTITY_ATLAS]->Width,
+                (float)r->Textures[TEXTURE_ENTITY_ATLAS]->Height,
+                0.0f,
+            });
+            UploadUniformBufferData(
+                r->DeviceContext,
+                r->UniformBuffers[UNIFORM_PER_ENTITY_BUFFER],
+                entity_uniforms);
+            // bind the Per Entity Uniform Buffer
+            r->DeviceContext->VSSetConstantBuffers(1, 1, &r->UniformBuffers[UNIFORM_PER_ENTITY_BUFFER]);
 
             // make the draw call
             r->DeviceContext->DrawIndexed(

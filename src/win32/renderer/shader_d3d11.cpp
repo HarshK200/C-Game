@@ -1,3 +1,4 @@
+#include <cstring>
 #include <d3d11.h>
 #include <d3dcompiler.h>
 #include <iterator>
@@ -220,3 +221,25 @@ HRESULT CreateAllUniformBuffers(
     return S_OK;
 }
 
+template <typename T>
+HRESULT UploadUniformBufferData(
+    ID3D11DeviceContext* device_context,
+    ID3D11Buffer* uniform_buffer,
+    T& uniform_data)
+{
+    D3D11_MAPPED_SUBRESOURCE mapped = {};
+    HRESULT result = device_context->Map(
+        uniform_buffer,
+        0,
+        D3D11_MAP_WRITE_DISCARD,
+        0,
+        &mapped);
+    if (FAILED(result))
+        return result;
+
+    memcpy(mapped.pData, &uniform_data, sizeof(T));
+
+    device_context->Unmap(uniform_buffer, 0);
+
+    return S_OK;
+}
