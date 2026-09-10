@@ -6,10 +6,10 @@
 
 struct Camera2d
 {
-    Vec2 position;
-    float zoom;
-    float near_plane;
-    float far_plane;
+    Vec2 Position;
+    float Zoom;
+    float NearPlane;
+    float FarPlane;
 
     /*
         TODO(harsh): add rotation and

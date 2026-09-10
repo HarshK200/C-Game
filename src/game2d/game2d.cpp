@@ -1,3 +1,6 @@
+#include "player/player.h"
+#include "src/main.h"
+
 // utils
 #include "src/utils/arena_allocator.h"
 #include "src/utils/log.h"
@@ -13,12 +16,14 @@ Game2d* GameCreateAndInit(AppMemory* memory)
     LOG_INFO("Game Init");
 
     Game2d* g = (Game2d*)ArenaAlloc(&memory->PermanentAllocator, sizeof(Game2d));
-    g->camera = Camera2dCreateAndInit(memory);
+
+    g->Camera = Camera2dCreateAndInit(memory);
+    g->Player = PlayerCreateAndInit(memory);
 
     return g;
 }
 
 void GameUpdate(Game2d* g)
 {
-    Camera2dUpdate(g->camera);
+    Camera2dUpdate(g->Camera);
 }

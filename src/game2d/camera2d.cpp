@@ -10,12 +10,12 @@
 Camera2d* Camera2dCreateAndInit(AppMemory* memory)
 {
     Camera2d* camera = (Camera2d*)ArenaAlloc(&memory->PermanentAllocator, sizeof(Camera2d));
-    camera->position = {0, 0};
-    camera->zoom = 1;
+    camera->Position = {0, 0};
+    camera->Zoom = 1;
     // TODO(harsh): how does this whole near and far plane things work? and is -1 near_plane
     // correct for the ZO i.e. the d3d11 render z axis thinig?? in the Orthographic_ZO_RH matrix?
-    camera->near_plane = -1;
-    camera->far_plane = 1;
+    camera->NearPlane = -1;
+    camera->FarPlane = 1;
 
 
     return camera;
@@ -36,8 +36,8 @@ Mat4 Camera2dGetViewMatrix(Camera2d* camera)
     };
 
     Mat4 view_matrix = Translate_Mat4({CAMERA_CENTER_OFFSET.x, CAMERA_CENTER_OFFSET.y, 0.0f});
-    view_matrix = Mat4xMat4(view_matrix, Scale_Mat4({camera->zoom, camera->zoom, 1.0f}));
-    view_matrix = Mat4xMat4(view_matrix, Translate_Mat4({-camera->position.x, -camera->position.y, 0.0f}));
+    view_matrix = Mat4xMat4(view_matrix, Scale_Mat4({camera->Zoom, camera->Zoom, 1.0f}));
+    view_matrix = Mat4xMat4(view_matrix, Translate_Mat4({-camera->Position.x, -camera->Position.y, 0.0f}));
 
     return view_matrix;
 }

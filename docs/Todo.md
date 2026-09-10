@@ -41,9 +41,8 @@
 		Make sure you call `DeviceContext->Map()` first on the `D3D11_MAPPED_SUBRESOURCE` so the
 		`void*` points to allocated memory to fill in the struct.
 	[x] create model matrix per entity draw call
-	[ ] In draw.h and draw.cpp write the draw game function which is the master draw function
-[ ] Write the player.h and player.cpp
-[ ] Delta time
+[x] Write the player.h and player.cpp
+[ ] Move the temp draw rect to draw_player() function in the draw.cpp & draw.h file
 [ ] Write the InputManager and figure out how to split it for cross platform
 	- NOTE: maybe write win32/input.h and win32/input.cpp and implement them for each platform
 	and in the main.h define what services are expected to be implemented by them like so:
@@ -68,6 +67,9 @@
 	struct InputManager;
 	void InputPollMessage(PlatformApp* app);
 	```
+[ ] Delta time
+[ ] See why is the Final Render looking a little bit stretched and not as crisp as in other pixel art games.
+[ ] PORT the world.odin implementation to game/world.cpp
 [ ] Setup Audio Layer (use XAudio2 built into windows 11 SDK, low to mid level API)
 	- NOTE: Audio API used by Handmade hero i.e. DirectSound is long depricated Deprecated since
 	the era of DirectX 8/Vista.

@@ -1,5 +1,7 @@
 #pragma once
 
+#include <Windows.h>
+
 // Struct Definitions Only
 struct InputManager
 {

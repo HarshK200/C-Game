@@ -212,14 +212,14 @@ namespace
 
         // upload the Per Frame Uniform Buffer data
         FrameUniforms frame_uniforms = {};
-        frame_uniforms.View = Camera2dGetViewMatrix(g->camera);
+        frame_uniforms.View = Camera2dGetViewMatrix(g->Camera);
         frame_uniforms.Projection = Orthograhpic_RH_ZO_Mat4(
             0,
             INTERNAL_RENDER_RESOLUTION.x,
             INTERNAL_RENDER_RESOLUTION.y,
             0,
-            g->camera->near_plane,
-            g->camera->far_plane);
+            g->Camera->NearPlane,
+            g->Camera->FarPlane);
         UploadUniformBufferData(
             r->DeviceContext,
             r->UniformBuffers[UNIFORM_PER_FRAME_BUFFER],
