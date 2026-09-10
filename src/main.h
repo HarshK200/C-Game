@@ -14,12 +14,12 @@ struct InputManager;
 
 
 // NOTE(harsh): game layer services
-struct Game;
-Game* GameCreateAndInit(AppMemory* memory);
-void GameUpdate(Game* g); // TODO(harsh): pass delta_time, InputManager
+struct Game2d;
+Game2d* GameCreateAndInit(AppMemory* memory);
+void GameUpdate(Game2d* g); // TODO(harsh): pass delta_time, InputManager
 
 
 // NOTE(harsh): rendering layer services
 struct Renderer;
 Renderer* RendererCreateAndInit(PlatformWindow* window, AppMemory* memory);
-void RendererUpdate(Renderer* r, Game* g, PlatformWindow* window);
+void RendererUpdate(Renderer* r, Game2d* g, PlatformWindow* window);

@@ -9,7 +9,7 @@
 #define WIN32_LEAN_AND_MEAN
 // Definitions *unordered*
 #include "src/win32/win32_platform.cpp"
-#include "src/game/game.cpp"
+#include "src/game2d/game2d.cpp"
 #include "src/win32/win32_input.cpp"
 #include "src/win32/renderer/draw/draw.cpp"
 #include "src/win32/renderer/mesh.cpp"

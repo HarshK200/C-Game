@@ -4,7 +4,7 @@
 #include "src/utils/arena_allocator.h"
 #include "src/utils/game_math.h"
 
-struct Camera2D
+struct Camera2d
 {
     Vec2 position;
     float zoom;
@@ -19,5 +19,5 @@ struct Camera2D
 };
 
 
-Camera2D* CameraCreateAndInit(AppMemory* memory);
-void CameraUpdate(Camera2D* camera);
+Camera2d* CameraCreateAndInit(AppMemory* memory);
+void CameraUpdate(Camera2d* camera);

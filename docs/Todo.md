@@ -15,7 +15,11 @@
 		[x] Fix wonky aaa BUG texture sampling. *DON'T FORGET THE D3D11_APPEND_ALIGNED_ELEMENT when editing shaders you dumbass*
 		[x] *RenderDoc is the GOAT!!!!*
 	[x] Write Matrix tranformation functions in game_math.cpp *Yoink from odin code*
-	[ ] create camera2d with camera camera_view_matrix() function in game/camera2d.cpp
+		[x] Look at *handmade hero video* and decide if a *glm like matrix tranformation API* is better
+		or raw multiplication is better with *operator overloading
+		[x] Write Mat4xMat4()
+		[x] For Vec3 x Mat4 multiplications overload *operator
+	[x] create camera2d with camera camera_view_matrix() function in game/camera2d.cpp
 	[ ] create projection matrix in utils/game_math.cpp
 	[ ] create model matrix per entity draw call
 	[ ] Figure out how to upload uniforms to D3D11 shaders
@@ -48,6 +52,7 @@
 [ ] Setup Audio Layer (use XAudio2 built into windows 11 SDK, low to mid level API)
 	- NOTE: Audio API used by Handmade hero i.e. DirectSound is long depricated Deprecated since
 	the era of DirectX 8/Vista.
+[ ] Hot code reloading
 [ ] Disable WindowResize and Make window resizing done through settings.
 [ ] Handle sRGB and Linear color format in the sampler and shader i.e. when loading sRGB files make sure to specify
     the file uses sRGB color encoding by declaring texture with `DXGI_FORMAT_R8G8B8A8_UNORM_SRGB` and the GPU will do

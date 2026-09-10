@@ -18,7 +18,7 @@ struct PlatformApp
     int ExitCode;
 
     PlatformWindow* Window;
-    Game* Game;
+    Game2d* Game;
     Renderer* Renderer; // D3D11
 
     AppMemory Memory;

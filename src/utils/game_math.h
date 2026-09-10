@@ -59,6 +59,52 @@ typedef union Mat4
 
 
 /*
+    Mat4 x Vec4 operator overload
+*/
+inline Vec4 operator*(Mat4 m, Vec4 v)
+{
+    Vec4 result = {};
+
+    // Vec3[row]
+    for (int row = 0; row < 4; row++)
+    {
+        // multiplication
+        for (int x = 0; x < 4; x++)
+        {
+            result[row] += v[x] * m[x][row];
+        }
+    }
+
+    return result;
+}
+
+/*
+    Multiplies two Column Major Mat4, Read right -> Left in order *NON-COMMUTATIVE*
+*/
+inline Mat4 Mat4xMat4(Mat4 left, Mat4 right)
+{
+    Mat4 result;
+
+    // result[column]
+    for (int col = 0; col < 4; col++)
+    {
+        // result[column][row]
+        for (int row = 0; row < 4; row++)
+        {
+            // multiplication
+            for (int x = 0; x < 4; x++)
+            {
+                result[col][row] += right[col][x] * left[x][row];
+            }
+        }
+    }
+
+
+    return result;
+}
+
+
+/*
     TODO(harsh): write the Normalize function and overload it with Vec2, Vec3 and Vec4
     not to be used directly, call Noramlize() instead
 */
@@ -84,7 +130,7 @@ visualized:
 */
 inline Mat4 Identity_Mat4()
 {
-    Mat4 m = {0};
+    Mat4 m = {};
     m[0][0] = 1.0f;
     m[1][1] = 1.0f;
     m[2][2] = 1.0f;
@@ -104,7 +150,7 @@ inline Mat4 Identity_Mat4()
 */
 inline Mat4 Scale_Mat4(Vec3 scale)
 {
-    Mat4 m = {0};
+    Mat4 m = {};
     m[0].x = scale.x;
     m[1].y = scale.y;
     m[2].z = scale.z;

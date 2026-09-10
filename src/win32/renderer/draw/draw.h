@@ -1,3 +1,3 @@
 #pragma once
 
-#include "src/game/game.h"
+#include "src/game2d/game2d.h"

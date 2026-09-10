@@ -12,7 +12,7 @@
 #include "src/utils/arena_allocator.h"
 
 #include "src/main.h"
-#include "src/game/game.h"
+#include "src/game2d/game2d.h"
 #include "src/win32/renderer/mesh.h"
 #include "src/win32/win32_platform.h"
 #include "src/win32/renderer/texture_d3d11.h"
@@ -187,7 +187,7 @@ namespace
         return S_OK;
     }
 
-    void RenderPass_Game(Renderer* r, Game* g)
+    void RenderPass_Game(Renderer* r, Game2d* g)
     {
         // set internal texture as render target
         r->DeviceContext->OMSetRenderTargets(1, &r->InternalRTV, NULL);
@@ -381,7 +381,7 @@ Renderer* RendererCreateAndInit(PlatformWindow* window, AppMemory* memory)
                      BackBufferRenderTargetView.
     3. Finally present's the backbuffer by DXGI_SWAP_EFFECT_FLIP_DISCARD, switching the backbuffer with front
 */
-void RendererUpdate(Renderer* r, Game* g, PlatformWindow* window)
+void RendererUpdate(Renderer* r, Game2d* g, PlatformWindow* window)
 {
 
     // ======================== GAME RENDER PASS ========================
