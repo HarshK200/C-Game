@@ -1,11 +1,5 @@
 #include <assert.h>
 
-// windows/d3d11
-#include <Windows.h>
-#include <d3d11.h>
-#include <d3dcompiler.h>
-#include <dxgiformat.h>
-
 // utils
 #include "src/game2d/camera2d.h"
 #include "src/utils/game_math.h"
@@ -189,7 +183,7 @@ namespace
         return S_OK;
     }
 
-    HRESULT UploadUniformBuffer()
+    HRESULT CreateUniformBuffers(Renderer* r)
     {
         return S_OK;
     }
@@ -395,6 +389,14 @@ Renderer* RendererCreateAndInit(PlatformWindow* window, AppMemory* memory)
     if (FAILED(result))
     {
         LOG_ERRORF("D3D11 CreateAndSetPointSampler FAILED! with error code: %d", result);
+        return nullptr;
+    }
+
+    // create uniform buffer
+    result = CreateUniformBuffers(r);
+    if (FAILED(result))
+    {
+        LOG_ERRORF("D3D11 CreateUniformBuffers FAILED! with error code: %d", result);
         return nullptr;
     }
 

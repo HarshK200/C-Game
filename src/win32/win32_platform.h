@@ -1,5 +1,4 @@
 #pragma once
-#include <Windows.h>
 
 #include "src/main.h"
 #include "src/utils/arena_allocator.h"

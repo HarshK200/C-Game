@@ -5,7 +5,6 @@
 
 #ifdef _WIN32
 
-#include <Windows.h>
 #define DEBUG_BREAK() __debugbreak()
 
 #endif

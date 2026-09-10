@@ -1,3 +1,5 @@
+// precompiled headers
+#include "src/pch.h"
 
 // Declarations *ordered*
 #include "main.h"
@@ -7,6 +9,7 @@
 
 // windows specific defines
 #define WIN32_LEAN_AND_MEAN
+
 // Definitions *unordered*
 #include "src/win32/win32_platform.cpp"
 #include "src/game2d/game2d.cpp"

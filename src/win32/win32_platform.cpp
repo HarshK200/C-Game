@@ -1,5 +1,3 @@
-#include <Windows.h>
-
 #include "src/utils/log.h"
 #include "src/utils/globals.h"
 #include "src/win32/win32_input.h"

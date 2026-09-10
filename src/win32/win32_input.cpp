@@ -1,6 +1,3 @@
-#include <Windows.h>
-#include <winuser.h>
-
 #include "src/win32/win32_input.h"
 
 // ================== Internal functions only to be used by win32_platform ==================

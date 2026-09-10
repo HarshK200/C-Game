@@ -1,0 +1,42 @@
+ninja_required_version = 1.13
+
+
+# ============= BUILD CONFIG ==============
+builddir = build/debug
+outexe = win32_d3d11.exe
+
+cxx = clang++
+cxxflags = -std=c++20 -I. -g
+
+defines = -DISEKAIED_DEBUG -D_CRT_SECURE_NO_WARNINGS
+libs = -luser32 -ld3d11 -ld3dcompiler
+warnings= -Wno-format-security
+
+
+# ================== PCH ==================
+rule pch
+    command = $cxx $cxxflags $defines $warnings -x c++-header $in -o $out
+    description = PCH $in
+
+build $builddir/pch.pch: pch src/pch.h
+
+
+# ================ Compiling ================
+rule compile
+    command = $cxx $cxxflags $defines $warnings -include-pch build/debug/pch.pch -MMD -MF $out.d -c $in -o $out
+    depfile = $out.d
+    deps = gcc
+    description = Compiling $in
+
+build $builddir/main.o: compile src/main.cpp | $builddir/pch.pch
+
+
+# ================= Linking =================
+rule link
+    command = $cxx $in -o $out $libs
+    description = Linking $out
+
+build $builddir/$outexe: link $builddir/main.o
+
+# ================= Default Target =================
+default $builddir/$outexe

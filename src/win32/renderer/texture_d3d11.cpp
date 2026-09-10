@@ -1,6 +1,4 @@
 #include <cstdint>
-#include <d3d11.h>
-#include <dxgiformat.h>
 
 #include "src/win32/renderer/texture_d3d11.h"
 
@@ -9,8 +7,7 @@
 #include "src/utils/log.h"
 
 // thirdparty
-#define STB_IMAGE_IMPLEMENTATION
-#include "third_party/stb_image.h"
+#include "src/pch.h"
 
 
 // ====================== Internal functions ======================
