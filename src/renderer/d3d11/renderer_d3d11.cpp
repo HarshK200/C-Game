@@ -208,6 +208,9 @@ namespace
         return S_OK;
     }
 
+    // TODO(harsh): COMPLETELY REMOVE Game2d* g usage here, This should instead take a render
+    // command array buffer rather than the game struct. This is bad desgin it couples Renderer
+    // and the Game2d tighly togther which is bad for scaling
     void RenderPass_Game(Renderer* r, Game2d* g)
     {
         // ========================= Internal Render texture setup =========================
