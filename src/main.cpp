@@ -16,7 +16,6 @@
 #include "src/game2d/camera2d.cpp"
 #include "src/game2d/player/player.cpp"
 #include "src/win32/win32_input.cpp"
-#include "src/win32/renderer/draw/draw.cpp"
 #include "src/win32/renderer/mesh.cpp"
 #include "src/win32/renderer/texture_d3d11.cpp"
 #include "src/win32/renderer/shader_d3d11.cpp"

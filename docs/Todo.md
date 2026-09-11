@@ -44,7 +44,28 @@
 [x] Write the player.h and player.cpp
 [x] See why is the Final Render looking a little bit stretched and not as crisp as in other pixel
 	art games. *STUPID FUCKINNN!!! WIN32 was the problem*
-[ ] Move the temp draw rect to draw_player() function in the draw.cpp & draw.h file
+[-] *REMOVED THIS IS BAD DESGIN, Makes the renderer coupled with game which is not a good idea*
+	*for scaling and other swaping renderer*
+	Move the temp draw rect to draw_player() function in the draw.cpp & draw.h file
+
+[ ] **Figure out Render Commands**
+	i'm am mixing the game and renderer which doesn't seem right,
+	so Renderer should be independent of game, don't write draw_player() or draw_world()
+	**Renderer shouldn't need to know what game is neither should it traverse the game state at all!!!**,
+	Write to a draw commands buffer which renderer will consume.
+	Try to achieve this following model:
+	```
+	Game state
+     ↓
+	Generate render commands
+	 ↓
+	Render command buffer
+	 ↓
+	Renderer
+	 ↓
+	D3D11
+	```
+[ ] Figure out Sprite2D *this is mostly the same from odin code* and AnimatedSprite2D rendering.
 [ ] Write the InputManager and figure out how to split it for cross platform
 	- NOTE: maybe write win32/input.h and win32/input.cpp and implement them for each platform
 	and in the main.h define what services are expected to be implemented by them like so:

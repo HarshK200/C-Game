@@ -3,18 +3,17 @@
 #include <dxgiformat.h>
 
 // utils
-#include "shader_d3d11.h"
-#include "src/game2d/camera2d.h"
 #include "src/utils/game_math.h"
 #include "src/utils/log.h"
 #include "src/utils/globals.h"
 #include "src/utils/arena_allocator.h"
-#include "src/win32/renderer/shader_d3d11.h"
 
 #include "src/main.h"
+#include "src/game2d/camera2d.h"
 #include "src/game2d/game2d.h"
 #include "src/win32/renderer/mesh.h"
 #include "src/win32/win32_platform.h"
+#include "src/win32/renderer/shader_d3d11.h"
 #include "src/win32/renderer/texture_d3d11.h"
 #include "src/win32/renderer/renderer_d3d11.h"
 
@@ -193,9 +192,11 @@ namespace
 
         // set internal texture as render target
         r->DeviceContext->OMSetRenderTargets(1, &r->InternalRTV, NULL);
+
         // clear the internal render target with black color
         float background_colour[4] = {0.0f, 0.0f, 0.0f, 1.0f};
         r->DeviceContext->ClearRenderTargetView(r->InternalRTV, background_colour);
+
         // NOTE(harsh): the internal render resolution is set here that determines
         // the aspect ratio of the viewport
         D3D11_VIEWPORT internal_render_viewport = {
@@ -233,16 +234,17 @@ namespace
         r->DeviceContext->VSSetConstantBuffers(0, 1, &r->UniformBuffers[UNIFORM_PER_FRAME_BUFFER]);
 
 
-        // ========================= Setup Shaders and Input Layout =========================
+        // ========================= Default Shader Draw Pipeline =========================
 
+        // bind default shader and input layout
         Shader* default_shader = r->Shaders[SHADER_DEFAULT];
         r->DeviceContext->VSSetShader(default_shader->VertexShader, NULL, 0);
         r->DeviceContext->PSSetShader(default_shader->PixelShader, NULL, 0);
         r->DeviceContext->IASetInputLayout(default_shader->InputLayout);
 
-        // draw calls ==================== TEMP QUAD DRAW CALL INLINE ====================
+        // ===================== TEMPORARY QUAD RECT DRAW FOR TESTING ======================
         {
-            // bind the quad vertex buffer for drawing
+            // bind the quad vertex buffer
             r->DeviceContext->IASetVertexBuffers(
                 0,
                 1,
@@ -250,7 +252,7 @@ namespace
                 &r->QuadMesh->VertexStride,
                 &r->QuadMesh->VertexOffset);
 
-            // bind the quad index buffer for drawing
+            // bind the quad index buffer
             r->DeviceContext->IASetIndexBuffer(
                 r->QuadMesh->IndexBuffer,
                 DXGI_FORMAT_R32_UINT,
@@ -261,7 +263,7 @@ namespace
             r->DeviceContext->PSSetSamplers(0, 1, &r->PointSampler);
 
 
-            // TODO(harsh): upload per entity uniforms buffer data
+            // upload player unfiorms
             EntityUniforms entity_uniforms = {};
             entity_uniforms.Model = Scale_Mat4({
                 (float)r->Textures[TEXTURE_ENTITY_ATLAS]->Width,
@@ -285,6 +287,7 @@ namespace
             ID3D11ShaderResourceView* null_srv = NULL;
             r->DeviceContext->PSSetShaderResources(0, 1, &null_srv);
         }
+        // =================================================================================
     }
 
     void RenderPass_Upscale(Renderer* r)
@@ -432,5 +435,5 @@ void RendererUpdate(Renderer* r, Game2d* g, PlatformWindow* window)
 
 
     // VERY IMPORTANT Finally Swap the back-buffer to show it
-    r->SwapChain->Present(1, 0);
+    r->SwapChain->Present(0, 0);
 }
