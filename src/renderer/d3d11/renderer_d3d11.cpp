@@ -8,15 +8,37 @@
 #include "src/utils/globals.h"
 #include "src/utils/arena_allocator.h"
 
+// Platform specific import
+#include "src/win32/win32_platform.h"
+
 #include "src/main.h"
 #include "src/game2d/camera2d.h"
 #include "src/game2d/game2d.h"
-#include "src/win32/renderer/mesh.h"
-#include "src/win32/win32_platform.h"
-#include "src/win32/renderer/shader_d3d11.h"
-#include "src/win32/renderer/texture_d3d11.h"
-#include "src/win32/renderer/renderer_d3d11.h"
+#include "src/renderer/d3d11/mesh.h"
+#include "src/renderer/d3d11/shader_d3d11.h"
+#include "src/renderer/d3d11/texture_d3d11.h"
 
+
+struct Renderer
+{
+    IDXGISwapChain* SwapChain;
+    ID3D11Device* Device;
+    ID3D11DeviceContext* DeviceContext;
+
+    ID3D11RenderTargetView* BackBufferRTV;
+    ID3D11Texture2D* InternalRenderTexture; // 640x360 i.e. 16:9 aspect ratio
+    ID3D11RenderTargetView* InternalRTV;
+    ID3D11ShaderResourceView* InternalSRV;
+
+    Shader* Shaders[SHADER_COUNT];
+    ID3D11Buffer* UniformBuffers[UNIFORM_BUFFER_COUNT];
+    Texture2D* Textures[TEXTURE_COUNT];
+    ID3D11SamplerState* PointSampler; // TODO(harsh): maybe create a ID3D11SamplerState* array like the shader arary?
+
+    Mesh* UpscaleQuadMesh;
+    Mesh* TriangleMesh;
+    Mesh* QuadMesh;
+};
 
 // ====================== Internal functions ======================
 namespace
@@ -356,7 +378,6 @@ namespace
 
 
 // ================== Renderer Layer Services Definitions ==================
-
 /*
     Creates and initializes a D3D11 renderer (allocates renderer).
     Returns Renderer* if succeeds otherwise returns nullptr.

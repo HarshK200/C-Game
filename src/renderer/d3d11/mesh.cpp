@@ -4,7 +4,7 @@
 #include "src/utils/arena_allocator.h"
 #include "src/utils/log.h"
 
-#include "src/win32/renderer/mesh.h"
+#include "src/renderer/d3d11/mesh.h"
 
 
 /*

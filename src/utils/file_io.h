@@ -26,7 +26,8 @@ namespace GameFileIO
     }
 
     /*
-        NOTE(harsh): if you require the FILE* don't use this instead call fopen() yourself
+        NOTE(harsh): calls fclose(file);
+        If you require the FILE* don't use this instead call fopen() yourself
         as this closes the file after checking if it exists.
 
         returns a true if file exists, false otherwise.
@@ -37,6 +38,25 @@ namespace GameFileIO
 
         // open file in read-binary mode i.e. "rb"
         FILE* file = fopen(filepath, "rb");
+        if (!file)
+            return false;
+        fclose(file);
+
+        return true;
+    }
+    /*
+        NOTE(harsh): calls fclose(file);
+        If you require the FILE* don't use this instead call fopen() yourself
+        as this closes the file after checking if it exists.
+
+        returns a true if file exists, false otherwise.
+    */
+    inline bool FileExists(const wchar_t* filepath)
+    {
+        LOG_ASSERT(filepath, "No filepath provided");
+
+        // open file in read-binary mode i.e. "rb"
+        FILE* file = _wfopen(filepath, L"rb");
         if (!file)
             return false;
         fclose(file);

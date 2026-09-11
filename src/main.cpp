@@ -1,26 +1,31 @@
 // precompiled headers
 #include "src/pch.h"
 
+
 // Declarations *ordered*
 #include "main.h"
 
 
+// =============================================================
+//                          WINDOWS
+// =============================================================
 #ifdef _WIN32
-
 // windows specific defines
 #define WIN32_LEAN_AND_MEAN
 
-// Definitions *unordered*
+// Platform Layer Definitions
 #include "src/win32/win32_platform.cpp"
+
+// Game Layer Definitions
 #include "src/game2d/game2d.cpp"
 #include "src/game2d/camera2d.cpp"
 #include "src/game2d/player/player.cpp"
-#include "src/win32/win32_input.cpp"
-#include "src/win32/renderer/mesh.cpp"
-#include "src/win32/renderer/texture_d3d11.cpp"
-#include "src/win32/renderer/shader_d3d11.cpp"
-#include "src/win32/renderer/renderer_d3d11.cpp"
 
+// Renderer Layer Definitions
+#include "src/renderer/d3d11/mesh.cpp"
+#include "src/renderer/d3d11/texture_d3d11.cpp"
+#include "src/renderer/d3d11/shader_d3d11.cpp"
+#include "src/renderer/d3d11/renderer_d3d11.cpp"
 #endif
 
 
@@ -30,7 +35,6 @@ int main()
     // create app *on the stack*
     PlatformApp App = {};
     App.ShouldClose = false;
-    // TODO(harsh): maybe? create one allocator per system like: game_allocator, renderer_allocator, input_allocator
     App.Memory.PermanentAllocator = CreateArena(64 * MegaByte);
     App.Memory.TempAllocator = CreateArena(512 * MegaByte);
 
@@ -64,8 +68,7 @@ int main()
     // Main Update Loop
     while (App.ShouldClose == false)
     {
-        // TODO(Create an input manager and pass that in instead of the whole App instance):
-        if (ProcessInput() == WM_QUIT)
+        if (PlatformProcessInput() == WM_QUIT)
             App.ShouldClose = true;
 
         GameUpdate(App.Game);

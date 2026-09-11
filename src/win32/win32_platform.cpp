@@ -1,11 +1,63 @@
+#include <Windows.h>
+
+// utils
 #include "src/utils/log.h"
 #include "src/utils/globals.h"
-#include "src/win32/win32_input.h"
-#include "src/win32/win32_platform.h"
 #include "src/utils/arena_allocator.h"
 
 
-// ================== Platform Layer Services Definitions ==================
+// ============================== Internal functions ===================================
+namespace
+{
+    /*
+        Windows message callback. This function gets called everytime windows Dispatch's a message
+        i.e. everytime DispatchMessage() is called.
+    */
+    LRESULT CALLBACK WindowMessageCallback(HWND window, UINT message, WPARAM wparam, LPARAM lparam)
+    {
+
+        LRESULT result = 0;
+
+        switch (message)
+        {
+            case WM_CREATE:
+            {
+                OutputDebugString("WM_CREATE\n");
+                break;
+            }
+            case WM_ACTIVATEAPP:
+            {
+                OutputDebugString("WM_ACTIVATEAPP\n");
+                break;
+            }
+            case WM_CLOSE:
+            {
+                OutputDebugString("WM_CLOSE\n");
+                DestroyWindow(window);
+                break;
+            }
+            case WM_DESTROY:
+            {
+                OutputDebugString("WM_DESTROY\n");
+                PostQuitMessage(0);
+                break;
+            }
+            default:
+            {
+                result = DefWindowProc(window, message, wparam, lparam);
+                break;
+            }
+        }
+
+        return result;
+    }
+
+} // namespace
+
+
+// ================== Platform Provided Services Function Definitions ==================
+
+#include "src/win32/win32_platform.h" // platform services struct definitions
 
 /*
     Creates a window using win32 api and returns the PlatformWindow* on success,
@@ -62,4 +114,26 @@ PlatformWindow* PlatformOpenWindow(AppMemory* memory)
     }
 
     return window;
+}
+
+/*
+    Proccess all the input events in the Window Message Queue
+    If message is WM_QUIT returns WM_QUIT
+    otherwise returns 0 on successful finish
+*/
+int PlatformProcessInput()
+{
+    MSG message;
+    int result = 0;
+
+    while (PeekMessage(&message, NULL, 0, 0, PM_REMOVE))
+    {
+        TranslateMessage(&message);
+        DispatchMessage(&message);
+
+        if (message.message == WM_QUIT)
+            result = WM_QUIT;
+    }
+
+    return result;
 }

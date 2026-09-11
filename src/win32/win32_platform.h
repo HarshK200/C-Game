@@ -1,16 +1,16 @@
 #pragma once
 
+#include <Windows.h>
+
 #include "src/main.h"
 #include "src/utils/arena_allocator.h"
 
 
-// Struct Definitions Only
+// ================== Platform Provided Structs Function Definitions ==================
 struct PlatformWindow
 {
     HWND Handle;
 };
-
-
 struct PlatformApp
 {
     bool ShouldClose;
@@ -21,4 +21,7 @@ struct PlatformApp
     Renderer* Renderer; // D3D11
 
     AppMemory Memory;
+};
+struct PlatformInputManager
+{
 };

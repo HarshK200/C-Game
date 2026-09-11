@@ -1,13 +1,13 @@
 #include <cstdint>
 
-#include "src/win32/renderer/texture_d3d11.h"
-
 // utils
-#include "src/utils/arena_allocator.h"
 #include "src/utils/log.h"
+#include "src/utils/arena_allocator.h"
 
 // thirdparty
 #include "src/pch.h"
+
+#include "src/renderer/d3d11/texture_d3d11.h"
 
 
 // ====================== Internal functions ======================

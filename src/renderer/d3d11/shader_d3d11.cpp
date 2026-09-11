@@ -3,10 +3,12 @@
 #include <d3dcompiler.h>
 #include <iterator>
 
-#include "src/utils/globals.h"
+// utils
 #include "src/utils/log.h"
+#include "src/utils/globals.h"
+#include "src/utils/file_io.h"
 
-#include "src/win32/renderer/shader_d3d11.h"
+#include "src/renderer/d3d11/shader_d3d11.h"
 
 
 /*
@@ -29,7 +31,19 @@ Shader* CreateShader(
     ID3DBlob *vs_blob = nullptr, *ps_blob = nullptr, *error_blob = nullptr;
     Shader* shader = (Shader*)ArenaAlloc(&memory->PermanentAllocator, sizeof(Shader));
 
+    // check if the shader file exists or not
+    if (!GameFileIO::FileExists(shader_file_path))
+    {
+        LOG_ERRORF("Shader file not found at path: %ls", shader_file_path);
+        return nullptr;
+    }
+
     HRESULT result;
+
+    /*
+        TODO(harsh): cache compiled shader on first creation and if CreateShader() gets
+        called and cached compiled shader exists just return that instead
+    */
 
     // compile vertex shader
     result = D3DCompileFromFile(
@@ -154,7 +168,7 @@ int LoadAllShaders(
         device,
         memory,
         SHADER_DEFAULT,
-        L"C:/Users/Harsh/Desktop/personal_dev/cpp_game/src/win32/renderer/shaders_d3d11/default.hlsl",
+        L"C:/Users/Harsh/Desktop/personal_dev/cpp_game/src/renderer/d3d11/shaders/default.hlsl",
         compile_options,
         default_input_element_desc,
         std::size(default_input_element_desc));
@@ -171,7 +185,7 @@ int LoadAllShaders(
         device,
         memory,
         SHADER_UPSCALE,
-        L"C:/Users/Harsh/Desktop/personal_dev/cpp_game/src/win32/renderer/shaders_d3d11/upscale.hlsl",
+        L"C:/Users/Harsh/Desktop/personal_dev/cpp_game/src/renderer/d3d11/shaders/upscale.hlsl",
         compile_options,
         upscale_input_element_desc,
         std::size(upscale_input_element_desc));

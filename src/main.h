@@ -6,11 +6,9 @@
 // NOTE(harsh): platform layer services (types defined in platform.h)
 struct PlatformApp;
 struct PlatformWindow;
+struct PlatformInputManager; // TODO(harsh): figure out the in between cross platform action map
 PlatformWindow* PlatformOpenWindow(AppMemory* memory);
-
-// TODO(harsh): input layer services implement a input manager which keep's
-// track of an action map
-struct InputManager;
+int PlatformProcessInput();
 
 
 // NOTE(harsh): game layer services
