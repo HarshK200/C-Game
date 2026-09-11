@@ -42,6 +42,8 @@
 		`void*` points to allocated memory to fill in the struct.
 	[x] create model matrix per entity draw call
 [x] Write the player.h and player.cpp
+[x] See why is the Final Render looking a little bit stretched and not as crisp as in other pixel
+	art games. *STUPID FUCKINNN!!! WIN32 was the problem*
 [ ] Move the temp draw rect to draw_player() function in the draw.cpp & draw.h file
 [ ] Write the InputManager and figure out how to split it for cross platform
 	- NOTE: maybe write win32/input.h and win32/input.cpp and implement them for each platform
@@ -68,16 +70,13 @@
 	void InputPollMessage(PlatformApp* app);
 	```
 [ ] Delta time
-[ ] See why is the Final Render looking a little bit stretched and not as crisp as in other pixel art games.
 [ ] PORT the world.odin implementation to game/world.cpp
+[ ] Perlin noise world generation
 [ ] Setup Audio Layer (use XAudio2 built into windows 11 SDK, low to mid level API)
 	- NOTE: Audio API used by Handmade hero i.e. DirectSound is long depricated Deprecated since
 	the era of DirectX 8/Vista.
 [ ] Hot code reloading
 [ ] Disable WindowResize and Make window resizing done through settings.
-[ ] Handle sRGB and Linear color format in the sampler and shader i.e. when loading sRGB files make sure to specify
-    the file uses sRGB color encoding by declaring texture with `DXGI_FORMAT_R8G8B8A8_UNORM_SRGB` and the GPU will do
-    the sRGB -> Linear conversion itself
 
 ### Done:
 [x] Setup a Basic clean Cross-platform Api Layer
@@ -105,6 +104,12 @@
 [x] Create the logger with assert
 [x] Create a Arena Allocation system
     - NOTE: watch handmade hero and also check randy's resources
+[x] Handle sRGB and Linear color format by 
+	Loading textures with `DXGI_FORMAT_R8G8B8A8_UNORM_SRGB` and the GPU will do the sRGB -> Linear
+	conversion itself.
+	Then Paint on internal render texture as `DXGI_FORMAT_R8G8B8A8_UNORM` for correct calculations.
+	Finally render the texture on the BackBuffer RenderTarget with `DXGI_FORMAT_R8G8B8A8_UNORM_SRGB`
+	format so GPU does the Linear -> sRGB conversion.
 
 # Inspiration
 	Dungeon environment inspired by anime *Delicious in Dungeon*

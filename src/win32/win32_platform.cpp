@@ -29,15 +29,28 @@ PlatformWindow* PlatformOpenWindow(AppMemory* memory)
         LOG_ERROR("Registering window failed.");
         return nullptr;
     }
+
+    // NOTE(harsh): VERY IMPORTANT!! Calculate the outer window size based on the
+    // window style we are using i.e. this will account for the drawable window rect +
+    // style like border, menu, etc...
+    DWORD window_style = WS_OVERLAPPEDWINDOW | WS_VISIBLE;
+    RECT window_rect = {
+        0,
+        0,
+        (LONG)DEFAULT_WINDOW_RESOLUTION.x,
+        (LONG)DEFAULT_WINDOW_RESOLUTION.y,
+    };
+    AdjustWindowRect(&window_rect, window_style, FALSE);
+    int outer_width = window_rect.right - window_rect.left;
+    int outer_height = window_rect.bottom - window_rect.top;
+
     window->Handle = CreateWindowEx(
         NULL,
         window_class.lpszClassName,
         "isekaied",
         WS_OVERLAPPEDWINDOW | WS_VISIBLE,
-        CW_USEDEFAULT,
-        CW_USEDEFAULT,
-        DEFAULT_WINDOW_RESOLUTION.x,
-        DEFAULT_WINDOW_RESOLUTION.y,
+        CW_USEDEFAULT, CW_USEDEFAULT,
+        outer_width, outer_height,
         NULL,
         NULL,
         instance,

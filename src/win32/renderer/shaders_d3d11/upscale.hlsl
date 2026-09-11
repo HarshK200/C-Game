@@ -24,6 +24,11 @@ SamplerState PointSampler : register(s0);
 
 float4 ps_main(vs_out input) : SV_TARGET {
     float4 tex_albedo = InternalTex.Sample(PointSampler, input.uv);
+
+    if(tex_albedo.w < 0.01)
+    {
+        discard;
+    }
     
     return tex_albedo;
 }

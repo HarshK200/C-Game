@@ -1,5 +1,6 @@
 #include <assert.h>
 #include <d3d11.h>
+#include <dxgiformat.h>
 
 // utils
 #include "shader_d3d11.h"
@@ -98,7 +99,7 @@ namespace
         internal_texture_desc.Height = 360;
         internal_texture_desc.MipLevels = 1;
         internal_texture_desc.ArraySize = 1;
-        internal_texture_desc.Format = DXGI_FORMAT_R8G8B8A8_UNORM;
+        internal_texture_desc.Format = DXGI_FORMAT_R8G8B8A8_UNORM_SRGB;
         internal_texture_desc.SampleDesc.Count = 1;
         internal_texture_desc.Usage = D3D11_USAGE_DEFAULT;
         internal_texture_desc.BindFlags = D3D11_BIND_RENDER_TARGET | D3D11_BIND_SHADER_RESOURCE;
@@ -425,7 +426,6 @@ Renderer* RendererCreateAndInit(PlatformWindow* window, AppMemory* memory)
 */
 void RendererUpdate(Renderer* r, Game2d* g, PlatformWindow* window)
 {
-
     // ======================== GAME RENDER PASS ========================
     RenderPass_Game(r, g);
     RenderPass_Upscale(r);

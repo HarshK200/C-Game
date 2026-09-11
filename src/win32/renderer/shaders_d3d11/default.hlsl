@@ -43,7 +43,7 @@ SamplerState    PointSampler : register(s0);
 float4 ps_main(vs_out input) : SV_TARGET {
     float4 albedo = SpriteTex.Sample(PointSampler, input.uv);
     if(albedo.w < 0.01) {
-        return float4(0.5f, 0.0f, 0.0f, 1.0f);
+        discard;
     }
 
     return albedo; // MUST be a RGBA value in range 0..1

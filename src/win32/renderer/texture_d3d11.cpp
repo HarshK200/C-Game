@@ -35,7 +35,7 @@ namespace
         int width;
         int height;
         int channels;
-        uint8_t* pixel_data = stbi_load(texture_path, &width, &height, &channels, 0);
+        uint8_t* pixel_data = stbi_load(texture_path, &width, &height, &channels, 4);
         if (!pixel_data)
         {
             LOG_ERROR("Decoding texture file data with stbi failed");
@@ -51,7 +51,6 @@ namespace
         // NOTE(harsh): this has something to do with a texture cube-map, and this value should
         // be in multiple of 6? or me 1 fine cause i'm not uploading a cube texture
         texture_desc.ArraySize = 1;
-        // NOTE(harsh): loading even the sRGB texture as non sRGB because the sRGB decoding will happen later
         texture_desc.Format = DXGI_FORMAT_R8G8B8A8_UNORM_SRGB;
         // default sampling, no anti-aliasing
         texture_desc.SampleDesc.Count = 1;
