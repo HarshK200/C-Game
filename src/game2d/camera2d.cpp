@@ -27,6 +27,10 @@ void Camera2dUpdate(Camera2d* camera)
     // TODO(harsh): disable zooming logic on release build
 }
 
+/*
+    TODO(harsh): Move this View Matrix calculation to the Renderer as, VIEW MATRIX is a renderer
+    concept and this is bad desgin and coupling game with renderer.
+*/
 Mat4 Camera2dGetViewMatrix(Camera2d* camera)
 {
     LOG_ASSERT(camera, "Camera is nullptr");

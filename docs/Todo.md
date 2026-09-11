@@ -48,7 +48,7 @@
 	*for scaling and other swaping renderer*
 	Move the temp draw rect to draw_player() function in the draw.cpp & draw.h file
 
-[ ] **Figure out Render Commands**
+[ ] **Figure out Render Commands: Game should convert relevant state to Generatic Rendering Data/Cmd_Buffer**
 	i'm am mixing the game and renderer which doesn't seem right,
 	so Renderer should be independent of game, don't write draw_player() or draw_world()
 	**Renderer shouldn't need to know what game is neither should it traverse the game state at all!!!**,
@@ -65,6 +65,11 @@
 	 ↓
 	D3D11
 	```
+	Things to seperate from Game and Renderer:
+	- The Renderer should not get Game g at all, it should get get render Groups i.e. RenderCommands.
+	- The Camera2D should not have `Mat4 Camera2dGetViewMatrix(Camera2d* camera)` instead the Renderer
+	Should just get information it needs to create the `VIEW MATRIX` as it doesn't belong to the Game.
+	
 [ ] Figure out Sprite2D *this is mostly the same from odin code* and AnimatedSprite2D rendering.
 [ ] Write the InputManager and figure out how to split it for cross platform
 	- NOTE: maybe write win32/input.h and win32/input.cpp and implement them for each platform
