@@ -5,7 +5,7 @@
 
 // utils
 #include "src/utils/log.h"
-#include "src/utils/globals.h"
+#include "src/utils/enums.h"
 #include "src/utils/file_io.h"
 
 #include "src/renderer/d3d11/shader_d3d11.h"

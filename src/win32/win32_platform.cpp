@@ -2,7 +2,7 @@
 
 // utils
 #include "src/utils/log.h"
-#include "src/utils/globals.h"
+#include "src/utils/constants.h"
 #include "src/utils/arena_allocator.h"
 
 

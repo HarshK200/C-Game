@@ -1,47 +1,34 @@
 // utils
-#include "src/utils/globals.h"
+#include "src/utils/constants.h"
 #include "src/utils/game_math.h"
 #include "src/utils/arena_allocator.h"
-#include "src/utils/log.h"
 
 #include "src/game2d/camera2d.h"
+#include "src/renderer/render_data.h"
 
 
 Camera2d* Camera2dCreateAndInit(AppMemory* memory)
 {
     Camera2d* camera = (Camera2d*)ArenaAlloc(&memory->PermanentAllocator, sizeof(Camera2d));
-    camera->Position = {0, 0};
-    camera->Zoom = 1;
+    camera->position = {0, 0};
+    camera->offset = {INTERNAL_RENDER_RESOLUTION.x / 2, INTERNAL_RENDER_RESOLUTION.y / 2};
+    camera->zoom = 1;
     // TODO(harsh): how does this whole near and far plane things work? and is -1 near_plane
     // correct for the ZO i.e. the d3d11 render z axis thinig?? in the Orthographic_ZO_RH matrix?
-    camera->NearPlane = -1;
-    camera->FarPlane = 1;
-
+    camera->near_plane = -1;
+    camera->far_plane = 1;
 
     return camera;
 }
 
 
-void Camera2dUpdate(Camera2d* camera)
+void Camera2dUpdate(Camera2d* camera, RenderData* render_data)
 {
+    // Update Render Data
+    render_data->view_matrix_params.offset = camera->offset;
+    render_data->view_matrix_params.position = camera->position;
     // TODO(harsh): disable zooming logic on release build
-}
-
-/*
-    TODO(harsh): Move this View Matrix calculation to the Renderer as, VIEW MATRIX is a renderer
-    concept and this is bad desgin and coupling game with renderer.
-*/
-Mat4 Camera2dGetViewMatrix(Camera2d* camera)
-{
-    LOG_ASSERT(camera, "Camera is nullptr");
-    const Vec2 CAMERA_CENTER_OFFSET = {
-        (INTERNAL_RENDER_RESOLUTION.x / 2),
-        (INTERNAL_RENDER_RESOLUTION.y / 2),
-    };
-
-    Mat4 view_matrix = Translate_Mat4({CAMERA_CENTER_OFFSET.x, CAMERA_CENTER_OFFSET.y, 0.0f});
-    view_matrix = Mat4xMat4(view_matrix, Scale_Mat4({camera->Zoom, camera->Zoom, 1.0f}));
-    view_matrix = Mat4xMat4(view_matrix, Translate_Mat4({-camera->Position.x, -camera->Position.y, 0.0f}));
-
-    return view_matrix;
+    render_data->view_matrix_params.zoom = camera->zoom;
+    render_data->projection_matrix_params.near_plane = camera->near_plane;
+    render_data->projection_matrix_params.far_plane = camera->far_plane;
 }

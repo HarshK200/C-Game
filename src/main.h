@@ -1,5 +1,6 @@
 #pragma once
 
+#include "src/renderer/render_data.h"
 #include "src/utils/arena_allocator.h"
 
 
@@ -20,4 +21,4 @@ void GameUpdate(Game2d* g); // TODO(harsh): pass delta_time, InputManager
 // NOTE(harsh): rendering layer services
 struct Renderer;
 Renderer* RendererCreateAndInit(PlatformWindow* window, AppMemory* memory);
-void RendererUpdate(Renderer* r, Game2d* g, PlatformWindow* window);
+void RendererUpdate(PlatformWindow* window, Renderer* r, RenderData* render_data);

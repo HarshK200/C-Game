@@ -1,10 +1,12 @@
 // precompiled headers
 #include "src/pch.h"
 
+// utils
+#include "src/utils/arena_allocator.h"
 
-// Declarations *ordered*
+// Platform agnostic Declarations *ordered*
 #include "main.h"
-
+#include "renderer/render_data.h"
 
 // =============================================================
 //                          WINDOWS
@@ -19,7 +21,6 @@
 // Game Layer Definitions
 #include "src/game2d/game2d.cpp"
 #include "src/game2d/camera2d.cpp"
-#include "src/game2d/player/player.cpp"
 
 // Renderer Layer Definitions
 #include "src/renderer/d3d11/mesh.cpp"
@@ -76,9 +77,15 @@ int main()
         if (PlatformProcessInput() == WM_QUIT)
             App.ShouldClose = true;
 
+        RenderData* render_data = (RenderData*)ArenaAlloc(
+            &App.Memory.TempAllocator,
+            sizeof(RenderData));
+
         // TODO(harsh): pass action_map and delta time to GameUpate()
-        GameUpdate(App.Game);
-        RendererUpdate(App.Renderer, App.Game, App.Window);
+        GameUpdate(App.Game, render_data);
+        RendererUpdate(App.Window, App.Renderer, render_data);
+
+        ArenaReset(&App.Memory.TempAllocator);
     }
 
 program_exit:

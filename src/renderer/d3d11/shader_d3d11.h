@@ -4,8 +4,9 @@
 #include <winnt.h>
 
 // utils
+#include "src/utils/enums.h"
+#include "src/utils/game_math.h"
 #include "src/utils/arena_allocator.h"
-#include "src/utils/globals.h"
 
 struct Shader
 {

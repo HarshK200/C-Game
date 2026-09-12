@@ -2,6 +2,7 @@
 
 // utils
 #include "src/utils/arena_allocator.h"
+#include "src/utils/enums.h"
 #include "src/utils/log.h"
 
 #include "src/renderer/d3d11/mesh.h"
@@ -130,11 +131,10 @@ Mesh* CreateTriangleMesh(ID3D11Device* device, AppMemory* memory)
 }
 
 /*
+    NOTE(harsh): This follows Y+ Down with PROJECTION matrix flipping in the shader
+
     Uploads quad mesh vertex & index buffer to the GPU,
     Returns the resulting pointer on success, otherwise returns a nullptr on failure
-
-
-    NOTE(harsh): This follows Y+ Down with PROJECTION matrix flipping in the shader
 */
 Mesh* CreateQuadMesh(ID3D11Device* device, AppMemory* memory)
 {
@@ -198,4 +198,20 @@ Mesh* CreateQuadMesh(ID3D11Device* device, AppMemory* memory)
     }
 
     return quad_mesh;
+}
+
+
+int CreateAllMeshs(
+    AppMemory* memory,
+    ID3D11Device* device,
+    Mesh* (&mesh_array_buffer)[MESH_COUNT])
+{
+    mesh_array_buffer[MESH_TRIANGLE] = CreateTriangleMesh(device, memory);
+    LOG_ASSERT(mesh_array_buffer[MESH_TRIANGLE], "Unable to create triangle mesh");
+    mesh_array_buffer[MESH_QUAD] = CreateQuadMesh(device, memory);
+    LOG_ASSERT(mesh_array_buffer[MESH_QUAD], "Unable to create quad mesh");
+    mesh_array_buffer[MESH_UPSCALE_QUAD] = CreateUpscaleQuadMesh(device, memory);
+    LOG_ASSERT(mesh_array_buffer[MESH_UPSCALE_QUAD], "Unable to create upscale quad mesh");
+
+    return 0;
 }

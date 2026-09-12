@@ -3,17 +3,18 @@
 #include <dxgiformat.h>
 
 // utils
-#include "src/utils/game_math.h"
 #include "src/utils/log.h"
-#include "src/utils/globals.h"
+#include "src/utils/enums.h"
+#include "src/utils/constants.h"
+#include "src/utils/game_math.h"
 #include "src/utils/arena_allocator.h"
+
+#include "src/renderer/render_data.h"
 
 // Platform specific import
 #include "src/win32/win32_platform.h"
 
 #include "src/main.h"
-#include "src/game2d/camera2d.h"
-#include "src/game2d/game2d.h"
 #include "src/renderer/d3d11/mesh.h"
 #include "src/renderer/d3d11/shader_d3d11.h"
 #include "src/renderer/d3d11/texture_d3d11.h"
@@ -33,11 +34,8 @@ struct Renderer
     Shader* Shaders[SHADER_COUNT];
     ID3D11Buffer* UniformBuffers[UNIFORM_BUFFER_COUNT];
     Texture2D* Textures[TEXTURE_COUNT];
+    Mesh* Meshes[MESH_COUNT];
     ID3D11SamplerState* PointSampler; // TODO(harsh): maybe create a ID3D11SamplerState* array like the shader arary?
-
-    Mesh* UpscaleQuadMesh;
-    Mesh* TriangleMesh;
-    Mesh* QuadMesh;
 };
 
 // ====================== Internal functions ======================
@@ -211,17 +209,15 @@ namespace
     // TODO(harsh): COMPLETELY REMOVE Game2d* g usage here, This should instead take a render
     // command array buffer rather than the game struct. This is bad desgin it couples Renderer
     // and the Game2d tighly togther which is bad for scaling
-    void RenderPass_Game(Renderer* r, Game2d* g)
+    void RenderPass_Game(Renderer* r, RenderData* render_data)
     {
         // ========================= Internal Render texture setup =========================
 
         // set internal texture as render target
         r->DeviceContext->OMSetRenderTargets(1, &r->InternalRTV, NULL);
-
         // clear the internal render target with black color
         float background_colour[4] = {0.0f, 0.0f, 0.0f, 1.0f};
         r->DeviceContext->ClearRenderTargetView(r->InternalRTV, background_colour);
-
         // NOTE(harsh): the internal render resolution is set here that determines
         // the aspect ratio of the viewport
         D3D11_VIEWPORT internal_render_viewport = {
@@ -237,25 +233,26 @@ namespace
         r->DeviceContext->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
 
 
+        // ========================= Upload Per Frame Uniforms Buffer =========================
+
         // upload the Per Frame Uniform Buffer data
         FrameUniforms frame_uniforms = {};
-        frame_uniforms.View = Camera2dGetViewMatrix(g->Camera);
+        frame_uniforms.View = ViewMat4(
+            render_data->view_matrix_params.position,
+            render_data->view_matrix_params.offset,
+            render_data->view_matrix_params.zoom);
         frame_uniforms.Projection = Orthograhpic_RH_ZO_Mat4(
             0,
             INTERNAL_RENDER_RESOLUTION.x,
             INTERNAL_RENDER_RESOLUTION.y,
             0,
-            g->Camera->NearPlane,
-            g->Camera->FarPlane);
+            render_data->projection_matrix_params.near_plane,
+            render_data->projection_matrix_params.far_plane);
         UploadUniformBufferData(
             r->DeviceContext,
             r->UniformBuffers[UNIFORM_PER_FRAME_BUFFER],
             frame_uniforms);
-        /*
-            bind the Per Frame Uniform Buffer
-            NOTE(harsh): no need to unbind it, in the next VSSetConstantBuffers(0) call the
-            buffer will be replaced with that calls pointer
-        */
+        // bind the Per Frame Uniform Buffer. NOTE(harsh): no unbind required
         r->DeviceContext->VSSetConstantBuffers(0, 1, &r->UniformBuffers[UNIFORM_PER_FRAME_BUFFER]);
 
 
@@ -267,21 +264,22 @@ namespace
         r->DeviceContext->PSSetShader(default_shader->PixelShader, NULL, 0);
         r->DeviceContext->IASetInputLayout(default_shader->InputLayout);
 
-        // ===================== TEMPORARY QUAD RECT DRAW FOR TESTING ======================
+
+        // TEMPORARY QUAD RECT DRAW FOR TESTING
         {
             // bind the quad vertex buffer
             r->DeviceContext->IASetVertexBuffers(
                 0,
                 1,
-                &r->QuadMesh->VertexBuffer,
-                &r->QuadMesh->VertexStride,
-                &r->QuadMesh->VertexOffset);
+                &r->Meshes[MESH_QUAD]->VertexBuffer,
+                &r->Meshes[MESH_QUAD]->VertexStride,
+                &r->Meshes[MESH_QUAD]->VertexOffset);
 
             // bind the quad index buffer
             r->DeviceContext->IASetIndexBuffer(
-                r->QuadMesh->IndexBuffer,
+                r->Meshes[MESH_QUAD]->IndexBuffer,
                 DXGI_FORMAT_R32_UINT,
-                r->QuadMesh->IndexOffset);
+                r->Meshes[MESH_QUAD]->IndexOffset);
 
             // bind texture shader resource view and the sampler i.e. PointSampler
             r->DeviceContext->PSSetShaderResources(0, 1, &r->Textures[TEXTURE_ENTITY_ATLAS]->SRV);
@@ -304,15 +302,20 @@ namespace
 
             // make the draw call
             r->DeviceContext->DrawIndexed(
-                r->QuadMesh->IndexCount,
-                r->QuadMesh->IndexOffset,
-                r->QuadMesh->VertexOffset);
+                r->Meshes[MESH_QUAD]->IndexCount,
+                r->Meshes[MESH_QUAD]->IndexOffset,
+                r->Meshes[MESH_QUAD]->VertexOffset);
 
             // unbind the TextureSRV
             ID3D11ShaderResourceView* null_srv = NULL;
             r->DeviceContext->PSSetShaderResources(0, 1, &null_srv);
         }
-        // =================================================================================
+
+
+        /*
+            TODO(harsh): loop through all the render commands and render them, in the correct
+            sort order
+         */
     }
 
     void RenderPass_Upscale(Renderer* r)
@@ -352,15 +355,15 @@ namespace
         r->DeviceContext->IASetVertexBuffers(
             0,
             1,
-            &r->UpscaleQuadMesh->VertexBuffer,
-            &r->UpscaleQuadMesh->VertexStride,
-            &r->UpscaleQuadMesh->VertexOffset);
+            &r->Meshes[MESH_UPSCALE_QUAD]->VertexBuffer,
+            &r->Meshes[MESH_UPSCALE_QUAD]->VertexStride,
+            &r->Meshes[MESH_UPSCALE_QUAD]->VertexOffset);
 
         // bind upscale_quad_mesh index buffer
         r->DeviceContext->IASetIndexBuffer(
-            r->UpscaleQuadMesh->IndexBuffer,
+            r->Meshes[MESH_UPSCALE_QUAD]->IndexBuffer,
             DXGI_FORMAT_R32_UINT,
-            r->UpscaleQuadMesh->IndexOffset);
+            r->Meshes[MESH_UPSCALE_QUAD]->IndexOffset);
 
         // bind internal render texture shader resource view and the point sampler
         r->DeviceContext->PSSetShaderResources(0, 1, &r->InternalSRV);
@@ -368,9 +371,9 @@ namespace
 
         // make the upscale draw call
         r->DeviceContext->DrawIndexed(
-            r->UpscaleQuadMesh->IndexCount,
-            r->UpscaleQuadMesh->IndexOffset,
-            r->UpscaleQuadMesh->VertexOffset);
+            r->Meshes[MESH_UPSCALE_QUAD]->IndexCount,
+            r->Meshes[MESH_UPSCALE_QUAD]->IndexOffset,
+            r->Meshes[MESH_UPSCALE_QUAD]->VertexOffset);
 
         // unbind InternalSRV — it must be free before next frame's RenderPass_Game else D3D11 gives a warning
         ID3D11ShaderResourceView* null_srv = NULL;
@@ -400,18 +403,26 @@ Renderer* RendererCreateAndInit(PlatformWindow* window, AppMemory* memory)
         return nullptr;
     }
 
-    result = LoadAllShaders(memory, r->Device, r->Shaders);
+    // load all texture
+    int texture_result = LoadAllTextures(memory, r->Device, r->Textures);
+    if (texture_result < 0)
+    {
+        LOG_ERRORF("D3D11 LoadAllTextures FAILED! with error code: %d", result);
+        return nullptr;
+    }
+
+    // upload mesh vertex/index buffers
+    result = CreateAllMeshs(memory, r->Device, r->Meshes);
     if (result == -1)
     {
         LOG_ERRORF("D3D11 LoadAllShaders FAILED! with error code: %d", result);
         return nullptr;
     }
 
-    // load all texture
-    int texture_result = LoadAllTextures(memory, r->Device, r->Textures);
-    if (texture_result < 0)
+    result = LoadAllShaders(memory, r->Device, r->Shaders);
+    if (result == -1)
     {
-        LOG_ERRORF("D3D11 LoadAllTextures FAILED! with error code: %d", result);
+        LOG_ERRORF("D3D11 LoadAllShaders FAILED! with error code: %d", result);
         return nullptr;
     }
 
@@ -436,10 +447,6 @@ Renderer* RendererCreateAndInit(PlatformWindow* window, AppMemory* memory)
         return nullptr;
     }
 
-    // upload mesh vertex/index buffers
-    r->UpscaleQuadMesh = CreateUpscaleQuadMesh(r->Device, memory);
-    r->TriangleMesh = CreateTriangleMesh(r->Device, memory);
-    r->QuadMesh = CreateQuadMesh(r->Device, memory);
 
     return r;
 }
@@ -451,10 +458,10 @@ Renderer* RendererCreateAndInit(PlatformWindow* window, AppMemory* memory)
                      BackBufferRenderTargetView.
     3. Finally present's the backbuffer by DXGI_SWAP_EFFECT_FLIP_DISCARD, switching the backbuffer with front
 */
-void RendererUpdate(Renderer* r, Game2d* g, PlatformWindow* window)
+void RendererUpdate(PlatformWindow* window, Renderer* r, RenderData* render_data)
 {
     // ======================== GAME RENDER PASS ========================
-    RenderPass_Game(r, g);
+    RenderPass_Game(r, render_data);
     RenderPass_Upscale(r);
 
 

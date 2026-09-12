@@ -1,15 +1,18 @@
 #pragma once
 
 // utils
-#include "src/utils/arena_allocator.h"
 #include "src/utils/game_math.h"
+#include "src/utils/arena_allocator.h"
+
+#include "src/renderer/render_data.h"
 
 struct Camera2d
 {
-    Vec2 Position;
-    float Zoom;
-    float NearPlane;
-    float FarPlane;
+    Vec2 position;
+    Vec2 offset;
+    float zoom;
+    float near_plane;
+    float far_plane;
 
     /*
         TODO(harsh): add rotation and
@@ -20,5 +23,4 @@ struct Camera2d
 
 
 Camera2d* Camera2dCreateAndInit(AppMemory* memory);
-void Camera2dUpdate(Camera2d* camera);
-Mat4 Camera2dGetViewMatrix(Camera2d* camera);
+void Camera2dUpdate(Camera2d* camera, RenderData* render_data);
