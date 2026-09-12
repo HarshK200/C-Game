@@ -463,5 +463,5 @@ void RendererUpdate(PlatformWindow* window, Renderer* r, RenderData* render_data
 
 
     // VERY IMPORTANT Finally Swap the back-buffer to show it
-    r->SwapChain->Present(0, 0);
+    r->SwapChain->Present(0, 0); // DXGI_PRESENT_DO_NOT_WAIT flags makes the FPS go Brrrrrrrrr
 }
