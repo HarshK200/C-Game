@@ -1,6 +1,7 @@
 #pragma once
 
 #include <d3d11.h>
+#include <dxgiformat.h>
 
 // utils
 #include "src/utils/enums.h"
@@ -13,6 +14,7 @@ struct Mesh
     UINT VertexCount;
     UINT VertexStride;
     UINT VertexOffset;
+    DXGI_FORMAT IndexFormat;
     UINT IndexCount;
     UINT IndexOffset;
 };

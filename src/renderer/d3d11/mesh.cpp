@@ -62,6 +62,7 @@ Mesh* CreateUpscaleQuadMesh(ID3D11Device* device, AppMemory* memory)
     // set index buffer info
     upscale_quad_mesh->IndexCount = std::size(index_buffer_data);
     upscale_quad_mesh->IndexOffset = 0;
+    upscale_quad_mesh->IndexFormat = DXGI_FORMAT_R32_UINT;
 
     // upload index buffer
     D3D11_BUFFER_DESC index_buffer_desc = {};
@@ -182,6 +183,7 @@ Mesh* CreateQuadMesh(ID3D11Device* device, AppMemory* memory)
     // set index buffer info
     quad_mesh->IndexCount = std::size(index_buffer_data);
     quad_mesh->IndexOffset = 0;
+    quad_mesh->IndexFormat = DXGI_FORMAT_R32_UINT;
 
     // upload index buffer
     D3D11_BUFFER_DESC index_buffer_desc = {};

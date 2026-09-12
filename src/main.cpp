@@ -21,8 +21,11 @@
 // Game Layer Definitions
 #include "src/game2d/game2d.cpp"
 #include "src/game2d/camera2d.cpp"
+#include "src/game2d/sprite2d.cpp"
+#include "src/game2d/player.cpp"
 
 // Renderer Layer Definitions
+#include "src/renderer/render_data.cpp"
 #include "src/renderer/d3d11/mesh.cpp"
 #include "src/renderer/d3d11/texture_d3d11.cpp"
 #include "src/renderer/d3d11/shader_d3d11.cpp"
@@ -73,18 +76,21 @@ int main()
             TODO(harsh): create a ActionMap struct in main.h file which will pass to as
             PlatformProcessInput(ActionMap* action_map) and it will update the input actions
             state for e.g. ActionMap[MOVE_LEFT] = PRESSED; or HELD or RELEASED or IDLE.
+
+            Processing input
         */
         if (PlatformProcessInput() == WM_QUIT)
             App.ShouldClose = true;
 
-        RenderData* render_data = (RenderData*)ArenaAlloc(
-            &App.Memory.TempAllocator,
-            sizeof(RenderData));
 
+        // Game update and render
+        RenderData* render_data = CreateFrameRenderData(&App.Memory.TempAllocator);
         // TODO(harsh): pass action_map and delta time to GameUpate()
         GameUpdate(App.Game, render_data);
         RendererUpdate(App.Window, App.Renderer, render_data);
 
+
+        // reset transient memory
         ArenaReset(&App.Memory.TempAllocator);
     }
 

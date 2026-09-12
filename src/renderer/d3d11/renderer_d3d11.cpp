@@ -206,9 +206,6 @@ namespace
         return S_OK;
     }
 
-    // TODO(harsh): COMPLETELY REMOVE Game2d* g usage here, This should instead take a render
-    // command array buffer rather than the game struct. This is bad desgin it couples Renderer
-    // and the Game2d tighly togther which is bad for scaling
     void RenderPass_Game(Renderer* r, RenderData* render_data)
     {
         // ========================= Internal Render texture setup =========================
@@ -258,64 +255,64 @@ namespace
 
         // ========================= Default Shader Draw Pipeline =========================
 
+        ID3D11ShaderResourceView* null_srv = NULL;
+
         // bind default shader and input layout
         Shader* default_shader = r->Shaders[SHADER_DEFAULT];
         r->DeviceContext->VSSetShader(default_shader->VertexShader, NULL, 0);
         r->DeviceContext->PSSetShader(default_shader->PixelShader, NULL, 0);
         r->DeviceContext->IASetInputLayout(default_shader->InputLayout);
 
+        /*
+            NOTE(harsh): looping through all the render commands and rendering them.
 
-        // TEMPORARY QUAD RECT DRAW FOR TESTING
+            TODO(harsh): render in the correct sort order and add ShaderGroups
+        */
+        for (int i = 0; i < render_data->commands_count; i++)
         {
-            // bind the quad vertex buffer
+            RenderCommand render_command = render_data->render_commands[i];
+            Mesh* mesh = r->Meshes[render_command.mesh_id];
+            Texture2D* texture = r->Textures[render_command.texture_id];
+
+
+            // bind Mesh
             r->DeviceContext->IASetVertexBuffers(
                 0,
                 1,
-                &r->Meshes[MESH_QUAD]->VertexBuffer,
-                &r->Meshes[MESH_QUAD]->VertexStride,
-                &r->Meshes[MESH_QUAD]->VertexOffset);
-
-            // bind the quad index buffer
+                &mesh->VertexBuffer,
+                &mesh->VertexStride,
+                &mesh->VertexOffset);
             r->DeviceContext->IASetIndexBuffer(
-                r->Meshes[MESH_QUAD]->IndexBuffer,
-                DXGI_FORMAT_R32_UINT,
-                r->Meshes[MESH_QUAD]->IndexOffset);
+                mesh->IndexBuffer,
+                mesh->IndexFormat,
+                mesh->IndexOffset);
 
-            // bind texture shader resource view and the sampler i.e. PointSampler
-            r->DeviceContext->PSSetShaderResources(0, 1, &r->Textures[TEXTURE_ENTITY_ATLAS]->SRV);
+            // bind Texture
+            r->DeviceContext->PSSetShaderResources(0, 1, &texture->SRV);
+
+            // bind Sampler (only one single point sampler is used)
             r->DeviceContext->PSSetSamplers(0, 1, &r->PointSampler);
 
-
-            // upload player unfiorms
+            // Upload & Bind Entity uniforms
             EntityUniforms entity_uniforms = {};
-            entity_uniforms.Model = Scale_Mat4({
-                (float)r->Textures[TEXTURE_ENTITY_ATLAS]->Width,
-                (float)r->Textures[TEXTURE_ENTITY_ATLAS]->Height,
-                0.0f,
-            });
+            entity_uniforms.Model = render_command.transform;
+            entity_uniforms.UVMinMax = render_command.uv_min_max;
             UploadUniformBufferData(
                 r->DeviceContext,
                 r->UniformBuffers[UNIFORM_PER_ENTITY_BUFFER],
                 entity_uniforms);
-            // bind the Per Entity Uniform Buffer
             r->DeviceContext->VSSetConstantBuffers(1, 1, &r->UniformBuffers[UNIFORM_PER_ENTITY_BUFFER]);
 
-            // make the draw call
+            // Make the draw call
+            LOG_ASSERT(mesh->IndexCount != 0, "Error mesh doesn't support index drawing");
             r->DeviceContext->DrawIndexed(
-                r->Meshes[MESH_QUAD]->IndexCount,
-                r->Meshes[MESH_QUAD]->IndexOffset,
-                r->Meshes[MESH_QUAD]->VertexOffset);
+                mesh->IndexCount,
+                mesh->IndexOffset,
+                mesh->VertexOffset);
 
-            // unbind the TextureSRV
-            ID3D11ShaderResourceView* null_srv = NULL;
+            // Unbind the TextureSRV
             r->DeviceContext->PSSetShaderResources(0, 1, &null_srv);
         }
-
-
-        /*
-            TODO(harsh): loop through all the render commands and render them, in the correct
-            sort order
-         */
     }
 
     void RenderPass_Upscale(Renderer* r)

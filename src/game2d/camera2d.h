@@ -15,8 +15,7 @@ struct Camera2d
     float far_plane;
 
     /*
-        TODO(harsh): add rotation and
-        add an offest vec2 so when the view matrix is craeted teh camera can be offseted for
+        TODO(harsh): add rotation and add an offest vec2 so when the view matrix is craeted teh camera can be offseted for
         smooth subpixel movement n sh*t
     */
 };

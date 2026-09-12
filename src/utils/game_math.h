@@ -225,3 +225,18 @@ inline Mat4 ViewMat4(Vec2 position, Vec2 offset, float zoom)
 
     return view_matrix;
 }
+
+// TODO(harsh): add rotation in the future
+inline Mat4 ModelMat4(Vec3 position, Vec3 scale)
+{
+    Mat4 model_matrix = Identity_Mat4();
+    model_matrix = Mat4xMat4(model_matrix, Translate_Mat4(position));
+    model_matrix = Mat4xMat4(model_matrix, Scale_Mat4(scale));
+
+    return model_matrix;
+}
+
+inline Mat4 ModelMat4(Vec2 position, Vec2 scale)
+{
+    return ModelMat4({position.x, position.y, 0.0f}, {scale.x, scale.y, 1.0f});
+}

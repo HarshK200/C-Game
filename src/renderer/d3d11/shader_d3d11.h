@@ -41,6 +41,7 @@ struct FrameUniforms
 struct EntityUniforms
 {
     Mat4 Model;
+    Vec4 UVMinMax;
     // TODO(harsh): maybe add a AlbedoOverride in the future for damage taken flashs
 };
 

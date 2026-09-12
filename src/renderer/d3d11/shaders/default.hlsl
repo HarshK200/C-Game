@@ -6,6 +6,7 @@ cbuffer FrameUniforms : register(b0)
 cbuffer EntityUniforms : register(b1)
 {
     column_major float4x4 MODEL;
+    float4 UV_MIN_MAX;
 };
 
 // input struct
@@ -30,7 +31,7 @@ vs_out vs_main(vs_in input) {
     position = mul(PROJECTION, position);
 
     output.pos = position;
-    output.uv = input.uv;
+    output.uv = lerp(UV_MIN_MAX.xy, UV_MIN_MAX.zw, input.uv);
 
     return output;
 }

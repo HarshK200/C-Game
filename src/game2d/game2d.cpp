@@ -5,12 +5,14 @@
 #include "src/utils/log.h"
 
 #include "src/game2d/camera2d.h"
+#include "src/game2d/player.h"
 
 
 // ================== Renderer Layer Services Definitions ==================
 struct Game2d
 {
-    Camera2d* Camera;
+    Camera2d* camera;
+    Player* player;
 };
 
 // creates a new game with the "new" keyword and returns the pointer to it
@@ -22,7 +24,8 @@ Game2d* GameCreateAndInit(AppMemory* memory)
 
     Game2d* g = (Game2d*)ArenaAlloc(&memory->PermanentAllocator, sizeof(Game2d));
 
-    g->Camera = Camera2dCreateAndInit(memory);
+    g->camera = Camera2dCreateAndInit(memory);
+    g->player = PlayerCreateAndInit(memory);
 
     return g;
 }
@@ -33,5 +36,6 @@ Game2d* GameCreateAndInit(AppMemory* memory)
 */
 void GameUpdate(Game2d* g, RenderData* render_data)
 {
-    Camera2dUpdate(g->Camera, render_data);
+    Camera2dUpdate(g->camera, render_data);
+    PlayerUpdate(g->player, render_data);
 }
