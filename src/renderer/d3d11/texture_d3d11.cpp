@@ -1,13 +1,24 @@
+#pragma once
+
+#include <d3d11.h>
 #include <cstdint>
 
 // utils
 #include "src/utils/log.h"
+#include "src/utils/enums.h"
 #include "src/utils/arena_allocator.h"
 
 // thirdparty
 #include "src/pch.h"
 
-#include "src/renderer/d3d11/texture_d3d11.h"
+
+struct Texture2D
+{
+    int unsigned Width;
+    int unsigned Height;
+    int unsigned Channels;
+    ID3D11ShaderResourceView* SRV;
+};
 
 
 // ====================== Internal functions ======================

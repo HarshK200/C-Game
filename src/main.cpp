@@ -6,31 +6,35 @@
 
 // Platform agnostic Declarations *ordered*
 #include "main.h"
-#include "renderer/render_data.h"
+#include "renderer/render_data.cpp"
+
 
 // =============================================================
 //                          WINDOWS
 // =============================================================
 #ifdef _WIN32
-// windows specific defines
 #define WIN32_LEAN_AND_MEAN
-
 // Platform Layer Definitions
 #include "src/win32/win32_platform.cpp"
+#endif
 
-// Game Layer Definitions
+// =============================================================
+//                        GAME LAYER
+// =============================================================
 #include "src/game2d/game2d.cpp"
 #include "src/game2d/camera2d.cpp"
 #include "src/game2d/sprite2d.cpp"
 #include "src/game2d/player.cpp"
+#include "src/game2d/world.cpp"
 
-// Renderer Layer Definitions
+// =============================================================
+//                    D3D11 Renderer LAYER
+// =============================================================
 #include "src/renderer/render_data.cpp"
 #include "src/renderer/d3d11/mesh.cpp"
 #include "src/renderer/d3d11/texture_d3d11.cpp"
 #include "src/renderer/d3d11/shader_d3d11.cpp"
 #include "src/renderer/d3d11/renderer_d3d11.cpp"
-#endif
 
 
 // ================== Application Entry Point ==================
@@ -68,6 +72,7 @@ int main()
         App.ExitCode = -1;
         goto program_exit;
     }
+    LOG_INFOF("Size of render commands per frame: %d bytes", sizeof(RenderCommand) * MAX_RENDER_COMMANDS_PER_FRAME);
 
     // Main Update Loop
     while (App.ShouldClose == false)

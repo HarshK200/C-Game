@@ -1,13 +1,21 @@
+#pragma once
+
 // utils
-#include "sprite2d.h"
-#include "src/utils/enums.h"
-#include "src/utils/arena_allocator.h"
-#include "src/utils/game_math.h"
 #include "src/utils/log.h"
+#include "src/utils/enums.h"
+#include "src/utils/game_math.h"
+#include "src/utils/arena_allocator.h"
 
-#include "src/game2d/player.h"
-#include "src/renderer/render_data.h"
+#include "src/game2d/sprite2d.cpp"
+#include "src/renderer/render_data.cpp"
 
+
+struct Player
+{
+    Vec2 position;
+    Vec2 scale;
+    Sprite2d sprite;
+};
 
 /*
     NOTE(harsh): allocates using PermanentAllocator

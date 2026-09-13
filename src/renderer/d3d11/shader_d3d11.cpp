@@ -1,14 +1,54 @@
-#include <cstring>
+#pragma once
+
 #include <d3d11.h>
+#include <winnt.h>
 #include <d3dcompiler.h>
+#include <cstring>
 #include <iterator>
 
 // utils
 #include "src/utils/log.h"
 #include "src/utils/enums.h"
 #include "src/utils/file_io.h"
+#include "src/utils/game_math.h"
+#include "src/utils/arena_allocator.h"
 
-#include "src/renderer/d3d11/shader_d3d11.h"
+struct Shader
+{
+    ID3D11VertexShader* VertexShader;
+    ID3D11PixelShader* PixelShader;
+    ID3D11InputLayout* InputLayout;
+};
+
+
+Shader* CreateShader(
+    ID3D11Device* device,
+    AppMemory* memory,
+    ShaderID shader_id,
+    const wchar_t* shader_file_path,
+    UINT compile_options,
+    D3D11_INPUT_ELEMENT_DESC* input_element_desc,
+    UINT input_element_count);
+
+
+int LoadAllShaders(
+    AppMemory* memory,
+    ID3D11Device* device,
+    Shader* (&shader_array_buffer)[SHADER_COUNT]);
+
+
+// Uniform Buffers Layouts
+struct FrameUniforms
+{
+    Mat4 View;
+    Mat4 Projection;
+};
+struct EntityUniforms
+{
+    Mat4 Model;
+    Vec4 UVMinMax;
+    // TODO(harsh): maybe add a AlbedoOverride in the future for damage taken flashs
+};
 
 
 /*

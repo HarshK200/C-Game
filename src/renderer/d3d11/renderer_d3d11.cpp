@@ -1,3 +1,5 @@
+#pragma once
+
 #include <assert.h>
 #include <d3d11.h>
 #include <dxgiformat.h>
@@ -9,15 +11,15 @@
 #include "src/utils/game_math.h"
 #include "src/utils/arena_allocator.h"
 
-#include "src/renderer/render_data.h"
+#include "src/renderer/render_data.cpp"
 
 // Platform specific import
-#include "src/win32/win32_platform.h"
+#include "src/win32/win32_platform.cpp"
 
 #include "src/main.h"
-#include "src/renderer/d3d11/mesh.h"
-#include "src/renderer/d3d11/shader_d3d11.h"
-#include "src/renderer/d3d11/texture_d3d11.h"
+#include "src/renderer/d3d11/mesh.cpp"
+#include "src/renderer/d3d11/shader_d3d11.cpp"
+#include "src/renderer/d3d11/texture_d3d11.cpp"
 
 
 struct Renderer
@@ -264,9 +266,11 @@ namespace
         r->DeviceContext->IASetInputLayout(default_shader->InputLayout);
 
         /*
-            NOTE(harsh): looping through all the render commands and rendering them.
+            NOTE(harsh): looping through all the render commands and making draw calls.
 
-            TODO(harsh): render in the correct sort order and add ShaderGroups
+            TODO(harsh):
+            1. implement render_calls batching
+            2. sorted rendering based on sort order or a sort key
         */
         for (int i = 0; i < render_data->commands_count; i++)
         {

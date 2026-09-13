@@ -1,11 +1,13 @@
+#pragma once
+
 #include "src/main.h"
 
 // utils
-#include "src/utils/arena_allocator.h"
 #include "src/utils/log.h"
+#include "src/utils/arena_allocator.h"
 
-#include "src/game2d/camera2d.h"
-#include "src/game2d/player.h"
+#include "src/game2d/player.cpp"
+#include "src/game2d/camera2d.cpp"
 
 
 // ================== Renderer Layer Services Definitions ==================

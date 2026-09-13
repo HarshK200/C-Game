@@ -1,3 +1,5 @@
+#pragma once
+
 #include <Windows.h>
 
 // utils
@@ -5,6 +7,27 @@
 #include "src/utils/constants.h"
 #include "src/utils/arena_allocator.h"
 
+#include "src/main.h"
+
+// ================== Platform Provided Structs Function Definitions ==================
+struct PlatformWindow
+{
+    HWND Handle;
+};
+struct PlatformApp
+{
+    bool ShouldClose;
+    int ExitCode;
+
+    PlatformWindow* Window;
+    Game2d* Game;
+    Renderer* Renderer; // D3D11
+
+    AppMemory Memory;
+};
+struct PlatformInputManager
+{
+};
 
 // ============================== Internal functions ===================================
 namespace
@@ -56,8 +79,6 @@ namespace
 
 
 // ================== Platform Provided Services Function Definitions ==================
-
-#include "src/win32/win32_platform.h" // platform services struct definitions
 
 /*
     Creates a window using win32 api and returns the PlatformWindow* on success,

@@ -71,20 +71,9 @@
 	Should just get information it needs to create the `VIEW MATRIX` as it doesn't belong to the Game.
 	[x] Render command buffer should live seperate of `renderer/d3d11` it should just live in
 	`renderer/render_data.h`
-	[ ] Make shader groups and Render groups inside them for draw commands so something like:
-	```
-	struct RenderGroup
-	{
-		RenderCommand* render_commands;
-	};
-	struct ShaderGroup
-	{
-		RenderGroup* render_groups; // NOTE(harsh): these are ordered by layer for sort order
-	};
-	RenderData.shader_groups[SHADER_ID].render_groups[0].render_commands = RenderCommands[];
-	```
-	
 [x] Figure out Sprite2d.
+
+[ ] PORT the world.odin implementation to game/world.cpp
 [ ] Write the InputManager and figure out how to split it for cross platform
 	- NOTE: maybe write win32/input.h and win32/input.cpp and implement them for each platform
 	and in the main.h define what services are expected to be implemented by them like so:
@@ -110,7 +99,12 @@
 	void InputPollMessage(PlatformApp* app);
 	```
 [ ] Delta time
-[ ] PORT the world.odin implementation to game/world.cpp
+[ ] Implement renderer batching.
+**Do NOT write shader groups in RenderData that couples renderer too much with game & is bad design**
+**DON'T WRITE RENDER GROUPS Either, just have RenderCommandType and have renderer sort them for**
+**rendering in batches based on aforementioned RenderCommandType and a sortkey/layer for Correct**
+**Render ordering and blending**
+[ ] Add Y sorting in the game logic maybe?
 [ ] Perlin noise world generation
 [ ] Figure out AnimatedSprite2d.
 [ ] Setup Audio Layer (use XAudio2 built into windows 11 SDK, low to mid level API)
@@ -118,6 +112,7 @@
 	the era of DirectX 8/Vista.
 [ ] Hot code reloading
 [ ] Disable WindowResize and Make window resizing done through settings.
+[ ] Particle system
 
 ### Done:
 [x] Setup a Basic clean Cross-platform Api Layer
@@ -192,4 +187,4 @@
 	- Clear all dungeons
 	- Get stronger
 	- Get better gear
-	- Final endgame Travel to Demon Continent and defeat Demon queen *or spare her for a secret*
+	- Final endgame Travel to Demon Continent and defeat Demon queen *or spare her for a secret ending*

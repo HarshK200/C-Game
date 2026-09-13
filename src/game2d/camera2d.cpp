@@ -1,10 +1,26 @@
+#pragma once
+
 // utils
 #include "src/utils/constants.h"
 #include "src/utils/game_math.h"
 #include "src/utils/arena_allocator.h"
 
-#include "src/game2d/camera2d.h"
-#include "src/renderer/render_data.h"
+#include "src/renderer/render_data.cpp"
+
+
+struct Camera2d
+{
+    Vec2 position;
+    Vec2 offset;
+    float zoom;
+    float near_plane;
+    float far_plane;
+
+    /*
+        TODO(harsh): add rotation and add an offest vec2 so when the view matrix is craeted teh camera can be offseted for
+        smooth subpixel movement n sh*t
+    */
+};
 
 
 Camera2d* Camera2dCreateAndInit(AppMemory* memory)

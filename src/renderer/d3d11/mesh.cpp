@@ -1,3 +1,7 @@
+#pragma once
+
+#include <d3d11.h>
+#include <dxgiformat.h>
 #include <iterator>
 
 // utils
@@ -5,7 +9,18 @@
 #include "src/utils/enums.h"
 #include "src/utils/log.h"
 
-#include "src/renderer/d3d11/mesh.h"
+
+struct Mesh
+{
+    ID3D11Buffer* VertexBuffer;
+    ID3D11Buffer* IndexBuffer;
+    UINT VertexCount;
+    UINT VertexStride;
+    UINT VertexOffset;
+    DXGI_FORMAT IndexFormat;
+    UINT IndexCount;
+    UINT IndexOffset;
+};
 
 
 /*
