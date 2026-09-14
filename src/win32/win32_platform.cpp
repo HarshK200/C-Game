@@ -86,7 +86,7 @@ namespace
 */
 PlatformWindow* PlatformOpenWindow(AppMemory* memory)
 {
-    PlatformWindow* window = (PlatformWindow*)ArenaAlloc(&memory->PermanentAllocator, sizeof(PlatformWindow));
+    PlatformWindow* window = ArenaAlloc<PlatformWindow>(&memory->PermanentAllocator, sizeof(PlatformWindow));
 
     HINSTANCE instance = GetModuleHandle(0);
     WNDCLASS window_class = {};

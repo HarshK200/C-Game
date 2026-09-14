@@ -407,7 +407,7 @@ namespace
 Renderer* RendererCreateAndInit(AppMemory* memory, PlatformWindow* window)
 {
     LOG_INFO("Renderer Init");
-    Renderer* r = (Renderer*)ArenaAlloc(&memory->PermanentAllocator, sizeof(Renderer));
+    Renderer* r = ArenaAlloc<Renderer>(&memory->PermanentAllocator, sizeof(Renderer));
 
     HRESULT result = SetupD3D11(window->Handle, r);
     if (FAILED(result))

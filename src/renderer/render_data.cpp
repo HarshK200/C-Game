@@ -7,6 +7,10 @@
 #include "src/utils/arena_allocator.h"
 
 
+enum LayerID
+{
+};
+
 struct RenderCommand
 {
     MeshID mesh_id;
@@ -16,8 +20,11 @@ struct RenderCommand
 
     int no_of_instances; // no_of_instances should be 0 if instanced is false
     bool instanced;      // should be false if drawing only one entity
+    // TODO(harsh): implemente this layer in renderer
+    LayerID layer_id;
 
-    // TODO(harsh): in future add a sortkey, albedo and albedo_override
+
+    // TODO(harsh): albedo and albedo_override
 };
 
 struct ViewMatrixParams
@@ -45,12 +52,12 @@ struct RenderData
 
 RenderData* CreateFrameRenderData(ArenaAllocator* temp_arena_allocator)
 {
-    RenderData* render_data = (RenderData*)ArenaAlloc(
+    RenderData* render_data = ArenaAlloc<RenderData>(
         temp_arena_allocator,
         sizeof(RenderData));
 
     // NOTE(harsh): allocating space for 100 render commands per frame. *FOR NOW, MIGHT CHANGE LATER*
-    render_data->render_commands = (RenderCommand*)ArenaAlloc(
+    render_data->render_commands = ArenaAlloc<RenderCommand>(
         temp_arena_allocator,
         sizeof(RenderCommand) * MAX_RENDER_COMMANDS_PER_FRAME);
     render_data->max_commands = MAX_RENDER_COMMANDS_PER_FRAME;

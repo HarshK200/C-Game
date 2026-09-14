@@ -124,7 +124,7 @@ namespace GameFileIO
         }
 
         // allocate the buffer to read the file into of size filsize
-        uint8_t* file_buffer = ArenaAlloc(temp_allocator, *filesize);
+        uint8_t* file_buffer = ArenaAlloc<uint8_t>(temp_allocator, *filesize);
         if (!file_buffer)
         {
             fclose(file);

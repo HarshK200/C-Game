@@ -91,7 +91,7 @@ namespace
         stbi_image_free(pixel_data);
 
         // allocate the texture using arena allocator
-        Texture2D* texture = (Texture2D*)ArenaAlloc(&memory->PermanentAllocator, sizeof(Texture2D));
+        Texture2D* texture = ArenaAlloc<Texture2D>(&memory->PermanentAllocator, sizeof(Texture2D));
         texture->Width = width;
         texture->Height = height;
         texture->Channels = 4;

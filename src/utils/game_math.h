@@ -229,7 +229,7 @@ inline Mat4 ViewMat4(Vec2 position, Vec2 offset, float zoom)
 // TODO(harsh): add rotation in the future
 inline Mat4* ModelMat4(ArenaAllocator* allocator, Vec3 position, Vec3 scale)
 {
-    Mat4* model_matrix = (Mat4*)ArenaAlloc(allocator, sizeof(Mat4));
+    Mat4* model_matrix = ArenaAlloc<Mat4>(allocator, sizeof(Mat4));
     *model_matrix = Identity_Mat4();
     *model_matrix = Mat4xMat4(*model_matrix, Translate_Mat4(position));
     *model_matrix = Mat4xMat4(*model_matrix, Scale_Mat4(scale));

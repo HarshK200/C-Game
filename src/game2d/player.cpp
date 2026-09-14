@@ -22,7 +22,7 @@ struct Player
 */
 Player* PlayerCreateAndInit(AppMemory* memory)
 {
-    Player* player = (Player*)ArenaAlloc(&memory->PermanentAllocator, sizeof(Player));
+    Player* player = ArenaAlloc<Player>(&memory->PermanentAllocator, sizeof(Player));
     player->position = {0.0f, 0.0f};
     player->scale = {32.0f, 48.0f};
     player->sprite = {
@@ -41,7 +41,7 @@ Player* PlayerCreateAndInit(AppMemory* memory)
 /*
     updates the player state and set the render_data.command required for rendering
 */
-void PlayerUpdate(AppMemory* memory, Player* player, RenderData* render_data)
+void PlayerUpdateAndPushRender(AppMemory* memory, Player* player, RenderData* render_data)
 {
     LOG_ASSERT((render_data->commands_count + 1) < render_data->max_commands, "Maximum render commands per frame reached! cannot push more render commands");
 

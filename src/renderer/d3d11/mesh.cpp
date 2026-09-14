@@ -34,7 +34,7 @@ struct Mesh
 */
 Mesh* CreateUpscaleQuadMesh(ID3D11Device* device, AppMemory* memory)
 {
-    Mesh* upscale_quad_mesh = (Mesh*)ArenaAlloc(&memory->PermanentAllocator, sizeof(Mesh));
+    Mesh* upscale_quad_mesh = ArenaAlloc<Mesh>(&memory->PermanentAllocator, sizeof(Mesh));
     // vertex buffer data
     // clang-format off
     float vertex_buffer_data[] = {
@@ -108,7 +108,7 @@ Mesh* CreateUpscaleQuadMesh(ID3D11Device* device, AppMemory* memory)
 */
 Mesh* CreateTriangleMesh(ID3D11Device* device, AppMemory* memory)
 {
-    Mesh* triangle_mesh = (Mesh*)ArenaAlloc(&memory->PermanentAllocator, sizeof(Mesh));
+    Mesh* triangle_mesh = ArenaAlloc<Mesh>(&memory->PermanentAllocator, sizeof(Mesh));
 
     // vertex buffer data
     // clang-format off
@@ -154,7 +154,7 @@ Mesh* CreateTriangleMesh(ID3D11Device* device, AppMemory* memory)
 */
 Mesh* CreateQuadMesh(ID3D11Device* device, AppMemory* memory)
 {
-    Mesh* quad_mesh = (Mesh*)ArenaAlloc(&memory->PermanentAllocator, sizeof(Mesh));
+    Mesh* quad_mesh = ArenaAlloc<Mesh>(&memory->PermanentAllocator, sizeof(Mesh));
 
     // vertex buffer data
     // clang-format off

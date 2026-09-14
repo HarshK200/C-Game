@@ -24,7 +24,7 @@ Game2d* GameCreateAndInit(AppMemory* memory)
 {
     LOG_INFO("Game Init");
 
-    Game2d* g = (Game2d*)ArenaAlloc(&memory->PermanentAllocator, sizeof(Game2d));
+    Game2d* g = ArenaAlloc<Game2d>(&memory->PermanentAllocator, sizeof(Game2d));
 
     g->camera = Camera2dCreateAndInit(memory);
     g->player = PlayerCreateAndInit(memory);
@@ -39,5 +39,5 @@ Game2d* GameCreateAndInit(AppMemory* memory)
 void GameUpdate(AppMemory* memory, Game2d* g, RenderData* render_data)
 {
     Camera2dUpdate(g->camera, render_data);
-    PlayerUpdate(memory, g->player, render_data);
+    PlayerUpdateAndPushRender(memory, g->player, render_data);
 }

@@ -60,7 +60,8 @@ inline ArenaAllocator CreateArena(size_t size)
     Allocates the memory of *size_t size* using the arena passed in.
     Returns a char* to allocated memory on success, otherwise returns nullptr on failure.
 */
-inline uint8_t* ArenaAlloc(ArenaAllocator* arena_allocator, size_t size)
+template <typename T>
+inline T* ArenaAlloc(ArenaAllocator* arena_allocator, size_t size)
 {
     uint8_t* result = nullptr;
 
@@ -81,7 +82,7 @@ inline uint8_t* ArenaAlloc(ArenaAllocator* arena_allocator, size_t size)
     result = arena_allocator->base + arena_allocator->used;
     arena_allocator->used += alignment_size;
 
-    return result;
+    return (T*)result;
 }
 
 /*

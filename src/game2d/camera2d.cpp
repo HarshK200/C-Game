@@ -25,7 +25,7 @@ struct Camera2d
 
 Camera2d* Camera2dCreateAndInit(AppMemory* memory)
 {
-    Camera2d* camera = (Camera2d*)ArenaAlloc(&memory->PermanentAllocator, sizeof(Camera2d));
+    Camera2d* camera = ArenaAlloc<Camera2d>(&memory->PermanentAllocator, sizeof(Camera2d));
     camera->position = {0, 0};
     camera->offset = {INTERNAL_RENDER_RESOLUTION.x / 2, INTERNAL_RENDER_RESOLUTION.y / 2};
     camera->zoom = 1;

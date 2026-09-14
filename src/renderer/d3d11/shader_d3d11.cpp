@@ -69,7 +69,7 @@ Shader* CreateShader(
     UINT input_element_count)
 {
     ID3DBlob *vs_blob = nullptr, *ps_blob = nullptr, *error_blob = nullptr;
-    Shader* shader = (Shader*)ArenaAlloc(&memory->PermanentAllocator, sizeof(Shader));
+    Shader* shader = ArenaAlloc<Shader>(&memory->PermanentAllocator, sizeof(Shader));
 
     // check if the shader file exists or not
     if (!GameFileIO::FileExists(shader_file_path))
