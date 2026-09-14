@@ -96,7 +96,7 @@ int main()
         RenderData* render_data = CreateFrameRenderData(&App.Memory.TempAllocator);
         // TODO(harsh): pass action_map and delta time to GameUpate()
         GameUpdate(&App.Memory, App.Game, render_data);
-        RendererUpdate(App.Window, App.Renderer, render_data);
+        RendererUpdate(&App.Memory, App.Window, App.Renderer, render_data);
 
 
         // reset transient memory

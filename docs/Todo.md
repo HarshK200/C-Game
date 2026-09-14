@@ -74,6 +74,9 @@
 [x] Figure out Sprite2d.
 
 [ ] PORT the world.odin implementation to game/world.cpp
+	[ ] Implement a hashtable for storing a large sparse chunks of world data by following handmade hero
+	day055 here: https://guide.handmadehero.org/code/day055/
+	[ ] Rename world.cpp file to tilemap.cpp
 [ ] Write the InputManager and figure out how to split it for cross platform
 	- NOTE: maybe write win32/input.h and win32/input.cpp and implement them for each platform
 	and in the main.h define what services are expected to be implemented by them like so:

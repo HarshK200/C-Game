@@ -22,6 +22,9 @@
 #include "src/renderer/d3d11/texture_d3d11.cpp"
 
 
+// =================================================================================
+//                      RENDERER LAYER STRUCT DEFINITIONS
+// =================================================================================
 struct Renderer
 {
     IDXGISwapChain* SwapChain;
@@ -40,7 +43,9 @@ struct Renderer
     ID3D11SamplerState* PointSampler; // TODO(harsh): maybe create a ID3D11SamplerState* array like the shader arary?
 };
 
-// ====================== Internal functions ======================
+// =================================================================================
+//                              INTERNAL FUNCTIONS
+// =================================================================================
 namespace
 {
 
@@ -396,7 +401,9 @@ namespace
 } // namespace
 
 
-// ================== Renderer Layer Services Definitions ==================
+// =================================================================================
+//                      RENDERER LAYER FUNCTION DEFINITIONS
+// =================================================================================
 /*
     Creates and initializes a D3D11 renderer (allocates renderer).
     Returns Renderer* if succeeds otherwise returns nullptr.
@@ -471,7 +478,7 @@ Renderer* RendererCreateAndInit(AppMemory* memory, PlatformWindow* window)
                      BackBufferRenderTargetView.
     3. Finally present's the backbuffer by DXGI_SWAP_EFFECT_FLIP_DISCARD, switching the backbuffer with front
 */
-void RendererUpdate(PlatformWindow* window, Renderer* r, RenderData* render_data)
+void RendererUpdate(AppMemory* memory, PlatformWindow* window, Renderer* r, RenderData* render_data)
 {
     // ======================== GAME RENDER PASS ========================
     RenderPass_Game(r, render_data);

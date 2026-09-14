@@ -8,6 +8,7 @@
 
 struct SpriteSheet2d
 {
+    // TODO(harsh): mesh belongs in the sprite not the spritesheet
     MeshID mesh_id;
     TextureID texture_id;
     Vec2i texture_size;

@@ -13,7 +13,7 @@
 struct Player
 {
     Vec2 position;
-    Vec2 scale;
+    Vec2 size;
     Sprite2d sprite;
 };
 
@@ -24,7 +24,7 @@ Player* PlayerCreateAndInit(AppMemory* memory)
 {
     Player* player = ArenaAlloc<Player>(&memory->PermanentAllocator, sizeof(Player));
     player->position = {0.0f, 0.0f};
-    player->scale = {32.0f, 48.0f};
+    player->size = {32.0f, 48.0f};
     player->sprite = {
         {
             MESH_QUAD,
@@ -32,7 +32,7 @@ Player* PlayerCreateAndInit(AppMemory* memory)
             {96, 48},
         },
         {0, 0},
-        player->scale,
+        player->size,
     };
 
     return player;
@@ -48,7 +48,7 @@ void PlayerUpdateAndPushRender(AppMemory* memory, Player* player, RenderData* re
     RenderCommand render_command = {};
     render_command.mesh_id = player->sprite.sprite_sheet.mesh_id;
     render_command.texture_id = player->sprite.sprite_sheet.texture_id;
-    render_command.transform = ModelMat4(&memory->TempAllocator, player->position, player->scale);
+    render_command.transform = ModelMat4(&memory->TempAllocator, player->position, player->size);
     render_command.uv_min_max = GetSpriteUV(&memory->TempAllocator, &player->sprite);
     render_command.instanced = false;
 

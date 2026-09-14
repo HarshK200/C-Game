@@ -6,6 +6,9 @@
 #include "src/utils/arena_allocator.h"
 
 
+// ================================================================================
+//                                  VECTORS
+// ================================================================================
 typedef union Vec2
 {
     struct
@@ -14,7 +17,6 @@ typedef union Vec2
     };
     float elements[2];
 } Vec2;
-
 typedef union Vec3
 {
     struct
@@ -23,7 +25,6 @@ typedef union Vec3
     };
     float elements[3];
 } Vec3;
-
 typedef union Vec4
 {
     struct
@@ -35,7 +36,6 @@ typedef union Vec4
     inline float& operator[](int Index) { return elements[Index]; }
     inline const float& operator[](int Index) const { return elements[Index]; }
 } Vec4;
-
 typedef union Vec2i
 {
     struct
@@ -47,6 +47,25 @@ typedef union Vec2i
 } Vec2i;
 
 
+/*
+    TODO(harsh): write the Normalize function and overload it with Vec2, Vec3 and Vec4
+    not to be used directly, call Noramlize() instead
+*/
+inline Vec2 normalize_vec2(Vec2 vec)
+{
+    // pythagoras thorem
+    float length = sqrt(pow(vec.x, 2) + pow(vec.y, 2));
+    Vec2 normalized = {};
+    normalized.x = vec.x / length;
+    normalized.y = vec.y / length;
+
+    return normalized;
+}
+
+
+// ================================================================================
+//                                  MATRIX
+// ================================================================================
 // Column Major 4x4 Matrix
 typedef union Mat4
 {
@@ -56,8 +75,6 @@ typedef union Mat4
     inline Vec4& operator[](int index) { return columns[index]; }
     inline const Vec4& operator[](int index) const { return columns[index]; }
 } Mat4;
-
-
 /*
     Mat4 x Vec4 operator overload
 */
@@ -78,21 +95,6 @@ inline Vec4 operator*(Mat4 m, Vec4 v)
     return result;
 }
 
-
-/*
-    TODO(harsh): write the Normalize function and overload it with Vec2, Vec3 and Vec4
-    not to be used directly, call Noramlize() instead
-*/
-inline Vec2 normalize_vec2(Vec2 vec)
-{
-    // pythagoras thorem
-    float length = sqrt(pow(vec.x, 2) + pow(vec.y, 2));
-    Vec2 normalized = {};
-    normalized.x = vec.x / length;
-    normalized.y = vec.y / length;
-
-    return normalized;
-}
 
 /*
 Returns a 4x4 identity matrix
@@ -177,6 +179,11 @@ inline Mat4 Translate_Mat4(Vec3 translation)
     return m;
 }
 
+
+// ================================================================================
+//                          MODEL, VIEW, PROJECION MATRIX
+// ================================================================================
+
 /*
     NOTE(harsh): THIS FOLLOWS Y+ "Down" CONVENTION
 
@@ -241,3 +248,8 @@ inline Mat4* ModelMat4(ArenaAllocator* allocator, Vec2 position, Vec2 scale)
 {
     return ModelMat4(allocator, {position.x, position.y, 0.0f}, {scale.x, scale.y, 1.0f});
 }
+
+
+// ================================================================================
+//                              HASH TABLE
+// ================================================================================

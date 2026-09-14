@@ -9,7 +9,10 @@
 
 #include "src/main.h"
 
-// ================== Platform Provided Structs Function Definitions ==================
+
+// =================================================================================
+//                      PLATFORM SERVICES STRUCTS DEFINITIONS
+// =================================================================================
 struct PlatformWindow
 {
     HWND Handle;
@@ -29,7 +32,10 @@ struct PlatformInputManager
 {
 };
 
-// ============================== Internal functions ===================================
+
+// =================================================================================
+//                              INTERNAL FUNCTIONS
+// =================================================================================
 namespace
 {
     /*
@@ -78,7 +84,9 @@ namespace
 } // namespace
 
 
-// ================== Platform Provided Services Function Definitions ==================
+// =================================================================================
+//                      PLATFORM SERVICES FUNCTION DEFINITIONS
+// =================================================================================
 
 /*
     Creates a window using win32 api and returns the PlatformWindow* on success,
@@ -121,7 +129,7 @@ PlatformWindow* PlatformOpenWindow(AppMemory* memory)
         NULL,
         window_class.lpszClassName,
         "isekaied",
-        WS_OVERLAPPEDWINDOW | WS_VISIBLE,
+        WS_OVERLAPPEDWINDOW | WS_VISIBLE, // use WS_POPUP instane of WS_OVERLAPPEDWINDOW for a boderless window
         CW_USEDEFAULT, CW_USEDEFAULT,
         outer_width, outer_height,
         NULL,

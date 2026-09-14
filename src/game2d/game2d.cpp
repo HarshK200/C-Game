@@ -8,6 +8,7 @@
 
 #include "src/game2d/player.cpp"
 #include "src/game2d/camera2d.cpp"
+#include "src/game2d/world.cpp"
 
 
 // ================== Renderer Layer Services Definitions ==================
@@ -15,6 +16,7 @@ struct Game2d
 {
     Camera2d* camera;
     Player* player;
+    World* world;
 };
 
 // creates a new game with the "new" keyword and returns the pointer to it
@@ -28,6 +30,7 @@ Game2d* GameCreateAndInit(AppMemory* memory)
 
     g->camera = Camera2dCreateAndInit(memory);
     g->player = PlayerCreateAndInit(memory);
+    g->world = Temp_GenerateWorld(memory);
 
     return g;
 }
@@ -39,5 +42,6 @@ Game2d* GameCreateAndInit(AppMemory* memory)
 void GameUpdate(AppMemory* memory, Game2d* g, RenderData* render_data)
 {
     Camera2dUpdate(g->camera, render_data);
+    Temp_TestPushRenderCommand(memory, render_data, g->world);
     PlayerUpdateAndPushRender(memory, g->player, render_data);
 }
