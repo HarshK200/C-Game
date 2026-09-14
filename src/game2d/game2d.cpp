@@ -36,8 +36,8 @@ Game2d* GameCreateAndInit(AppMemory* memory)
     Updates the game state and write the required information to render a frame to
     RenderData* passed in
 */
-void GameUpdate(Game2d* g, RenderData* render_data)
+void GameUpdate(AppMemory* memory, Game2d* g, RenderData* render_data)
 {
     Camera2dUpdate(g->camera, render_data);
-    PlayerUpdate(g->player, render_data);
+    PlayerUpdate(memory, g->player, render_data);
 }

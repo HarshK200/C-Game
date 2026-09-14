@@ -297,22 +297,34 @@ namespace
             // bind Sampler (only one single point sampler is used)
             r->DeviceContext->PSSetSamplers(0, 1, &r->PointSampler);
 
-            // Upload & Bind Entity uniforms
-            EntityUniforms entity_uniforms = {};
-            entity_uniforms.Model = render_command.transform;
-            entity_uniforms.UVMinMax = render_command.uv_min_max;
-            UploadUniformBufferData(
-                r->DeviceContext,
-                r->UniformBuffers[UNIFORM_PER_ENTITY_BUFFER],
-                entity_uniforms);
-            r->DeviceContext->VSSetConstantBuffers(1, 1, &r->UniformBuffers[UNIFORM_PER_ENTITY_BUFFER]);
+            if (render_command.instanced == false)
+            {
+                LOG_ASSERT(
+                    (render_command.instanced == false && render_command.no_of_instances == 0),
+                    "no_of_instances MUST be 0 when render_command.instanced is false")
+                // Upload & Bind Entity uniforms
+                EntityUniforms entity_uniforms = {};
+                entity_uniforms.Model = render_command.transform[0];
+                entity_uniforms.UVMinMax = render_command.uv_min_max[0];
+                UploadUniformBufferData(
+                    r->DeviceContext,
+                    r->UniformBuffers[UNIFORM_PER_ENTITY_BUFFER],
+                    entity_uniforms);
+                r->DeviceContext->VSSetConstantBuffers(1, 1, &r->UniformBuffers[UNIFORM_PER_ENTITY_BUFFER]);
 
-            // Make the draw call
-            LOG_ASSERT(mesh->IndexCount != 0, "Error mesh doesn't support index drawing");
-            r->DeviceContext->DrawIndexed(
-                mesh->IndexCount,
-                mesh->IndexOffset,
-                mesh->VertexOffset);
+                // Make the draw call
+                LOG_ASSERT(mesh->IndexCount != 0, "Error mesh doesn't support index drawing");
+                r->DeviceContext->DrawIndexed(
+                    mesh->IndexCount,
+                    mesh->IndexOffset,
+                    mesh->VertexOffset);
+            }
+            else
+            {
+                // TODO(harsh): handle instaned drawing by making an array buffer for transforms array for the
+                // render command and upload it to the gpu, do same for the uv_min_max. Use DrawInstanced()
+                // with those buffer bound *Might need a different shader*
+            }
 
             // Unbind the TextureSRV
             r->DeviceContext->PSSetShaderResources(0, 1, &null_srv);
@@ -392,7 +404,7 @@ namespace
     NOTE(harsh): allocates using provided permanent_allocator for initialization,
     and Any temporary allocation are done using the provided temp_allocator.
 */
-Renderer* RendererCreateAndInit(PlatformWindow* window, AppMemory* memory)
+Renderer* RendererCreateAndInit(AppMemory* memory, PlatformWindow* window)
 {
     LOG_INFO("Renderer Init");
     Renderer* r = (Renderer*)ArenaAlloc(&memory->PermanentAllocator, sizeof(Renderer));

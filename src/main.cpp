@@ -7,6 +7,7 @@
 // Platform agnostic Declarations *ordered*
 #include "main.h"
 #include "renderer/render_data.cpp"
+#include "src/utils/constants.h"
 
 
 // =============================================================
@@ -65,14 +66,17 @@ int main()
     }
 
     // Create & Init Renderer instance
-    App.Renderer = RendererCreateAndInit(App.Window, &App.Memory);
+    App.Renderer = RendererCreateAndInit(&App.Memory, App.Window);
     if (!App.Renderer)
     {
         LOG_ASSERT(false, "Renderer init failed. Exiting program...");
         App.ExitCode = -1;
         goto program_exit;
     }
-    LOG_INFOF("Size of render commands per frame: %d bytes", sizeof(RenderCommand) * MAX_RENDER_COMMANDS_PER_FRAME);
+    LOG_INFOF(
+        "Size of render commands per frame: %d bytes for %d render commands",
+        sizeof(RenderCommand) * MAX_RENDER_COMMANDS_PER_FRAME,
+        MAX_RENDER_COMMANDS_PER_FRAME);
 
     // Main Update Loop
     while (App.ShouldClose == false)
@@ -91,7 +95,7 @@ int main()
         // Game update and render
         RenderData* render_data = CreateFrameRenderData(&App.Memory.TempAllocator);
         // TODO(harsh): pass action_map and delta time to GameUpate()
-        GameUpdate(App.Game, render_data);
+        GameUpdate(&App.Memory, App.Game, render_data);
         RendererUpdate(App.Window, App.Renderer, render_data);
 
 
