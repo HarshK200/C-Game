@@ -81,21 +81,14 @@ int main()
     // Main Update Loop
     while (App.ShouldClose == false)
     {
-        /*
-            TODO(harsh): create a ActionMap struct in main.h file which will pass to as
-            PlatformProcessInput(ActionMap* action_map) and it will update the input actions
-            state for e.g. ActionMap[MOVE_LEFT] = PRESSED; or HELD or RELEASED or IDLE.
-
-            Processing input
-        */
+        // Process input TODO(harsh): implement input handling with action_map
         if (PlatformProcessInput() == WM_QUIT)
             App.ShouldClose = true;
 
+        RenderData* render_data = CreateFrameRenderData(&App.Memory.TempAllocator);
 
         // Game update and render
-        RenderData* render_data = CreateFrameRenderData(&App.Memory.TempAllocator);
-        // TODO(harsh): pass action_map and delta time to GameUpate()
-        GameUpdate(&App.Memory, App.Game, render_data);
+        GameUpdate(&App.Memory, App.Game, render_data); // TODO(harsh): pass action_map and delta time to GameUpate()
         RendererUpdate(&App.Memory, App.Window, App.Renderer, render_data);
 
 
