@@ -11,30 +11,19 @@
 #include "src/utils/enums.h"
 #include "src/utils/file_io.h"
 #include "src/utils/game_math.h"
+#include "src/utils/constants.h"
 #include "src/utils/arena_allocator.h"
+
 
 struct Shader
 {
     ID3D11VertexShader* VertexShader;
     ID3D11PixelShader* PixelShader;
     ID3D11InputLayout* InputLayout;
+    ID3D11Buffer* InstanceBuffer;
+    UINT InstanceBufferStride;
+    UINT InstanceBufferOffset;
 };
-
-
-Shader* CreateShader(
-    ID3D11Device* device,
-    AppMemory* memory,
-    ShaderID shader_id,
-    const wchar_t* shader_file_path,
-    UINT compile_options,
-    D3D11_INPUT_ELEMENT_DESC* input_element_desc,
-    UINT input_element_count);
-
-
-int LoadAllShaders(
-    AppMemory* memory,
-    ID3D11Device* device,
-    Shader* (&shader_array_buffer)[SHADER_COUNT]);
 
 
 // Uniform Buffers Layouts
@@ -43,7 +32,7 @@ struct FrameUniforms
     Mat4 View;
     Mat4 Projection;
 };
-struct EntityUniforms
+struct EntityData
 {
     Mat4 Model;
     Vec4 UVMinMax;
@@ -55,7 +44,8 @@ struct EntityUniforms
     Compiles the vertex and pixel shaders from shader_file_path using compile_options.
     Sets the resulting shader in the Renderer's Shaders array.
     if input_element_desc != nullptr then the InputLayout for the shader is also created.
-    WARNING: the input_element_count must be > 0 when input_element_desc is passed in
+    if instance_buffer_size > 0 then creates the instance_buffer
+    WARNING: the input_element_count must be > 0 when input_element_desc is passed in.
 
     Returns Shader* on success, otherwise returns nullptr on failure.
 */
@@ -66,7 +56,9 @@ Shader* CreateShader(
     const wchar_t* shader_file_path,
     UINT compile_options,
     D3D11_INPUT_ELEMENT_DESC* input_element_desc,
-    UINT input_element_count)
+    UINT input_element_count,
+    UINT instance_buffer_size,
+    UINT instance_buffer_stride)
 {
     ID3DBlob *vs_blob = nullptr, *ps_blob = nullptr, *error_blob = nullptr;
     Shader* shader = ArenaAlloc<Shader>(&memory->PermanentAllocator, sizeof(Shader));
@@ -84,7 +76,6 @@ Shader* CreateShader(
         TODO(harsh): cache compiled shader on first creation and if CreateShader() gets
         called and cached compiled shader exists just return that instead
     */
-
     // compile vertex shader
     result = D3DCompileFromFile(
         shader_file_path,
@@ -148,6 +139,22 @@ Shader* CreateShader(
             &shader->InputLayout);
         if (FAILED(result))
             goto cleanup;
+
+
+        // create instance buffer for the shader if required
+        if (instance_buffer_size > 0)
+        {
+            D3D11_BUFFER_DESC instance_buffer_desc = {};
+            instance_buffer_desc.ByteWidth = instance_buffer_size;
+            instance_buffer_desc.Usage = D3D11_USAGE_DYNAMIC;
+            instance_buffer_desc.BindFlags = D3D11_BIND_VERTEX_BUFFER;
+            instance_buffer_desc.CPUAccessFlags = D3D11_CPU_ACCESS_WRITE;
+            HRESULT result = device->CreateBuffer(&instance_buffer_desc, NULL, &shader->InstanceBuffer);
+            if (FAILED(result))
+                goto cleanup;
+            shader->InstanceBufferStride = instance_buffer_stride;
+            shader->InstanceBufferOffset = 0;
+        }
     }
 
 cleanup:
@@ -169,7 +176,6 @@ cleanup:
             shader->PixelShader->Release();
         if (shader->InputLayout)
             shader->InputLayout->Release();
-        delete shader;
 
         return nullptr;
     }
@@ -203,7 +209,16 @@ int LoadAllShaders(
     D3D11_INPUT_ELEMENT_DESC default_input_element_desc[] = {
         {"POS", 0, DXGI_FORMAT_R32G32B32_FLOAT, 0, 0, D3D11_INPUT_PER_VERTEX_DATA, 0},
         {"TEXCOORD", 0, DXGI_FORMAT_R32G32_FLOAT, 0, D3D11_APPEND_ALIGNED_ELEMENT, D3D11_INPUT_PER_VERTEX_DATA, 0},
+
+        {"MODEL", 0, DXGI_FORMAT_R32G32B32A32_FLOAT, 1, 0, D3D11_INPUT_PER_INSTANCE_DATA, 1},
+        {"MODEL", 1, DXGI_FORMAT_R32G32B32A32_FLOAT, 1, D3D11_APPEND_ALIGNED_ELEMENT, D3D11_INPUT_PER_INSTANCE_DATA, 1},
+        {"MODEL", 2, DXGI_FORMAT_R32G32B32A32_FLOAT, 1, D3D11_APPEND_ALIGNED_ELEMENT, D3D11_INPUT_PER_INSTANCE_DATA, 1},
+        {"MODEL", 3, DXGI_FORMAT_R32G32B32A32_FLOAT, 1, D3D11_APPEND_ALIGNED_ELEMENT, D3D11_INPUT_PER_INSTANCE_DATA, 1},
+
+        {"UV_MIN_MAX", 0, DXGI_FORMAT_R32G32B32A32_FLOAT, 1, D3D11_APPEND_ALIGNED_ELEMENT, D3D11_INPUT_PER_INSTANCE_DATA, 1},
     };
+    UINT instance_buffer_size = sizeof(EntityData) * MAX_INSTANCE_BUFFER_SIZE;
+    UINT instance_buffer_stride = sizeof(EntityData);
     Shader* default_shader = CreateShader(
         device,
         memory,
@@ -211,7 +226,9 @@ int LoadAllShaders(
         L"C:/Users/Harsh/Desktop/personal_dev/cpp_game/src/renderer/d3d11/shaders/default.hlsl",
         compile_options,
         default_input_element_desc,
-        std::size(default_input_element_desc));
+        std::size(default_input_element_desc),
+        instance_buffer_size,
+        instance_buffer_stride);
     if (default_shader == nullptr)
         return -1;
     shader_array_buffer[SHADER_DEFAULT] = default_shader;
@@ -228,7 +245,9 @@ int LoadAllShaders(
         L"C:/Users/Harsh/Desktop/personal_dev/cpp_game/src/renderer/d3d11/shaders/upscale.hlsl",
         compile_options,
         upscale_input_element_desc,
-        std::size(upscale_input_element_desc));
+        std::size(upscale_input_element_desc),
+        0,
+        0);
     if (upscale_shader == nullptr)
         return -1;
     shader_array_buffer[SHADER_UPSCALE] = upscale_shader;
@@ -259,20 +278,10 @@ HRESULT CreateAllUniformBuffers(
         &frame_uniform_buf_desc,
         NULL,
         &uniform_buffers_array[UNIFORM_PER_FRAME_BUFFER]);
+    if (FAILED(result))
+        return result;
 
-
-    // ============== Create Per Entity Uniforms buffer ==============
-    D3D11_BUFFER_DESC entity_uniform_buf_desc = {};
-    entity_uniform_buf_desc.ByteWidth = sizeof(EntityUniforms);
-    entity_uniform_buf_desc.Usage = D3D11_USAGE_DYNAMIC;
-    entity_uniform_buf_desc.BindFlags = D3D11_BIND_CONSTANT_BUFFER;
-    entity_uniform_buf_desc.CPUAccessFlags = D3D11_CPU_ACCESS_WRITE;
-    result = device->CreateBuffer(
-        &entity_uniform_buf_desc,
-        NULL,
-        &uniform_buffers_array[UNIFORM_PER_ENTITY_BUFFER]);
-
-    return S_OK;
+    return result;
 }
 
 template <typename T>
@@ -295,5 +304,31 @@ HRESULT UploadUniformBufferData(
 
     device_context->Unmap(uniform_buffer, 0);
 
-    return S_OK;
+    return result;
+}
+
+
+// TODO(harsh): implement this
+template <typename T>
+HRESULT UploadInstanceBufferData(
+    ID3D11DeviceContext* device_context,
+    ID3D11Buffer* instance_buffer,
+    T* instance_data,
+    UINT instance_count)
+{
+    D3D11_MAPPED_SUBRESOURCE mapped = {};
+    HRESULT result = device_context->Map(
+        instance_buffer,
+        0,
+        D3D11_MAP_WRITE_DISCARD,
+        0,
+        &mapped);
+    if (FAILED(result))
+        return result;
+
+    memcpy(mapped.pData, instance_data, sizeof(T) * instance_count);
+
+    device_context->Unmap(instance_buffer, 0);
+
+    return result;
 }

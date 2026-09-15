@@ -15,14 +15,14 @@ struct RenderCommand
 {
     MeshID mesh_id;
     TextureID texture_id;
-    Mat4* transform;
+    Mat4* transforms;
     Vec4* uv_min_max;
 
     int no_of_instances; // no_of_instances should be 0 if instanced is false
     bool instanced;      // should be false if drawing only one entity
+
     // TODO(harsh): implemente this layer in renderer
     LayerID layer_id;
-
 
     // TODO(harsh): albedo and albedo_override
 };

@@ -38,8 +38,9 @@ struct Renderer
 
     Shader* Shaders[SHADER_COUNT];
     ID3D11Buffer* UniformBuffers[UNIFORM_BUFFER_COUNT];
-    Texture2D* Textures[TEXTURE_COUNT];
+
     Mesh* Meshes[MESH_COUNT];
+    Texture2D* Textures[TEXTURE_COUNT];
     ID3D11SamplerState* PointSampler; // TODO(harsh): maybe create a ID3D11SamplerState* array like the shader arary?
 };
 
@@ -213,7 +214,7 @@ namespace
         return S_OK;
     }
 
-    void RenderPass_Game(Renderer* r, RenderData* render_data)
+    void RenderPass_Game(AppMemory* memory, Renderer* r, RenderData* render_data)
     {
         // ========================= Internal Render texture setup =========================
 
@@ -269,20 +270,15 @@ namespace
         r->DeviceContext->VSSetShader(default_shader->VertexShader, NULL, 0);
         r->DeviceContext->PSSetShader(default_shader->PixelShader, NULL, 0);
         r->DeviceContext->IASetInputLayout(default_shader->InputLayout);
+        // bind Sampler (only one single point sampler is used)
+        r->DeviceContext->PSSetSamplers(0, 1, &r->PointSampler);
 
-        /*
-            NOTE(harsh): looping through all the render commands and making draw calls.
-
-            TODO(harsh):
-            1. implement render_calls batching
-            2. sorted rendering based on sort order or a sort key
-        */
+        // TODO(harsh): sorted rendering based on sort order or a sort key
         for (int i = 0; i < render_data->commands_count; i++)
         {
             RenderCommand render_command = render_data->render_commands[i];
             Mesh* mesh = r->Meshes[render_command.mesh_id];
             Texture2D* texture = r->Textures[render_command.texture_id];
-
 
             // bind Mesh
             r->DeviceContext->IASetVertexBuffers(
@@ -299,37 +295,61 @@ namespace
             // bind Texture
             r->DeviceContext->PSSetShaderResources(0, 1, &texture->SRV);
 
-            // bind Sampler (only one single point sampler is used)
-            r->DeviceContext->PSSetSamplers(0, 1, &r->PointSampler);
 
+            // ===================== Instanced Drawing =====================
+            // TODO(harsh): create the array with only the amount of elements required for this
+            // instanced draw rather than the whole array
+            EntityData* entity_data = ArenaAlloc<EntityData>(&memory->TempAllocator, sizeof(EntityData) * render_command.no_of_instances);
+            int unsigned instances_to_draw = 0;
+
+            // perpare instance data for only 1 instance
             if (render_command.instanced == false)
             {
                 LOG_ASSERT(
                     (render_command.instanced == false && render_command.no_of_instances == 0),
                     "no_of_instances MUST be 0 when render_command.instanced is false")
-                // Upload & Bind Entity uniforms
-                EntityUniforms entity_uniforms = {};
-                entity_uniforms.Model = render_command.transform[0];
-                entity_uniforms.UVMinMax = render_command.uv_min_max[0];
-                UploadUniformBufferData(
-                    r->DeviceContext,
-                    r->UniformBuffers[UNIFORM_PER_ENTITY_BUFFER],
-                    entity_uniforms);
-                r->DeviceContext->VSSetConstantBuffers(1, 1, &r->UniformBuffers[UNIFORM_PER_ENTITY_BUFFER]);
-
-                // Make the draw call
-                LOG_ASSERT(mesh->IndexCount != 0, "Error mesh doesn't support index drawing");
-                r->DeviceContext->DrawIndexed(
-                    mesh->IndexCount,
-                    mesh->IndexOffset,
-                    mesh->VertexOffset);
+                instances_to_draw = 1;
+                entity_data[0].Model = render_command.transforms[0];
+                entity_data[0].UVMinMax = render_command.uv_min_max[0];
             }
+
+            // prepare instance data for multiple instances
             else
             {
-                // TODO(harsh): handle instaned drawing by making an array buffer for transforms array for the
-                // render command and upload it to the gpu, do same for the uv_min_max. Use DrawInstanced()
-                // with those buffer bound *Might need a different shader*
+                LOG_ASSERT(
+                    (render_command.instanced == true && render_command.no_of_instances > 1),
+                    "no_of_instances MUST be 1 when render_command.instanced is true")
+                LOG_ASSERT(render_command.no_of_instances <= MAX_INSTANCE_BUFFER_SIZE, "no_of_instances EXCEDED MAX_INSTANCE_BUFFER_SIZE")
+                instances_to_draw = render_command.no_of_instances;
+                for (int i = 0; i < render_command.no_of_instances; i++)
+                {
+                    entity_data[i].Model = render_command.transforms[i];
+                    entity_data[i].UVMinMax = render_command.uv_min_max[i];
+                }
             }
+
+            // upload instance vertex buffer and bind instance vertex buffer
+            UploadInstanceBufferData(
+                r->DeviceContext,
+                default_shader->InstanceBuffer,
+                entity_data,
+                instances_to_draw);
+            r->DeviceContext->IASetVertexBuffers(
+                1,
+                1,
+                &default_shader->InstanceBuffer,
+                &default_shader->InstanceBufferStride,
+                &default_shader->InstanceBufferOffset);
+
+
+            // Make the draw call
+            LOG_ASSERT(mesh->IndexCount != 0, "Error mesh doesn't support index drawing");
+            r->DeviceContext->DrawIndexedInstanced(
+                mesh->IndexCount,
+                instances_to_draw,
+                mesh->IndexOffset,
+                mesh->VertexOffset,
+                0);
 
             // Unbind the TextureSRV
             r->DeviceContext->PSSetShaderResources(0, 1, &null_srv);
@@ -481,7 +501,7 @@ Renderer* RendererCreateAndInit(AppMemory* memory, PlatformWindow* window)
 void RendererUpdate(AppMemory* memory, PlatformWindow* window, Renderer* r, RenderData* render_data)
 {
     // ======================== GAME RENDER PASS ========================
-    RenderPass_Game(r, render_data);
+    RenderPass_Game(memory, r, render_data);
     RenderPass_Upscale(r);
 
 

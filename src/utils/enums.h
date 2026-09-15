@@ -26,6 +26,5 @@ enum ShaderID
 enum UniformBufferID
 {
     UNIFORM_PER_FRAME_BUFFER = 0,
-    UNIFORM_PER_ENTITY_BUFFER = 1,
     UNIFORM_BUFFER_COUNT
 };

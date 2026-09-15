@@ -8,7 +8,6 @@
 #include "src/utils/enums.h"
 #include "src/utils/game_math.h"
 #include "src/utils/log.h"
-#include <cstdlib>
 
 
 // TODO(harsh): this is temporary, WORLD_DIMENTIONS should be adjustable by the player
@@ -117,21 +116,28 @@ World* Temp_GenerateWorld(AppMemory* memory)
 void Temp_TestPushRenderCommand(AppMemory* memory, RenderData* render_data, World* world)
 {
     Chunk* chunk = &world->chunks[0][0];
+    RenderCommand render_command = {};
+    render_command.mesh_id = MESH_QUAD;
+    render_command.texture_id = TEXTURE_TILEMAP_ATLAS;
+    render_command.instanced = true;
+    render_command.no_of_instances = 0;
+
+    render_command.transforms = ArenaAlloc<Mat4>(&memory->TempAllocator, sizeof(Mat4) * TILES_PER_CHUNK * TILES_PER_CHUNK);
+    render_command.uv_min_max = ArenaAlloc<Vec4>(&memory->TempAllocator, sizeof(Vec4) * TILES_PER_CHUNK * TILES_PER_CHUNK);
 
     for (int tile_y = 0; tile_y < TILES_PER_CHUNK; tile_y++)
     {
         for (int tile_x = 0; tile_x < TILES_PER_CHUNK; tile_x++)
         {
             Tile* tile = &chunk->tiles[tile_y][tile_x];
-
-            RenderCommand render_command = {};
-            render_command.mesh_id = tile->sprite.sprite_sheet.mesh_id;
-            render_command.texture_id = tile->sprite.sprite_sheet.texture_id;
-            render_command.transform = ModelMat4(&memory->TempAllocator, tile->position, {TILE_PIXEL_SIZE, TILE_PIXEL_SIZE});
-            render_command.uv_min_max = GetSpriteUV(&memory->TempAllocator, &tile->sprite);
-            render_command.instanced = false;
-
-            PushRenderCommand(render_data, render_command);
+            render_command.transforms[render_command.no_of_instances] = ModelMat4(
+                tile->position,
+                {TILE_PIXEL_SIZE, TILE_PIXEL_SIZE});
+            render_command.uv_min_max[render_command.no_of_instances] = GetSpriteUV(
+                &tile->sprite);
+            render_command.no_of_instances += 1;
         }
     }
+
+    PushRenderCommand(render_data, render_command);
 }

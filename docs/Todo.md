@@ -72,11 +72,17 @@
 	[x] Render command buffer should live seperate of `renderer/d3d11` it should just live in
 	`renderer/render_data.h`
 [x] Figure out Sprite2d.
+[x] Implement instance rendering. Use DrawIndexedInstanced()
+	*NOTE: ONLY CREATE THE VERTEX BUFFER ONCE AT RENDERER INIT With a sensable maximum capacity size, like*
+	*1,000 or 10,000 <----- This is the no of instance of an entity that can be drawn in one*
+	*DrawInstances() call. The 10,000 DOES NOT REPRESENT the total no of entites that can be drawn per frame*
+	*Because creating vertex buffer is an expensive operation*
+	[x] Create a VertexBuffer with following Input layout classification flags:
+	```D3D11_INPUT_PER_INSTANCE_DATA, D3D11_USAGE_DYNAMIC and D3D11_CPU_ACCESS_WRITE```
 
 [ ] PORT the world.odin implementation to game/world.cpp
 	[ ] Implement a hashtable for storing a large sparse chunks of world data by following handmade hero
 	day055 here: https://guide.handmadehero.org/code/day055/
-	[ ] Rename world.cpp file to tilemap.cpp
 [ ] Write the InputManager and figure out how to split it for cross platform
 	- NOTE: maybe write win32/input.h and win32/input.cpp and implement them for each platform
 	and in the main.h define what services are expected to be implemented by them like so:
@@ -102,13 +108,13 @@
 	void InputPollMessage(PlatformApp* app);
 	```
 [ ] Delta time
-[ ] Implement renderer batching.
 **Do NOT write shader groups in RenderData that couples renderer too much with game & is bad design**
 **DON'T WRITE RENDER GROUPS Either, just have RenderCommandType and have renderer sort them for**
 **rendering in batches based on aforementioned RenderCommandType and a sortkey/layer for Correct**
 **Render ordering and blending**
-[ ] Add Y sorting in the game logic maybe?
-[ ] Perlin noise world generation
+[ ] Add Y sorting in the game logic maybe? Do LayerID calculation
+[ ] Perlin noise world generation.
+
 [ ] Figure out AnimatedSprite2d.
 [ ] Setup Audio Layer (use XAudio2 built into windows 11 SDK, low to mid level API)
 	- NOTE: Audio API used by Handmade hero i.e. DirectSound is long depricated Deprecated since

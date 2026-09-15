@@ -48,8 +48,13 @@ void PlayerUpdateAndPushRender(AppMemory* memory, Player* player, RenderData* re
     RenderCommand render_command = {};
     render_command.mesh_id = player->sprite.sprite_sheet.mesh_id;
     render_command.texture_id = player->sprite.sprite_sheet.texture_id;
-    render_command.transform = ModelMat4(&memory->TempAllocator, player->position, player->size);
-    render_command.uv_min_max = GetSpriteUV(&memory->TempAllocator, &player->sprite);
+
+    render_command.transforms = ArenaAlloc<Mat4>(&memory->TempAllocator, sizeof(Mat4) * 1);
+    render_command.transforms[0] = ModelMat4(player->position, player->size);
+
+    render_command.uv_min_max = ArenaAlloc<Vec4>(&memory->TempAllocator, sizeof(Vec4) * 1);
+    render_command.uv_min_max[0] = GetSpriteUV(&player->sprite);
+
     render_command.instanced = false;
 
     PushRenderCommand(render_data, render_command);
