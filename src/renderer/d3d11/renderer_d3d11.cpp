@@ -506,7 +506,7 @@ void RendererUpdate(AppMemory* memory, PlatformWindow* window, Renderer* r, Rend
 
 
     // VERY IMPORTANT Finally Swap the back-buffer to show it
-    HRESULT result = r->SwapChain->Present(1, 0); // DXGI_PRESENT_DO_NOT_WAIT flags makes the FPS go Brrrrrrrrr
+    HRESULT result = r->SwapChain->Present(0, 0); // DXGI_PRESENT_DO_NOT_WAIT flags makes the FPS go Brrrrrrrrr
     if (FAILED(result))
     {
         LOG_ASSERT(false, "Failed to present a frame");

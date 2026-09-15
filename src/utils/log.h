@@ -67,7 +67,7 @@ namespace
 #ifdef LOG_COLOR_OFF
         printf("%s %s\n", prefix, format_buffer);
 #else
-        printf("%s %s %s\n \033[0m\n", TextColorCodes[text_color], prefix, format_buffer);
+        printf("%s %s %s \033[0m\n", TextColorCodes[text_color], prefix, format_buffer);
 #endif
     }
 
@@ -82,7 +82,7 @@ namespace
 
 #define LOG_INFOF(msg, ...) _logf(TEXT_COLOR_BOLD_WHITE, "[INFO]:", msg, ##__VA_ARGS__);
 #define LOG_OKF(msg, ...) _logf(TEXT_COLOR_BOLD_GREEN, "[OK]:", msg, ##__VA_ARGS__);
-#define LOG_WARNF(msg, ...) _logf(TEXT_COLOR_BOLD_RED, "[WARN]:", msg, ##__VA_ARGS__);
+#define LOG_WARNF(msg, ...) _logf(TEXT_COLOR_BOLD_YELLOW, "[WARN]:", msg, ##__VA_ARGS__);
 #define LOG_ERRORF(msg, ...) _logf(TEXT_COLOR_BOLD_RED, "[ERROR]:", msg, ##__VA_ARGS__);
 
 

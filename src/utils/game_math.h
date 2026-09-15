@@ -119,7 +119,7 @@ inline Mat4 Identity_Mat4()
 /*
     Multiplies two Column Major Mat4, Read right -> Left in order *NON-COMMUTATIVE*
 */
-inline Mat4 Mat4xMat4(Mat4 left, Mat4 right)
+inline Mat4 Mat4xMat4(const Mat4& left, const Mat4& right)
 {
     Mat4 result = {};
 
@@ -150,7 +150,7 @@ inline Mat4 Mat4xMat4(Mat4 left, Mat4 right)
     [ 0   0   S3  0 ]
     [ 0   0   0   1 ]
 */
-inline Mat4 Scale_Mat4(Vec3 scale)
+inline Mat4 Scale_Mat4(const Vec3& scale)
 {
     Mat4 m = Identity_Mat4();
     m[0].x = scale.x;
@@ -169,7 +169,7 @@ inline Mat4 Scale_Mat4(Vec3 scale)
     [ 0  0  1  Tz ],
     [ 0  0  0   1 ],
 */
-inline Mat4 Translate_Mat4(Vec3 translation)
+inline Mat4 Translate_Mat4(const Vec3& translation)
 {
     Mat4 m = Identity_Mat4();
     m[3].x += translation.x;
@@ -234,18 +234,31 @@ inline Mat4 ViewMat4(Vec2 position, Vec2 offset, float zoom)
 }
 
 // TODO(harsh): add rotation in the future
-inline Mat4 ModelMat4(Vec3 position, Vec3 scale)
+// NOTE(harsh): DO NOT USE Translate_Mat4 or Scale_Mat4 or Mat4xMat4 here as that adds extra
+// overhead and matrix copying, which tanks performance, setting the values directly is much
+// more performant as there are no calculation required
+inline Mat4 ModelMat4(const Vec3& position, const Vec3& scale)
 {
-    Mat4 model_matrix = Identity_Mat4();
-    model_matrix = Mat4xMat4(model_matrix, Translate_Mat4(position));
-    model_matrix = Mat4xMat4(model_matrix, Scale_Mat4(scale));
-
+    Mat4 model_matrix = {};
+    model_matrix[0][0] = scale.x;
+    model_matrix[1][1] = scale.y;
+    model_matrix[2][2] = scale.z;
+    model_matrix[3][3] = 1.0f;
+    model_matrix[3][0] = position.x;
+    model_matrix[3][1] = position.y;
+    model_matrix[3][2] = position.z;
     return model_matrix;
 }
-
-inline Mat4 ModelMat4(Vec2 position, Vec2 scale)
+inline Mat4 ModelMat4(const Vec2& position, const Vec2& scale)
 {
-    return ModelMat4({position.x, position.y, 0.0f}, {scale.x, scale.y, 1.0f});
+    Mat4 model_matrix = {};
+    model_matrix[0][0] = scale.x;
+    model_matrix[1][1] = scale.y;
+    model_matrix[2][2] = 1.0f;
+    model_matrix[3][3] = 1.0f;
+    model_matrix[3][0] = position.x;
+    model_matrix[3][1] = position.y;
+    return model_matrix;
 }
 
 
