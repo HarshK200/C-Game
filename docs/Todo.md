@@ -114,7 +114,6 @@
 **Render ordering and blending**
 [ ] Add Y sorting in the game logic maybe? Do LayerID calculation
 [ ] Perlin noise world generation.
-
 [ ] Figure out AnimatedSprite2d.
 [ ] Setup Audio Layer (use XAudio2 built into windows 11 SDK, low to mid level API)
 	- NOTE: Audio API used by Handmade hero i.e. DirectSound is long depricated Deprecated since

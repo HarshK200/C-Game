@@ -14,9 +14,9 @@
 
 struct ArenaAllocator
 {
-    uint8_t* base;
-    size_t capacity;
-    size_t used;
+    uint8_t* Base;
+    size_t Capacity;
+    size_t Used;
 };
 
 struct AppMemory
@@ -35,18 +35,18 @@ struct AppMemory
 inline ArenaAllocator CreateArena(size_t size)
 {
     ArenaAllocator arena_allocator = {};
-    arena_allocator.base = (uint8_t*)malloc(size);
-    if (!arena_allocator.base)
+    arena_allocator.Base = (uint8_t*)malloc(size);
+    if (!arena_allocator.Base)
     {
         LOG_ASSERT(false, "CreateArena malloc failed");
-        arena_allocator.base = nullptr;
-        arena_allocator.capacity = 0;
-        arena_allocator.used = 0;
+        arena_allocator.Base = nullptr;
+        arena_allocator.Capacity = 0;
+        arena_allocator.Used = 0;
         return arena_allocator;
     }
-    arena_allocator.capacity = size;
-    memset(arena_allocator.base, 0, size); // set memory to 0
-    arena_allocator.used = 0;
+    arena_allocator.Capacity = size;
+    memset(arena_allocator.Base, 0, size); // set memory to 0
+    arena_allocator.Used = 0;
 
     return arena_allocator;
 }
@@ -73,14 +73,14 @@ inline T* ArenaAlloc(ArenaAllocator* arena_allocator, size_t size)
         the +15 is what pushes an unaligned size into the next multiple before truncating.
     */
     size_t alignment_size = (size + 15) & ~15;
-    if (alignment_size > arena_allocator->capacity - arena_allocator->used)
+    if (alignment_size > arena_allocator->Capacity - arena_allocator->Used)
     {
         LOG_ASSERT(false, "Arena allocation failed! cannot allocate, arena capacity exceeded");
         return nullptr;
     }
 
-    result = arena_allocator->base + arena_allocator->used;
-    arena_allocator->used += alignment_size;
+    result = arena_allocator->Base + arena_allocator->Used;
+    arena_allocator->Used += alignment_size;
 
     return (T*)result;
 }
@@ -91,6 +91,6 @@ inline T* ArenaAlloc(ArenaAllocator* arena_allocator, size_t size)
 */
 inline void ArenaReset(ArenaAllocator* arena_allocator)
 {
-    memset(arena_allocator->base, 0, arena_allocator->used);
-    arena_allocator->used = 0;
+    memset(arena_allocator->Base, 0, arena_allocator->Used);
+    arena_allocator->Used = 0;
 }

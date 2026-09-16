@@ -12,9 +12,9 @@
 
 struct Player
 {
-    Vec2 position;
-    Vec2 size;
-    Sprite2d sprite;
+    Vec2 Position;
+    Vec2 Scale;
+    Sprite2d Sprite;
 };
 
 /*
@@ -23,16 +23,16 @@ struct Player
 Player* PlayerCreateAndInit(AppMemory* memory)
 {
     Player* player = ArenaAlloc<Player>(&memory->PermanentAllocator, sizeof(Player));
-    player->position = {0.0f, 0.0f};
-    player->size = {32.0f, 48.0f};
-    player->sprite = {
+    player->Position = {0.0f, 0.0f};
+    player->Scale = {32.0f, 48.0f};
+    player->Sprite = {
         {
             MESH_QUAD,
             TEXTURE_ENTITY_ATLAS,
             {96, 48},
         },
         {0, 0},
-        player->size,
+        player->Scale,
     };
 
     return player;
@@ -46,16 +46,16 @@ void PlayerUpdateAndPushRender(AppMemory* memory, Player* player, RenderData* re
     LOG_ASSERT((render_data->commands_count + 1) < render_data->max_commands, "Maximum render commands per frame reached! cannot push more render commands");
 
     RenderCommand render_command = {};
-    render_command.mesh_id = player->sprite.sprite_sheet.mesh_id;
-    render_command.texture_id = player->sprite.sprite_sheet.texture_id;
+    render_command.MeshId = player->Sprite.SpriteSheet.MeshId;
+    render_command.TextureId = player->Sprite.SpriteSheet.TextureId;
 
-    render_command.transforms = ArenaAlloc<Mat4>(&memory->TempAllocator, sizeof(Mat4) * 1);
-    render_command.transforms[0] = ModelMat4(player->position, player->size);
+    render_command.Transforms = ArenaAlloc<Mat4>(&memory->TempAllocator, sizeof(Mat4) * 1);
+    render_command.Transforms[0] = ModelMat4(player->Position, player->Scale);
 
-    render_command.uv_min_max = ArenaAlloc<Vec4>(&memory->TempAllocator, sizeof(Vec4) * 1);
-    render_command.uv_min_max[0] = GetSpriteUV(&player->sprite);
+    render_command.UvMinMax = ArenaAlloc<Vec4>(&memory->TempAllocator, sizeof(Vec4) * 1);
+    render_command.UvMinMax[0] = GetSpriteUV(&player->Sprite);
 
-    render_command.instanced = false;
+    render_command.Instanced = false;
 
     PushRenderCommand(render_data, render_command);
 }

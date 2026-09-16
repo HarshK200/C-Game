@@ -11,7 +11,6 @@ struct PlatformInputManager; // TODO(harsh): figure out the in between cross pla
 PlatformWindow* PlatformOpenWindow(AppMemory* memory);
 int PlatformProcessInput();
 
-
 // NOTE(harsh): game layer services
 struct Game2d;
 Game2d* GameCreateAndInit(AppMemory* memory);

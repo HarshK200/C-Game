@@ -26,7 +26,7 @@
 #include "src/game2d/camera2d.cpp"
 #include "src/game2d/sprite2d.cpp"
 #include "src/game2d/player.cpp"
-#include "src/game2d/world.cpp"
+#include "src/game2d/tilemap.cpp"
 
 // =============================================================
 //                    D3D11 Renderer LAYER

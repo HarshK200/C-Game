@@ -9,25 +9,25 @@
 struct SpriteSheet2d
 {
     // TODO(harsh): mesh belongs in the sprite not the spritesheet
-    MeshID mesh_id;
-    TextureID texture_id;
-    Vec2i texture_size;
+    MeshID MeshId;
+    TextureID TextureId;
+    Vec2i TextureScale;
 };
 
 struct Sprite2d
 {
-    SpriteSheet2d sprite_sheet;
-    Vec2i texel_coords;
-    Vec2 size;
+    SpriteSheet2d SpriteSheet;
+    Vec2i TexelCoords;
+    Vec2 Scale;
 };
 
 Vec4 GetSpriteUV(Sprite2d* sprite)
 {
     Vec4 uv_min_max = {};
-    uv_min_max.x = (float)sprite->texel_coords.x / (float)sprite->sprite_sheet.texture_size.x;
-    uv_min_max.y = (float)sprite->texel_coords.y / (float)sprite->sprite_sheet.texture_size.y;
-    uv_min_max.z = ((sprite->texel_coords.x + sprite->size.x) - 1) / (float)sprite->sprite_sheet.texture_size.x;
-    uv_min_max.w = ((sprite->texel_coords.y + sprite->size.y) - 1) / (float)sprite->sprite_sheet.texture_size.y;
+    uv_min_max.x = (float)sprite->TexelCoords.x / (float)sprite->SpriteSheet.TextureScale.x;
+    uv_min_max.y = (float)sprite->TexelCoords.y / (float)sprite->SpriteSheet.TextureScale.y;
+    uv_min_max.z = ((sprite->TexelCoords.x + sprite->Scale.x) - 1) / (float)sprite->SpriteSheet.TextureScale.x;
+    uv_min_max.w = ((sprite->TexelCoords.y + sprite->Scale.y) - 1) / (float)sprite->SpriteSheet.TextureScale.y;
 
     return uv_min_max;
 }

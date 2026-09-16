@@ -243,16 +243,16 @@ namespace
         // upload the Per Frame Uniform Buffer data
         FrameUniforms frame_uniforms = {};
         frame_uniforms.View = ViewMat4(
-            render_data->view_matrix_params.position,
-            render_data->view_matrix_params.offset,
-            render_data->view_matrix_params.zoom);
+            render_data->view_matrix_params.Position,
+            render_data->view_matrix_params.Offset,
+            render_data->view_matrix_params.Zoom);
         frame_uniforms.Projection = Orthograhpic_RH_ZO_Mat4(
             0,
             INTERNAL_RENDER_RESOLUTION.x,
             INTERNAL_RENDER_RESOLUTION.y,
             0,
-            render_data->projection_matrix_params.near_plane,
-            render_data->projection_matrix_params.far_plane);
+            render_data->projection_matrix_params.NearPlane,
+            render_data->projection_matrix_params.FarPlane);
         UploadUniformBufferData(
             r->DeviceContext,
             r->UniformBuffers[UNIFORM_PER_FRAME_BUFFER],
@@ -276,9 +276,9 @@ namespace
         // TODO(harsh): sorted rendering based on sort order or a sort key
         for (int i = 0; i < render_data->commands_count; i++)
         {
-            RenderCommand render_command = render_data->render_commands[i];
-            Mesh* mesh = r->Meshes[render_command.mesh_id];
-            Texture2D* texture = r->Textures[render_command.texture_id];
+            RenderCommand render_command = render_data->RenderCommands[i];
+            Mesh* mesh = r->Meshes[render_command.MeshId];
+            Texture2D* texture = r->Textures[render_command.TextureId];
 
             // bind Mesh
             r->DeviceContext->IASetVertexBuffers(
@@ -299,32 +299,32 @@ namespace
             // ===================== Instanced Drawing =====================
             // TODO(harsh): create the array with only the amount of elements required for this
             // instanced draw rather than the whole array
-            EntityData* entity_data = ArenaAlloc<EntityData>(&memory->TempAllocator, sizeof(EntityData) * render_command.no_of_instances);
+            EntityData* entity_data = ArenaAlloc<EntityData>(&memory->TempAllocator, sizeof(EntityData) * render_command.NoOfInstances);
             int unsigned instances_to_draw = 0;
 
             // perpare instance data for only 1 instance
-            if (render_command.instanced == false)
+            if (render_command.Instanced == false)
             {
                 LOG_ASSERT(
-                    (render_command.instanced == false && render_command.no_of_instances == 0),
+                    (render_command.Instanced == false && render_command.NoOfInstances == 0),
                     "no_of_instances MUST be 0 when render_command.instanced is false")
                 instances_to_draw = 1;
-                entity_data[0].Model = render_command.transforms[0];
-                entity_data[0].UVMinMax = render_command.uv_min_max[0];
+                entity_data[0].Model = render_command.Transforms[0];
+                entity_data[0].UVMinMax = render_command.UvMinMax[0];
             }
 
             // prepare instance data for multiple instances
             else
             {
                 LOG_ASSERT(
-                    (render_command.instanced == true && render_command.no_of_instances > 1),
+                    (render_command.Instanced == true && render_command.NoOfInstances > 1),
                     "no_of_instances MUST be 1 when render_command.instanced is true")
-                LOG_ASSERT(render_command.no_of_instances <= MAX_INSTANCE_BUFFER_SIZE, "no_of_instances EXCEDED MAX_INSTANCE_BUFFER_SIZE")
-                instances_to_draw = render_command.no_of_instances;
-                for (int i = 0; i < render_command.no_of_instances; i++)
+                LOG_ASSERT(render_command.NoOfInstances <= MAX_INSTANCE_BUFFER_SIZE, "no_of_instances EXCEDED MAX_INSTANCE_BUFFER_SIZE")
+                instances_to_draw = render_command.NoOfInstances;
+                for (int i = 0; i < render_command.NoOfInstances; i++)
                 {
-                    entity_data[i].Model = render_command.transforms[i];
-                    entity_data[i].UVMinMax = render_command.uv_min_max[i];
+                    entity_data[i].Model = render_command.Transforms[i];
+                    entity_data[i].UVMinMax = render_command.UvMinMax[i];
                 }
             }
 
