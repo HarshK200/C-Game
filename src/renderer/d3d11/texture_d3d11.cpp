@@ -21,105 +21,104 @@ struct Texture2D
 };
 
 
-// ====================== Internal functions ======================
-namespace
+// =================================================================================
+//                              INTERNAL FUNCTIONS
+// =================================================================================
+/*
+    NOTE(harsh): Expects the textures have sRGB encoded color values, loads them with sRGB format
+    hence the values are automatically decoded from sRGB -> Linear
+
+    Creates a texture by loading it from the file at texture_path (allocates using
+    temp_allocator, then uploads it to the GPU.
+
+    Returns Texture2D* on success, nullptr otherwise.
+*/
+Texture2D* CreateTexture(
+    ID3D11Device* device,
+    const char* texture_path,
+    AppMemory* memory)
 {
-    /*
-        NOTE(harsh): Expects the textures have sRGB encoded color values, loads them with sRGB format
-        hence the values are automatically decoded from sRGB -> Linear
+    LOG_ASSERT(texture_path, "Invalid texture_path provided");
+    LOG_ASSERT(memory, "Invalid memory allocators provided");
 
-        Creates a texture by loading it from the file at texture_path (allocates using
-        temp_allocator, then uploads it to the GPU.
 
-        Returns Texture2D* on success, nullptr otherwise.
-    */
-    Texture2D* CreateTexture(
-        ID3D11Device* device,
-        const char* texture_path,
-        AppMemory* memory)
+    // decode texture file to pixel_data with stbi
+    int width;
+    int height;
+    int channels;
+    uint8_t* pixel_data = stbi_load(texture_path, &width, &height, &channels, 4);
+    if (!pixel_data)
     {
-        LOG_ASSERT(texture_path, "Invalid texture_path provided");
-        LOG_ASSERT(memory, "Invalid memory allocators provided");
-
-
-        // decode texture file to pixel_data with stbi
-        int width;
-        int height;
-        int channels;
-        uint8_t* pixel_data = stbi_load(texture_path, &width, &height, &channels, 4);
-        if (!pixel_data)
-        {
-            LOG_ERROR("Decoding texture file data with stbi failed");
-            return nullptr;
-        }
-
-
-        // upload texture to GPU
-        D3D11_TEXTURE2D_DESC texture_desc = {};
-        texture_desc.Width = width;
-        texture_desc.Height = height;
-        texture_desc.MipLevels = 1;
-        // NOTE(harsh): this has something to do with a texture cube-map, and this value should
-        // be in multiple of 6? or me 1 fine cause i'm not uploading a cube texture
-        texture_desc.ArraySize = 1;
-        texture_desc.Format = DXGI_FORMAT_R8G8B8A8_UNORM_SRGB;
-        // default sampling, no anti-aliasing
-        texture_desc.SampleDesc.Count = 1;
-        texture_desc.SampleDesc.Quality = 0;
-        texture_desc.BindFlags = D3D11_BIND_SHADER_RESOURCE;
-        // Only uploading texture oncea, hence immutable and no CPU access required
-        texture_desc.Usage = D3D11_USAGE_IMMUTABLE;
-        texture_desc.CPUAccessFlags = 0;
-        ID3D11Texture2D* texture_handle = nullptr;
-        D3D11_SUBRESOURCE_DATA init_data = {};
-        init_data.pSysMem = pixel_data;
-        // SysMemPitch is no of bytes each row
-        // Calculation: no of pixel * no of bytes per pixel, since each pixel has 3 channel i.e.
-        // RGBA, 1 byte each that's 4 bytes per pixel, hence width * 4 = no. of bytes per row
-        init_data.SysMemPitch = width * 4;
-        init_data.SysMemSlicePitch = 0;
-        HRESULT result = device->CreateTexture2D(
-            &texture_desc,
-            &init_data,
-            &texture_handle);
-        if (FAILED(result))
-        {
-            LOG_ERRORF("Failed to create Texture2D with error code: %d", result);
-            stbi_image_free(pixel_data);
-            return nullptr;
-        }
-        stbi_image_free(pixel_data);
-
-        // allocate the texture using arena allocator
-        Texture2D* texture = ArenaAlloc<Texture2D>(&memory->PermanentAllocator, sizeof(Texture2D));
-        texture->Width = width;
-        texture->Height = height;
-        texture->Channels = 4;
-
-        // create shader resource view for the texture2d (writes it to the texture->SRV)
-        D3D11_SHADER_RESOURCE_VIEW_DESC srv_desc = {};
-        srv_desc.Format = texture_desc.Format;
-        srv_desc.ViewDimension = D3D11_SRV_DIMENSION_TEXTURE2D;
-        srv_desc.Texture2D.MostDetailedMip = 0;
-        srv_desc.Texture2D.MipLevels = 1;
-        result = device->CreateShaderResourceView(
-            texture_handle,
-            &srv_desc,
-            &texture->SRV);
-        if (FAILED(result))
-        {
-            LOG_ERRORF("Failed to create Shader Resource View for texture with error code: %d", result);
-            texture_handle->Release();
-            return nullptr;
-        }
-
-        // release the texture handle as its immutable and will never needed to be accessed
-        texture_handle->Release();
-
-
-        return texture;
+        LOG_ERROR("Decoding texture file data with stbi failed");
+        return nullptr;
     }
-}; // namespace
+
+
+    // upload texture to GPU
+    D3D11_TEXTURE2D_DESC texture_desc = {};
+    texture_desc.Width = width;
+    texture_desc.Height = height;
+    texture_desc.MipLevels = 1;
+    // NOTE(harsh): this has something to do with a texture cube-map, and this value should
+    // be in multiple of 6? or me 1 fine cause i'm not uploading a cube texture
+    texture_desc.ArraySize = 1;
+    texture_desc.Format = DXGI_FORMAT_R8G8B8A8_UNORM_SRGB;
+    // default sampling, no anti-aliasing
+    texture_desc.SampleDesc.Count = 1;
+    texture_desc.SampleDesc.Quality = 0;
+    texture_desc.BindFlags = D3D11_BIND_SHADER_RESOURCE;
+    // Only uploading texture oncea, hence immutable and no CPU access required
+    texture_desc.Usage = D3D11_USAGE_IMMUTABLE;
+    texture_desc.CPUAccessFlags = 0;
+    ID3D11Texture2D* texture_handle = nullptr;
+    D3D11_SUBRESOURCE_DATA init_data = {};
+    init_data.pSysMem = pixel_data;
+    // SysMemPitch is no of bytes each row
+    // Calculation: no of pixel * no of bytes per pixel, since each pixel has 3 channel i.e.
+    // RGBA, 1 byte each that's 4 bytes per pixel, hence width * 4 = no. of bytes per row
+    init_data.SysMemPitch = width * 4;
+    init_data.SysMemSlicePitch = 0;
+    HRESULT result = device->CreateTexture2D(
+        &texture_desc,
+        &init_data,
+        &texture_handle);
+    if (FAILED(result))
+    {
+        LOG_ERRORF("Failed to create Texture2D with error code: %d", result);
+        stbi_image_free(pixel_data);
+        return nullptr;
+    }
+    stbi_image_free(pixel_data);
+
+    // allocate the texture using arena allocator
+    Texture2D* texture = ArenaAlloc<Texture2D>(&memory->PermanentAllocator, sizeof(Texture2D));
+    texture->Width = width;
+    texture->Height = height;
+    texture->Channels = 4;
+
+    // create shader resource view for the texture2d (writes it to the texture->SRV)
+    D3D11_SHADER_RESOURCE_VIEW_DESC srv_desc = {};
+    srv_desc.Format = texture_desc.Format;
+    srv_desc.ViewDimension = D3D11_SRV_DIMENSION_TEXTURE2D;
+    srv_desc.Texture2D.MostDetailedMip = 0;
+    srv_desc.Texture2D.MipLevels = 1;
+    result = device->CreateShaderResourceView(
+        texture_handle,
+        &srv_desc,
+        &texture->SRV);
+    if (FAILED(result))
+    {
+        LOG_ERRORF("Failed to create Shader Resource View for texture with error code: %d", result);
+        texture_handle->Release();
+        return nullptr;
+    }
+
+    // release the texture handle as its immutable and will never needed to be accessed
+    texture_handle->Release();
+
+
+    return texture;
+}
 
 /*
     Loads and Uploads all texture to the GPU Memory, All the temporary allocation required

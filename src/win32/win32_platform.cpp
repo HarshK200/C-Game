@@ -8,6 +8,7 @@
 #include "src/utils/arena_allocator.h"
 
 #include "src/main.h"
+#include "src/input/input.h"
 
 
 // =================================================================================
@@ -23,65 +24,64 @@ struct PlatformApp
     int ExitCode;
 
     PlatformWindow* Window;
+    InputManager* InputManager;
     Game2d* Game;
     Renderer* Renderer; // D3D11
 
     AppMemory Memory;
-};
-struct PlatformInputManager
-{
 };
 
 
 // =================================================================================
 //                              INTERNAL FUNCTIONS
 // =================================================================================
-namespace
+/*
+    Windows message callback. This function gets called everytime windows Dispatch's a message
+    i.e. everytime DispatchMessage() is called.
+*/
+LRESULT CALLBACK WindowMessageCallback(HWND window, UINT message, WPARAM wparam, LPARAM lparam)
 {
-    /*
-        Windows message callback. This function gets called everytime windows Dispatch's a message
-        i.e. everytime DispatchMessage() is called.
-    */
-    LRESULT CALLBACK WindowMessageCallback(HWND window, UINT message, WPARAM wparam, LPARAM lparam)
+
+    LRESULT result = 0;
+
+    switch (message)
     {
-
-        LRESULT result = 0;
-
-        switch (message)
+        case WM_CREATE:
         {
-            case WM_CREATE:
-            {
-                OutputDebugString("WM_CREATE\n");
-                break;
-            }
-            case WM_ACTIVATEAPP:
-            {
-                OutputDebugString("WM_ACTIVATEAPP\n");
-                break;
-            }
-            case WM_CLOSE:
-            {
-                OutputDebugString("WM_CLOSE\n");
-                DestroyWindow(window);
-                break;
-            }
-            case WM_DESTROY:
-            {
-                OutputDebugString("WM_DESTROY\n");
-                PostQuitMessage(0);
-                break;
-            }
-            default:
-            {
-                result = DefWindowProc(window, message, wparam, lparam);
-                break;
-            }
+            LOG_INFO("WM_CREATE");
+            break;
         }
-
-        return result;
+        case WM_ACTIVATEAPP:
+        {
+            LOG_INFO("WM_ACTIVATEAPP");
+            break;
+        }
+        case WM_CLOSE:
+        {
+            LOG_INFO("WM_CLOSE");
+            DestroyWindow(window);
+            break;
+        }
+        case WM_DESTROY:
+        {
+            LOG_INFO("WM_DESTROY");
+            PostQuitMessage(0);
+            break;
+        }
+        case WM_SIZE:
+            // TODO(harsh):implement viewport resizing in the renderer,
+            // Here set the in INPUT_MANAGER input action window resize
+            LOG_INFO("WM_SIZE");
+            break;
+        default:
+        {
+            result = DefWindowProc(window, message, wparam, lparam);
+            break;
+        }
     }
 
-} // namespace
+    return result;
+}
 
 
 // =================================================================================
@@ -150,13 +150,14 @@ PlatformWindow* PlatformOpenWindow(AppMemory* memory)
     If message is WM_QUIT returns WM_QUIT
     otherwise returns 0 on successful finish
 */
-int PlatformProcessInput()
+int PlatformProcessInput(InputManager* input_manager)
 {
     MSG message;
     int result = 0;
 
     while (PeekMessage(&message, NULL, 0, 0, PM_REMOVE))
     {
+        // TODO(harsh): maybe add error handling if translate and dispatch fails??
         TranslateMessage(&message);
         DispatchMessage(&message);
 

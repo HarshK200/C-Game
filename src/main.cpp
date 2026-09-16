@@ -2,12 +2,13 @@
 #include "src/pch.h"
 
 // utils
+#include "src/utils/constants.h"
 #include "src/utils/arena_allocator.h"
 
 // Platform agnostic Declarations *ordered*
+#include "input/input.h"
 #include "main.h"
 #include "renderer/render_data.cpp"
-#include "src/utils/constants.h"
 
 
 // =============================================================
@@ -46,6 +47,7 @@ int main()
     App.ShouldClose = false;
     App.Memory.PermanentAllocator = CreateArena(64 * MegaByte);
     App.Memory.TempAllocator = CreateArena(512 * MegaByte);
+    App.InputManager = ArenaAlloc<InputManager>(&App.Memory.PermanentAllocator, sizeof(InputManager));
 
     // Open Platform agnostic Window
     App.Window = PlatformOpenWindow(&App.Memory);
@@ -81,18 +83,19 @@ int main()
     // Main Update Loop
     while (App.ShouldClose == false)
     {
-        // Process input TODO(harsh): implement input handling with action_map
-        if (PlatformProcessInput() == WM_QUIT)
+        // input processing
+        if (PlatformProcessInput(App.InputManager) == WM_QUIT)
             App.ShouldClose = true;
 
-        RenderData* render_data = CreateFrameRenderData(&App.Memory.TempAllocator);
 
         // Game update and render
-        GameUpdate(&App.Memory, App.Game, render_data); // TODO(harsh): pass action_map and delta time to GameUpate()
+        RenderData* render_data = CreateFrameRenderData(&App.Memory.TempAllocator);
+        // TODO(harsh): pass InputManger and delta time to GameUpate()
+        GameUpdate(&App.Memory, App.Game, App.InputManager, render_data);
         RendererUpdate(&App.Memory, App.Window, App.Renderer, render_data);
 
 
-        // reset transient memory
+        // cleanup
         ArenaReset(&App.Memory.TempAllocator);
     }
 

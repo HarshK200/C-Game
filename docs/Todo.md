@@ -80,9 +80,7 @@
 	[x] Create a VertexBuffer with following Input layout classification flags:
 	```D3D11_INPUT_PER_INSTANCE_DATA, D3D11_USAGE_DYNAMIC and D3D11_CPU_ACCESS_WRITE```
 
-[ ] PORT the world.odin implementation to game/world.cpp
-	[ ] Implement a hashtable for storing a large sparse chunks of world data by following handmade hero
-	day055 here: https://guide.handmadehero.org/code/day055/
+
 [ ] Write the InputManager and figure out how to split it for cross platform
 	- NOTE: maybe write win32/input.h and win32/input.cpp and implement them for each platform
 	and in the main.h define what services are expected to be implemented by them like so:
@@ -107,6 +105,9 @@
 	struct InputManager;
 	void InputPollMessage(PlatformApp* app);
 	```
+[ ] PORT the world.odin implementation to game/world.cpp
+	[ ] Implement a hashtable for storing a large sparse chunks of world data by following handmade hero
+	day055 here: https://guide.handmadehero.org/code/day055/
 [ ] Delta time
 **Do NOT write shader groups in RenderData that couples renderer too much with game & is bad design**
 **DON'T WRITE RENDER GROUPS Either, just have RenderCommandType and have renderer sort them for**

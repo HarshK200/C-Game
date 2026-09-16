@@ -10,10 +10,12 @@
 #include "src/renderer/render_data.cpp"
 
 
-// TODO(harsh): this is temporary, WORLD_DIMENTIONS should be adjustable by the player
-inline constexpr int unsigned WORLD_DIMENTION_IN_CHUNKS = 4; // TEMP 4x4 chunks i.e. 16 chunks in total flat array
-inline constexpr int unsigned TILES_PER_CHUNK = 16;
 inline constexpr int unsigned TILE_PIXEL_SIZE = 16;
+
+// TODO(harsh): Make teh CHUNKS_PER_TILEMAP adjustable as world size from world gen screen
+// TEMP 16x16 chunks per TileMap which is just the world
+inline constexpr int unsigned CHUNKS_PER_TILEMAP = 16;
+inline constexpr int unsigned TILES_PER_CHUNK = 16;
 
 enum TileType
 {
@@ -33,7 +35,7 @@ struct Tile
 struct TileChunk
 {
     Vec2 ChunkCoords;
-    Tile* Tiles; // 1d Tile array pointer
+    Tile* Tiles[TILES_PER_CHUNK]; // 1d Tile array pointer
 
     TileChunk* NextInHash;
 };
@@ -41,7 +43,7 @@ struct TileChunk
 
 struct TileMap
 {
-    TileChunk* TileChunkHash[4096];
+    TileChunk* TileChunks[CHUNKS_PER_TILEMAP];
 };
 
 
@@ -72,8 +74,12 @@ TileChunk* GetTileChunk(TileMap* tilemap)
 }
 
 // =================================================================================
-//                                  WORLD GEN
+//                                  TILEMAP GENERATION
 // =================================================================================
+TileMap* TileMapInit()
+{
+    return nullptr;
+}
 
 
 // =================================================================================
