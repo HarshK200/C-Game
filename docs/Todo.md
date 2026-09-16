@@ -104,8 +104,7 @@
 	void InputPollMessage(PlatformApp* app);
 	```
 
-[ ] PORT the world.odin implementation to game/world.cpp
-	[ ] Implement a hashtable for storing a large sparse chunks of world data by following handmade hero
+[ ] Implement a hashtable for storing a large sparse chunks of world data by following handmade hero
 	day055 here: https://guide.handmadehero.org/code/day055/
 [ ] Delta time
 **Do NOT write shader groups in RenderData that couples renderer too much with game & is bad design**

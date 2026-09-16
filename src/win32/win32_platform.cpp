@@ -37,10 +37,6 @@ struct PlatformApp
 //                              INTERNAL FUNCTIONS
 // =================================================================================
 
-inline void SetActionKeyDownState(InputManager* im, INPUT_ACTION action)
-{
-}
-
 void HandleKeyboardInput(InputManager* im, UINT message, WPARAM wparam)
 {
     LOG_ASSERT(
