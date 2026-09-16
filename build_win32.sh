@@ -23,36 +23,32 @@ out_exe_path="$out_dir_relative/win32_d3d11.exe"
 start_us=${EPOCHREALTIME/./}
 
 
-# =========== NINJA BUILD COMMAND ============
-ninja
-
-
 # =========== MANUAL BUILD COMMAND ============
 
-# # BUILD CONSTANTS
-# defines=(
-#     -DISEKAIED_DEBUG
-#     -D_CRT_SECURE_NO_WARNINGS
-# )
-#
-# libs=(
-#     -luser32
-#     -ld3d11
-#     -ld3dcompiler
-# )
-#
-# warnings=(
-#     -Wno-format-security
-# )
-#
-#
-# # RUN BUILD COMMAND
-# clang++                                                     \
-#     -std=c++20 -I. src/main.cpp -o "$out_exe_path"          \
-#     -g                                                      \
-#     "${defines[@]}"                                         \
-#     "${libs[@]}"                                            \
-#     "${warnings[@]}"    # -ftime-trace
+# BUILD CONSTANTS
+defines=(
+    -DISEKAIED_DEBUG
+    -D_CRT_SECURE_NO_WARNINGS
+)
+
+libs=(
+    -luser32
+    -ld3d11
+    -ld3dcompiler
+)
+
+warnings=(
+    -Wno-format-security
+)
+
+
+# RUN BUILD COMMAND
+clang++                                                     \
+    -std=c++20 -I. src/main.cpp -o "$out_exe_path"          \
+    -g                                                      \
+    "${defines[@]}"                                         \
+    "${libs[@]}"                                            \
+    "${warnings[@]}"    # -ftime-trace
 
 
 # =============================================

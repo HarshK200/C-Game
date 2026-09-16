@@ -41,5 +41,5 @@ Game2d* GameCreateAndInit(AppMemory* memory)
 void GameUpdate(AppMemory* memory, Game2d* g, RenderData* render_data)
 {
     Camera2dUpdate(g->Camera, render_data);
-    PlayerUpdateAndPushRender(memory, g->Player, render_data);
+    PlayerUpdateAndQueueRender(memory, g->Player, render_data);
 }

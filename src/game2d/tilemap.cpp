@@ -25,24 +25,23 @@ enum TileType
 
 struct Tile
 {
-    TileType tile_type;
-    Vec2 size;
-    Vec2 position;
-    Sprite2d sprite;
+    TileType TileType;
+    Vec2 Position;
+    Sprite2d Sprite;
 };
 
 struct TileChunk
 {
-    Vec2 chunk_coords;
-    Tile tiles[TILES_PER_CHUNK][TILES_PER_CHUNK]; // simple flat2d array of tiles
+    Vec2 ChunkCoords;
+    Tile* Tiles; // 1d Tile array pointer
 
-    TileChunk* next_in_hash;
+    TileChunk* NextInHash;
 };
 
 
 struct TileMap
 {
-    TileChunk* tile_chunk_hash[4096];
+    TileChunk* TileChunkHash[4096];
 };
 
 
@@ -66,6 +65,11 @@ Vec2 TileToWorldCoords(Vec2i tile_coords, Vec2i chunk_coords)
     return result;
 }
 
+// TODO(harsh): watch handmade hero and implement tilemap system based on that
+TileChunk* GetTileChunk(TileMap* tilemap)
+{
+    return nullptr;
+}
 
 // =================================================================================
 //                                  WORLD GEN
@@ -75,7 +79,6 @@ Vec2 TileToWorldCoords(Vec2i tile_coords, Vec2i chunk_coords)
 // =================================================================================
 //                                  TESTING TEMP
 // =================================================================================
-
 /*
     TODO(harsh): this is a temporary function for testing, write a generate world function
     which does procedural world generation and write the world data to disk in a

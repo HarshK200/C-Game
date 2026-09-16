@@ -13,7 +13,6 @@
 struct Player
 {
     Vec2 Position;
-    Vec2 Scale;
     Sprite2d Sprite;
 };
 
@@ -24,7 +23,6 @@ Player* PlayerCreateAndInit(AppMemory* memory)
 {
     Player* player = ArenaAlloc<Player>(&memory->PermanentAllocator, sizeof(Player));
     player->Position = {0.0f, 0.0f};
-    player->Scale = {32.0f, 48.0f};
     player->Sprite = {
         {
             MESH_QUAD,
@@ -32,7 +30,7 @@ Player* PlayerCreateAndInit(AppMemory* memory)
             {96, 48},
         },
         {0, 0},
-        player->Scale,
+        {32.0f, 48.0f},
     };
 
     return player;
@@ -41,7 +39,7 @@ Player* PlayerCreateAndInit(AppMemory* memory)
 /*
     updates the player state and set the render_data.command required for rendering
 */
-void PlayerUpdateAndPushRender(AppMemory* memory, Player* player, RenderData* render_data)
+void PlayerUpdateAndQueueRender(AppMemory* memory, Player* player, RenderData* render_data)
 {
     LOG_ASSERT((render_data->commands_count + 1) < render_data->max_commands, "Maximum render commands per frame reached! cannot push more render commands");
 
@@ -50,7 +48,7 @@ void PlayerUpdateAndPushRender(AppMemory* memory, Player* player, RenderData* re
     render_command.TextureId = player->Sprite.SpriteSheet.TextureId;
 
     render_command.Transforms = ArenaAlloc<Mat4>(&memory->TempAllocator, sizeof(Mat4) * 1);
-    render_command.Transforms[0] = ModelMat4(player->Position, player->Scale);
+    render_command.Transforms[0] = ModelMat4(player->Position, player->Sprite.Scale);
 
     render_command.UvMinMax = ArenaAlloc<Vec4>(&memory->TempAllocator, sizeof(Vec4) * 1);
     render_command.UvMinMax[0] = GetSpriteUV(&player->Sprite);
