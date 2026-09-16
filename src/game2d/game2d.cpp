@@ -12,7 +12,7 @@
 
 
 // ================== Renderer Layer Services Definitions ==================
-struct Game2d
+struct Game
 {
     Camera2d* Camera;
     Player* Player;
@@ -22,11 +22,11 @@ struct Game2d
 // creates a new game with the "new" keyword and returns the pointer to it
 // NOTE(harsh): the allocated memory is not tracker you must track and free the game
 // yourself or use an arena allocater, i gotta imlement that allocater first > o <
-Game2d* GameCreateAndInit(AppMemory* memory)
+Game* GameCreateAndInit(AppMemory* memory)
 {
     LOG_INFO("Game Init");
 
-    Game2d* g = ArenaAlloc<Game2d>(&memory->PermanentAllocator, sizeof(Game2d));
+    Game* g = ArenaAlloc<Game>(&memory->PermanentAllocator, sizeof(Game));
 
     g->Camera = Camera2dCreateAndInit(memory);
     g->Player = PlayerCreateAndInit(memory);
@@ -38,7 +38,7 @@ Game2d* GameCreateAndInit(AppMemory* memory)
     Updates the game state and write the required information to render a frame to
     RenderData* passed in
 */
-void GameUpdate(AppMemory* memory, Game2d* g, InputManager* input_manager, RenderData* render_data)
+void GameUpdate(AppMemory* memory, Game* g, InputManager* input_manager, RenderData* render_data)
 {
     Camera2dUpdate(g->Camera, render_data);
     TileMapUpdateAndQueueRender(memory, render_data);

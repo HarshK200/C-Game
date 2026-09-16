@@ -19,18 +19,6 @@ struct PlatformWindow
 {
     HWND Handle;
 };
-struct PlatformApp
-{
-    bool ShouldClose;
-    int ExitCode;
-
-    PlatformWindow* Window;
-    InputManager* InputManager;
-    Game2d* Game;
-    Renderer* Renderer; // D3D11
-
-    AppMemory Memory;
-};
 
 
 // =================================================================================
@@ -94,7 +82,6 @@ void HandleKeyboardInput(InputManager* im, UINT message, WPARAM wparam)
         }
     }
 }
-
 
 /*
     Windows message callback. This function gets called everytime windows Dispatch's a message
