@@ -90,7 +90,7 @@ int main()
 
         // Game update and render
         RenderData* render_data = CreateFrameRenderData(&App.Memory.TempAllocator);
-        // TODO(harsh): pass InputManger and delta time to GameUpate()
+        // TODO(harsh): pass delta time to GameUpate()
         GameUpdate(&App.Memory, App.Game, App.InputManager, render_data);
         RendererUpdate(&App.Memory, App.Window, App.Renderer, render_data);
 
