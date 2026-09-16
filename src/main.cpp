@@ -50,7 +50,7 @@ int main()
     App.InputManager = ArenaAlloc<InputManager>(&App.Memory.PermanentAllocator, sizeof(InputManager));
 
     // Open Platform agnostic Window
-    App.Window = PlatformOpenWindow(&App.Memory);
+    App.Window = PlatformOpenWindow(&App.Memory, App.InputManager);
     if (!App.Window)
     {
         LOG_ASSERT(false, "OpenWindow failed. Exiting program...");

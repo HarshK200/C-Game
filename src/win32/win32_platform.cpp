@@ -1,6 +1,7 @@
 #pragma once
 
 #include <Windows.h>
+#include <winuser.h>
 
 // utils
 #include "src/utils/log.h"
@@ -35,15 +36,84 @@ struct PlatformApp
 // =================================================================================
 //                              INTERNAL FUNCTIONS
 // =================================================================================
+
+inline void SetActionKeyDownState(InputManager* im, INPUT_ACTION action)
+{
+}
+
+void HandleKeyboardInput(InputManager* im, UINT message, WPARAM wparam)
+{
+    LOG_ASSERT(
+        (message == WM_KEYDOWN || message == WM_KEYUP),
+        "HandleKeyboardInput() called on invalid event. Make sure event == WM_KEYDOWN or WM_KEYUP");
+
+    // NOTE(harsh): An action can only be transitioned to PRESSED if its in an IDLE state
+    if (message == WM_KEYDOWN)
+    {
+        // LOG_INFO("WM_KEYDOWN");
+
+        INPUT_ACTION action;
+        switch (wparam)
+        {
+            case 'W':
+                action = ACTION_MOVE_UP;
+                break;
+            case 'A':
+                action = ACTION_MOVE_LEFT;
+                break;
+            case 'S':
+                action = ACTION_MOVE_DOWN;
+                break;
+            case 'D':
+                action = ACTION_MOVE_RIGHT;
+                break;
+            default:
+                break;
+        }
+        if (im->ActionMap[action] == IDLE)
+            im->ActionMap[action] = PRESSED;
+    }
+
+    if (message == WM_KEYUP)
+    {
+        // LOG_INFO("WM_KEYUP");
+        switch (wparam)
+        {
+            case 'W':
+                im->ActionMap[ACTION_MOVE_UP] = RELEASED;
+                break;
+            case 'A':
+                im->ActionMap[ACTION_MOVE_LEFT] = RELEASED;
+                break;
+            case 'S':
+                im->ActionMap[ACTION_MOVE_DOWN] = RELEASED;
+                break;
+            case 'D':
+                im->ActionMap[ACTION_MOVE_RIGHT] = RELEASED;
+                break;
+            default:
+                break;
+        }
+    }
+}
+
+
 /*
     Windows message callback. This function gets called everytime windows Dispatch's a message
     i.e. everytime DispatchMessage() is called.
 */
 LRESULT CALLBACK WindowMessageCallback(HWND window, UINT message, WPARAM wparam, LPARAM lparam)
 {
+    InputManager* input_manager = (InputManager*)GetWindowLongPtr(window, GWLP_USERDATA);
+
+    if (message == WM_NCCREATE)
+    {
+        CREATESTRUCT* create_info = (CREATESTRUCT*)lparam;
+        input_manager = (InputManager*)create_info->lpCreateParams;
+        SetWindowLongPtr(window, GWLP_USERDATA, (LONG_PTR)input_manager);
+    }
 
     LRESULT result = 0;
-
     switch (message)
     {
         case WM_CREATE:
@@ -56,6 +126,16 @@ LRESULT CALLBACK WindowMessageCallback(HWND window, UINT message, WPARAM wparam,
             LOG_INFO("WM_ACTIVATEAPP");
             break;
         }
+        case WM_KEYDOWN:
+        case WM_KEYUP:
+        {
+            HandleKeyboardInput(input_manager, message, wparam);
+            break;
+        }
+        case WM_SIZE:
+            LOG_INFO("WM_SIZE");
+            input_manager->WindowResized = true;
+            break;
         case WM_CLOSE:
         {
             LOG_INFO("WM_CLOSE");
@@ -68,11 +148,6 @@ LRESULT CALLBACK WindowMessageCallback(HWND window, UINT message, WPARAM wparam,
             PostQuitMessage(0);
             break;
         }
-        case WM_SIZE:
-            // TODO(harsh):implement viewport resizing in the renderer,
-            // Here set the in INPUT_MANAGER input action window resize
-            LOG_INFO("WM_SIZE");
-            break;
         default:
         {
             result = DefWindowProc(window, message, wparam, lparam);
@@ -92,7 +167,7 @@ LRESULT CALLBACK WindowMessageCallback(HWND window, UINT message, WPARAM wparam,
     Creates a window using win32 api and returns the PlatformWindow* on success,
     otherwise returns nullptr on failure
 */
-PlatformWindow* PlatformOpenWindow(AppMemory* memory)
+PlatformWindow* PlatformOpenWindow(AppMemory* memory, InputManager* input_manager)
 {
     PlatformWindow* window = ArenaAlloc<PlatformWindow>(&memory->PermanentAllocator, sizeof(PlatformWindow));
 
@@ -135,7 +210,8 @@ PlatformWindow* PlatformOpenWindow(AppMemory* memory)
         NULL,
         NULL,
         instance,
-        NULL);
+        input_manager // This pointer i.e. in the lpParam field becomes available to WM_NCCREATE
+    );
     if (!window->Handle)
     {
         OutputDebugString("\n[ERROR] Unable to create window\n");
@@ -152,6 +228,23 @@ PlatformWindow* PlatformOpenWindow(AppMemory* memory)
 */
 int PlatformProcessInput(InputManager* input_manager)
 {
+    for (int i = 0; i < INPUT_ACTION_COUNT; i++)
+    {
+        switch (input_manager->ActionMap[i])
+        {
+            case PRESSED:
+                input_manager->ActionMap[i] = HELD;
+                break;
+            case HELD:
+                break;
+            case RELEASED:
+                input_manager->ActionMap[i] = IDLE;
+                break;
+            default:
+                break;
+        }
+    }
+
     MSG message;
     int result = 0;
 
