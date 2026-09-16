@@ -49,6 +49,7 @@ void HandleKeyboardInput(InputManager* im, UINT message, WPARAM wparam)
         // LOG_INFO("WM_KEYDOWN");
 
         INPUT_ACTION action;
+        bool known_action = true;
         switch (wparam)
         {
             case 'W':
@@ -64,9 +65,10 @@ void HandleKeyboardInput(InputManager* im, UINT message, WPARAM wparam)
                 action = ACTION_MOVE_RIGHT;
                 break;
             default:
+                known_action = false;
                 break;
         }
-        if (im->ActionMap[action] == IDLE)
+        if (known_action && im->ActionMap[action] == IDLE)
             im->ActionMap[action] = PRESSED;
     }
 
