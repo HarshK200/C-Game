@@ -5,11 +5,9 @@
 #include "src/utils/constants.h"
 #include "src/utils/arena_allocator.h"
 
-// Platform agnostic Declarations *ordered*
-#include "input/input.h"
-#include "main.h"
-#include "renderer/render_data.cpp"
 
+// Platform agnostic Declarations *ordered*
+#include "main.h"
 
 // =============================================================
 //                          WINDOWS

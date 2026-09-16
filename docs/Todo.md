@@ -104,9 +104,11 @@
 	void InputPollMessage(PlatformApp* app);
 	```
 
+[ ] Delta time
+
 [ ] Implement a hashtable for storing a large sparse chunks of world data by following handmade hero
 	day055 here: https://guide.handmadehero.org/code/day055/
-[ ] Delta time
+[ ] Sub-Pixel Rendering
 **Do NOT write shader groups in RenderData that couples renderer too much with game & is bad design**
 **DON'T WRITE RENDER GROUPS Either, just have RenderCommandType and have renderer sort them for**
 **rendering in batches based on aforementioned RenderCommandType and a sortkey/layer for Correct**

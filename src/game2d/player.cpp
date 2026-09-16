@@ -49,7 +49,8 @@ void PlayerQueueRender(AppMemory* memory, Player* player, RenderData* render_dat
     render_command.Instanced = false;
 
     render_command.Transforms = ArenaAlloc<Mat4>(&memory->TempAllocator, sizeof(Mat4) * 1);
-    render_command.Transforms[0] = ModelMat4(player->Position, player->Sprite.Scale);
+    // TODO(harsh): implement subpixel rendering instead of this temporary fix of using FloorVec2()
+    render_command.Transforms[0] = ModelMat4(FloorVec2(player->Position), player->Sprite.Scale);
     render_command.UvMinMax = ArenaAlloc<Vec4>(&memory->TempAllocator, sizeof(Vec4) * 1);
     render_command.UvMinMax[0] = GetSpriteUV(&player->Sprite);
 

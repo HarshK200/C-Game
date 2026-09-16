@@ -51,7 +51,7 @@ typedef union Vec2i
     TODO(harsh): write the Normalize function and overload it with Vec2, Vec3 and Vec4
     not to be used directly, call Noramlize() instead
 */
-inline Vec2 normalize_vec2(Vec2 vec)
+inline Vec2 NormalizeVec2(const Vec2& vec)
 {
     // pythagoras thorem
     float length = sqrt(pow(vec.x, 2) + pow(vec.y, 2));
@@ -60,6 +60,14 @@ inline Vec2 normalize_vec2(Vec2 vec)
     normalized.y = vec.y / length;
 
     return normalized;
+}
+inline Vec2 FloorVec2(const Vec2& vec)
+{
+    Vec2 result = {};
+    result.x = floor(vec.x);
+    result.y = floor(vec.y);
+
+    return result;
 }
 
 
