@@ -16,7 +16,7 @@ struct Player
     Vec2 PrevPosition;
     Vec2 Position;
 
-    float MoveSpeed; // pixels per physics step (there are 100 physics step seconds) so pixel / 100ms
+    float Speed; // pixels per physics step (there are 100 physics step seconds) so pixel / 100ms
     Sprite2d Sprite;
 };
 
@@ -28,7 +28,7 @@ Player* PlayerCreateAndInit(AppMemory* memory)
     Player* player = ArenaAlloc<Player>(&memory->PermanentAllocator, sizeof(Player));
     player->PrevPosition = {0.0f, 0.0f};
     player->Position = {0.0f, 0.0f};
-    player->MoveSpeed = 100.0f;
+    player->Speed = 100.0f;
     player->Sprite = {
         {
             MESH_QUAD,
@@ -48,13 +48,13 @@ void PlayerPhysicsUpdate(AppMemory* memory, double delta_time, Player* player, I
     player->PrevPosition = player->Position;
 
     if (im->IsActionPressed(ACTION_MOVE_UP) || im->IsActionHeld(ACTION_MOVE_UP))
-        player->Position.y -= player->MoveSpeed * delta_time;
+        player->Position.y -= player->Speed * delta_time;
     if (im->IsActionPressed(ACTION_MOVE_DOWN) || im->IsActionHeld(ACTION_MOVE_DOWN))
-        player->Position.y += player->MoveSpeed * delta_time;
+        player->Position.y += player->Speed * delta_time;
     if (im->IsActionPressed(ACTION_MOVE_RIGHT) || im->IsActionHeld(ACTION_MOVE_RIGHT))
-        player->Position.x += player->MoveSpeed * delta_time;
+        player->Position.x += player->Speed * delta_time;
     if (im->IsActionPressed(ACTION_MOVE_LEFT) || im->IsActionHeld(ACTION_MOVE_LEFT))
-        player->Position.x -= player->MoveSpeed * delta_time;
+        player->Position.x -= player->Speed * delta_time;
 }
 
 // updates the per frame player state
@@ -63,7 +63,7 @@ void PlayerUpdate()
 }
 
 // Queues the player render command by pushing it to render_data.commands
-void PlayerQueueRender(AppMemory* memory, Player* player, RenderData* render_data, double interpolation_alpha)
+void PlayerQueueRender(AppMemory* memory, Player* player, double interpolation_alpha, RenderData* render_data)
 {
     LOG_ASSERT((render_data->commands_count + 1) < render_data->max_commands, "Maximum render commands per frame reached! cannot push more render commands");
 

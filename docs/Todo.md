@@ -103,8 +103,7 @@
 	struct InputManager;
 	void InputPollMessage(PlatformApp* app);
 	```
-
-[ ] Delta time
+[x] Delta time
 
 [ ] Implement a hashtable for storing a large sparse chunks of world data by following handmade hero
 	day055 here: https://guide.handmadehero.org/code/day055/

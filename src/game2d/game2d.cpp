@@ -7,8 +7,8 @@
 #include "src/utils/arena_allocator.h"
 
 #include "src/game2d/player.cpp"
-#include "src/game2d/camera2d.cpp"
 #include "src/game2d/tilemap.cpp"
+#include "src/game2d/camera2d.cpp"
 
 
 // ================== Renderer Layer Services Definitions ==================
@@ -16,7 +16,6 @@ struct Game
 {
     Camera2d* Camera;
     Player* Player;
-    TileMap* Tilemap;
 };
 
 // creates a new game with the "new" keyword and returns the pointer to it
@@ -38,18 +37,21 @@ Game* GameCreateAndInit(AppMemory* memory)
 // This runs once per physics timestep completely seperate from frame update
 void GamePhysicsUpdate(AppMemory* memory, double delta_time, Game* g, InputManager* input_manager)
 {
+    Camera2dPhysicsUpdate(g->Camera, delta_time, g->Player->Position);
     PlayerPhysicsUpdate(memory, delta_time, g->Player, input_manager);
 }
 
 // Updates the Per Frame game state
 void GameUpdate(AppMemory* memory, Game* g, InputManager* input_manager)
 {
+    Camera2dUpdate();
+    PlayerUpdate();
 }
 
 void GameQueueRender(AppMemory* memory, Game* g, RenderData* render_data, double interpolation_alpha)
 {
-    Camera2dQueueRender(g->Camera, render_data);
+    Camera2dQueueRender(g->Camera, interpolation_alpha, render_data);
 
     TEMP_TileMapQueueRender(memory, render_data);
-    PlayerQueueRender(memory, g->Player, render_data, interpolation_alpha);
+    PlayerQueueRender(memory, g->Player, interpolation_alpha, render_data);
 }
