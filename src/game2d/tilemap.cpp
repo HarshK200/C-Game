@@ -44,11 +44,13 @@ struct TileMap
 //                                  HELPER FUNCTIONS
 // =================================================================================
 
+// NOTE(harsh): Tile coordinates are anchored at the top-left corner of
+// the tile grid. This returns the world-space center of the tile.
 Vec2 TileToWorldCoords(Vec2i chunk_coords, Vec2i tile_coords)
 {
     Vec2 result = {};
-    result.x = (float)((chunk_coords.x * CHUNK_SIZE) + tile_coords.x) * TILE_PIXEL_SCALE;
-    result.y = (float)((chunk_coords.y * CHUNK_SIZE) + tile_coords.y) * TILE_PIXEL_SCALE;
+    result.x = ((chunk_coords.x * CHUNK_SIZE) + tile_coords.x + 0.5f) * TILE_PIXEL_SCALE;
+    result.y = ((chunk_coords.y * CHUNK_SIZE) + tile_coords.y + 0.5f) * TILE_PIXEL_SCALE;
     return result;
 }
 

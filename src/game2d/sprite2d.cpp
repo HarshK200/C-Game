@@ -8,10 +8,11 @@
 
 struct SpriteSheet2d
 {
-    // TODO(harsh): mesh belongs in the sprite not the spritesheet
     MeshID MeshId;
     TextureID TextureId;
     Vec2i TextureScale;
+
+    // TODO(harsh): Add a Sprite-offset
 };
 
 struct Sprite2d

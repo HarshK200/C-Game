@@ -18,6 +18,9 @@ struct Player
 
     float Speed; // pixels per physics step (there are 100 physics step seconds) so pixel / 100ms
     Sprite2d Sprite;
+
+    // TODO(harsh): add an achor so player is achored on the feet not the center of the body
+    // or MAYBE ADD A SPRITE OFFSET THAT WOULD BE SIMPLER
 };
 
 /*

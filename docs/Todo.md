@@ -107,13 +107,13 @@
 
 [ ] Procdural World Generation
 	[x] Generate and render 1 single Chunk.
-	[ ] Generate a few chunks like 3 x 3 i.e. 9 chunks.
+	[x] Generate a few chunks like 3 x 3 i.e. 9 chunks.
 	[ ] Make it so generated chunks have a seed and are always deterministic.
 	[ ] Use a Noise Algorithm like Perline Noise or Simplex Noise. NOTE(harsh): use simplex noise as that
 		was also made perlin but is just a better and faster version of the original perlin noise.
 	[ ] Implement a hashtable for storing a large sparse chunks of world data by following handmade hero
 		day055 here: https://guide.handmadehero.org/code/day055/.
-[ ] Perlin noise / Open Simplex noise world generation.
+[ ] Perlin noise / Open Simplex noise world generation (if Open Simplex is too complex then use perlin).
 [ ] Sub-Pixel Rendering
 **Do NOT write shader groups in RenderData that couples renderer too much with game & is bad design**
 **DON'T WRITE RENDER GROUPS Either, just have RenderCommandType and have renderer sort them for**
@@ -127,7 +127,12 @@
 	the era of DirectX 8/Vista.
 [ ] Hot code reloading
 [ ] Disable WindowResize and Make window resizing done through settings.
-[ ] Particle system
+[ ] Add achor to the player so when calculations happen, player's feet is considered as (0, 0) not the
+	body center
+	OR
+	Maybe just add a sprite offset that sounds simpler, so right before rendering i just add the sprite
+	offset to the player position to be rendered.
+[ ] Particle system.
 
 ### Done:
 [x] Setup a Basic clean Cross-platform Api Layer
