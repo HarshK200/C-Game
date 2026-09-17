@@ -71,9 +71,7 @@ void PlayerQueueRender(AppMemory* memory, Player* player, double interpolation_a
     render_command.MeshId = player->Sprite.SpriteSheet.MeshId;
     render_command.TextureId = player->Sprite.SpriteSheet.TextureId;
     render_command.Instanced = false;
-
     render_command.Transforms = ArenaAlloc<Mat4>(&memory->TempAllocator, sizeof(Mat4) * 1);
-
     Vec2 interpolated_position = LerpVec2(player->PrevPosition, player->Position, interpolation_alpha);
     render_command.Transforms[0] = ModelMat4(interpolated_position, player->Sprite.Scale);
     render_command.UvMinMax = ArenaAlloc<Vec4>(&memory->TempAllocator, sizeof(Vec4) * 1);

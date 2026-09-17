@@ -16,6 +16,7 @@ struct Game
 {
     Camera2d* Camera;
     Player* Player;
+    TileChunk* TEMP_chunk;
 };
 
 // creates a new game with the "new" keyword and returns the pointer to it
@@ -29,6 +30,7 @@ Game* GameCreateAndInit(AppMemory* memory)
 
     g->Camera = Camera2dCreateAndInit(memory);
     g->Player = PlayerCreateAndInit(memory);
+    g->TEMP_chunk = TEMP_ChunkCreateAndInit(memory);
 
     return g;
 }
@@ -52,6 +54,6 @@ void GameQueueRender(AppMemory* memory, Game* g, RenderData* render_data, double
 {
     Camera2dQueueRender(g->Camera, interpolation_alpha, render_data);
 
-    TEMP_TileMapQueueRender(memory, render_data);
+    TEMP_ChunkQueueRender(memory, g->TEMP_chunk, render_data);
     PlayerQueueRender(memory, g->Player, interpolation_alpha, render_data);
 }
