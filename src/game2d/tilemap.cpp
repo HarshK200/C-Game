@@ -36,6 +36,7 @@ struct TileChunk
 
 struct TileMap
 {
+    // TODO(harsh): implement a hash table for large sparse data and region data loading
     TileChunk Chunks[TILEMAP_SIZE * TILEMAP_SIZE];
 };
 
@@ -80,6 +81,9 @@ int GetChunkIdxInTilemap(Vec2i chunk_coords)
 */
 void GenerateChunkTiles(TileChunk* chunk)
 {
+
+
+    // populating the chunk index in the array
     for (int tile_y = 0; tile_y < CHUNK_SIZE; tile_y++)
     {
         for (int tile_x = 0; tile_x < CHUNK_SIZE; tile_x++)

@@ -108,9 +108,10 @@
 [ ] Procdural World Generation
 	[x] Generate and render 1 single Chunk.
 	[x] Generate a few chunks like 3 x 3 i.e. 9 chunks.
-	[ ] Make it so generated chunks have a seed and are always deterministic.
-	[ ] Use a Noise Algorithm like Perline Noise or Simplex Noise. NOTE(harsh): use simplex noise as that
-		was also made perlin but is just a better and faster version of the original perlin noise.
+	[x] Anchor tile to top-left as center for easier calculations.
+	[ ] Use a Noise Algorithm like Perline Noise or Simplex Noise.
+		NOTE(harsh): Try simplex noise if its not too complex as that was also made
+		perlin but is just a better and faster version of the original perlin noise.
 	[ ] Implement a hashtable for storing a large sparse chunks of world data by following handmade hero
 		day055 here: https://guide.handmadehero.org/code/day055/.
 [ ] Perlin noise / Open Simplex noise world generation (if Open Simplex is too complex then use perlin).
