@@ -105,15 +105,22 @@
 	```
 [x] Delta time
 
-[ ] Implement a hashtable for storing a large sparse chunks of world data by following handmade hero
-	day055 here: https://guide.handmadehero.org/code/day055/
+[ ] Procdural World Generation
+	[x] Generate and render 1 single Chunk.
+	[ ] Generate a few chunks like 3 x 3 i.e. 9 chunks.
+	[ ] Make it so generated chunks have a seed and are always deterministic.
+	[ ] Use a Noise Algorithm like Perline Noise or Simplex Noise. NOTE(harsh): use simplex noise as that
+		was also made perlin but is just a better and faster version of the original perlin noise.
+	[ ] Implement a hashtable for storing a large sparse chunks of world data by following handmade hero
+		day055 here: https://guide.handmadehero.org/code/day055/.
+[ ] Perlin noise / Open Simplex noise world generation.
 [ ] Sub-Pixel Rendering
 **Do NOT write shader groups in RenderData that couples renderer too much with game & is bad design**
 **DON'T WRITE RENDER GROUPS Either, just have RenderCommandType and have renderer sort them for**
 **rendering in batches based on aforementioned RenderCommandType and a sortkey/layer for Correct**
 **Render ordering and blending**
 [ ] Add Y sorting in the game logic maybe? Do LayerID calculation
-[ ] Perlin noise world generation.
+
 [ ] Figure out AnimatedSprite2d.
 [ ] Setup Audio Layer (use XAudio2 built into windows 11 SDK, low to mid level API)
 	- NOTE: Audio API used by Handmade hero i.e. DirectSound is long depricated Deprecated since

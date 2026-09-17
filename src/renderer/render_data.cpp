@@ -65,11 +65,11 @@ RenderData* CreateFrameRenderData(ArenaAllocator* temp_arena_allocator)
     return render_data;
 }
 
-int PushRenderCommand(RenderData* render_data, RenderCommand render_command)
+int PushRenderCommand(RenderData* render_data, RenderCommand* render_command)
 {
     LOG_ASSERT((render_data->commands_count + 1) <= render_data->max_commands, "Maximum render commands per frame reached! cannot push more render commands");
 
-    render_data->RenderCommands[render_data->commands_count] = render_command;
+    render_data->RenderCommands[render_data->commands_count] = *render_command;
     render_data->commands_count += 1;
 
     return 0;
