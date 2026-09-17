@@ -34,13 +34,22 @@ Game* GameCreateAndInit(AppMemory* memory)
     return g;
 }
 
-/*
-    Updates the game state and write the required information to render a frame to
-    RenderData* passed in
-*/
-void GameUpdate(AppMemory* memory, Game* g, InputManager* input_manager, RenderData* render_data)
+
+// This runs once per physics timestep completely seperate from frame update
+void GamePhysicsUpdate(AppMemory* memory, double delta_time, Game* g, InputManager* input_manager)
 {
-    Camera2dUpdate(g->Camera, render_data);
-    TileMapUpdateAndQueueRender(memory, render_data);
-    PlayerUpdateAndQueueRender(memory, g->Player, input_manager, render_data);
+    PlayerPhysicsUpdate(memory, delta_time, g->Player, input_manager);
+}
+
+// Updates the Per Frame game state
+void GameUpdate(AppMemory* memory, Game* g, InputManager* input_manager)
+{
+}
+
+void GameQueueRender(AppMemory* memory, Game* g, RenderData* render_data, double interpolation_alpha)
+{
+    Camera2dQueueRender(g->Camera, render_data);
+
+    TEMP_TileMapQueueRender(memory, render_data);
+    PlayerQueueRender(memory, g->Player, render_data, interpolation_alpha);
 }

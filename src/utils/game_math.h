@@ -69,6 +69,14 @@ inline Vec2 FloorVec2(const Vec2& vec)
 
     return result;
 }
+// Lerp's from a --> b with t as the step
+inline Vec2 LerpVec2(const Vec2& a, const Vec2& b, float t)
+{
+    Vec2 result = {};
+    result.x = a.x + t * (b.x - a.x);
+    result.y = a.y + t * (b.y - a.y);
+    return result;
+}
 
 
 // ================================================================================

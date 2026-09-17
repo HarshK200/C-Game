@@ -1,5 +1,6 @@
 // precompiled headers
 #include "src/pch.h"
+#include <chrono>
 
 // utils
 #include "src/utils/constants.h"
@@ -75,19 +76,44 @@ int main()
         goto program_exit;
     }
 
+    // Record Initial delta time
+    App.LastTimestamp = std::chrono::steady_clock::now();
+    App.DeltaTime = FIXED_PHYSICS_DELTA_TIME; // this is 0.01 sec i.e. 10ms per physics update
+    App.Accumulator = 0.0f;
+
     // Main Update Loop
     while (App.ShouldClose == false)
     {
+        // re-create transient variables
+        App.RenderData = CreateFrameRenderData(&App.Memory.TempAllocator);
+
+
         // input processing
         if (PlatformProcessInput(App.InputManager) == WM_QUIT)
             App.ShouldClose = true;
 
+        // delta time calculation
+        auto current_timestamp = std::chrono::steady_clock::now();
+        double frame_time = std::chrono::duration<double>(current_timestamp - App.LastTimestamp).count();
+        App.LastTimestamp = current_timestamp;
+        App.Accumulator += frame_time;
 
-        // Game update and render
-        RenderData* render_data = CreateFrameRenderData(&App.Memory.TempAllocator);
-        // TODO(harsh): pass delta time to GameUpate()
-        GameUpdate(&App.Memory, App.Game, App.InputManager, render_data);
-        RendererUpdate(&App.Memory, App.Window, App.Renderer, render_data);
+        // run physics simulation with fixed TimeStep and accumulate the rest
+        while (App.Accumulator >= App.DeltaTime)
+        {
+            GamePhysicsUpdate(&App.Memory, App.DeltaTime, App.Game, App.InputManager);
+            App.Accumulator -= App.DeltaTime;
+        }
+        double interpolation_alpha = App.Accumulator / App.DeltaTime;
+
+        // per frame game update
+        GameUpdate(&App.Memory, App.Game, App.InputManager);
+
+        //  queue game entites render
+        GameQueueRender(&App.Memory, App.Game, App.RenderData, interpolation_alpha);
+
+        // render the frame
+        RenderFrame(&App.Memory, App.Window, App.Renderer, App.RenderData);
 
 
         // cleanup

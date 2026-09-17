@@ -81,32 +81,30 @@ TileMap* TileMapInit()
     return nullptr;
 }
 
-void TileMapUpdateAndQueueRender(AppMemory* memory, RenderData* render_data)
+void TEMP_TileMapQueueRender(AppMemory* memory, RenderData* render_data)
 {
     // TODO(harsh): THIS IS TEMPORARY single tile rendered for testing movement, REMOVE THIS
-    {
-        RenderCommand render_command = {};
-        render_command.MeshId = MESH_QUAD;
-        render_command.TextureId = TEXTURE_TILEMAP_ATLAS;
-        render_command.Instanced = false;
-        render_command.NoOfInstances = 0;
-        render_command.Transforms = ArenaAlloc<Mat4>(&memory->TempAllocator, sizeof(Mat4) * 1);
-        Vec2 position = {10.0f, 5.0f};
-        Vec2 scale = {TILE_PIXEL_SCALE, TILE_PIXEL_SCALE};
-        render_command.Transforms[0] = ModelMat4(position, scale);
-        Sprite2d sprite = {
-            {
-                MESH_QUAD,
-                TEXTURE_TILEMAP_ATLAS,
-                {112, 96},
-            },
-            {0, 16},
-            {TILE_PIXEL_SCALE, TILE_PIXEL_SCALE},
-        };
-        render_command.UvMinMax = ArenaAlloc<Vec4>(&memory->TempAllocator, sizeof(Vec4) * 1);
-        render_command.UvMinMax[0] = GetSpriteUV(&sprite);
-        PushRenderCommand(render_data, render_command);
-    }
+    RenderCommand render_command = {};
+    render_command.MeshId = MESH_QUAD;
+    render_command.TextureId = TEXTURE_TILEMAP_ATLAS;
+    render_command.Instanced = false;
+    render_command.NoOfInstances = 0;
+    render_command.Transforms = ArenaAlloc<Mat4>(&memory->TempAllocator, sizeof(Mat4) * 1);
+    Vec2 position = {10.0f, 5.0f};
+    Vec2 scale = {TILE_PIXEL_SCALE, TILE_PIXEL_SCALE};
+    render_command.Transforms[0] = ModelMat4(position, scale);
+    Sprite2d sprite = {
+        {
+            MESH_QUAD,
+            TEXTURE_TILEMAP_ATLAS,
+            {112, 96},
+        },
+        {0, 16},
+        {TILE_PIXEL_SCALE, TILE_PIXEL_SCALE},
+    };
+    render_command.UvMinMax = ArenaAlloc<Vec4>(&memory->TempAllocator, sizeof(Vec4) * 1);
+    render_command.UvMinMax[0] = GetSpriteUV(&sprite);
+    PushRenderCommand(render_data, render_command);
 }
 
 

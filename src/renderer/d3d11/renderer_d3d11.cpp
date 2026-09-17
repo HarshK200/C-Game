@@ -495,7 +495,7 @@ Renderer* RendererCreateAndInit(AppMemory* memory, PlatformWindow* window)
                      BackBufferRenderTargetView.
     3. Finally present's the backbuffer by DXGI_SWAP_EFFECT_FLIP_DISCARD, switching the backbuffer with front
 */
-void RendererUpdate(AppMemory* memory, PlatformWindow* window, Renderer* r, RenderData* render_data)
+void RenderFrame(AppMemory* memory, PlatformWindow* window, Renderer* r, RenderData* render_data)
 {
     // ======================== GAME RENDER PASS ========================
     RenderPass_Game(memory, r, render_data);
@@ -503,7 +503,7 @@ void RendererUpdate(AppMemory* memory, PlatformWindow* window, Renderer* r, Rend
 
 
     // VERY IMPORTANT Finally Swap the back-buffer to show it
-    HRESULT result = r->SwapChain->Present(0, 0); // DXGI_PRESENT_DO_NOT_WAIT flags makes the FPS go Brrrrrrrrr
+    HRESULT result = r->SwapChain->Present(1, 0); // DXGI_PRESENT_DO_NOT_WAIT flags makes the FPS go Brrrrrrrrr
     if (FAILED(result))
     {
         LOG_ASSERT(false, "Failed to present a frame");

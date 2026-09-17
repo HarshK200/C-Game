@@ -38,7 +38,7 @@ Camera2d* Camera2dCreateAndInit(AppMemory* memory)
 }
 
 
-void Camera2dUpdate(Camera2d* camera, RenderData* render_data)
+void Camera2dQueueRender(Camera2d* camera, RenderData* render_data)
 {
     // Update Render Data
     render_data->view_matrix_params.Offset = camera->Offset;

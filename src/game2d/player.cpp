@@ -13,8 +13,10 @@
 
 struct Player
 {
+    Vec2 PrevPosition;
     Vec2 Position;
-    float MoveSpeed; // pixels per second
+
+    float MoveSpeed; // pixels per physics step (there are 100 physics step seconds) so pixel / 100ms
     Sprite2d Sprite;
 };
 
@@ -24,8 +26,9 @@ struct Player
 Player* PlayerCreateAndInit(AppMemory* memory)
 {
     Player* player = ArenaAlloc<Player>(&memory->PermanentAllocator, sizeof(Player));
+    player->PrevPosition = {0.0f, 0.0f};
     player->Position = {0.0f, 0.0f};
-    player->MoveSpeed = 0.10f;
+    player->MoveSpeed = 100.0f;
     player->Sprite = {
         {
             MESH_QUAD,
@@ -39,7 +42,28 @@ Player* PlayerCreateAndInit(AppMemory* memory)
     return player;
 }
 
-void PlayerQueueRender(AppMemory* memory, Player* player, RenderData* render_data)
+// runs once per physics tick
+void PlayerPhysicsUpdate(AppMemory* memory, double delta_time, Player* player, InputManager* im)
+{
+    player->PrevPosition = player->Position;
+
+    if (im->IsActionPressed(ACTION_MOVE_UP) || im->IsActionHeld(ACTION_MOVE_UP))
+        player->Position.y -= player->MoveSpeed * delta_time;
+    if (im->IsActionPressed(ACTION_MOVE_DOWN) || im->IsActionHeld(ACTION_MOVE_DOWN))
+        player->Position.y += player->MoveSpeed * delta_time;
+    if (im->IsActionPressed(ACTION_MOVE_RIGHT) || im->IsActionHeld(ACTION_MOVE_RIGHT))
+        player->Position.x += player->MoveSpeed * delta_time;
+    if (im->IsActionPressed(ACTION_MOVE_LEFT) || im->IsActionHeld(ACTION_MOVE_LEFT))
+        player->Position.x -= player->MoveSpeed * delta_time;
+}
+
+// updates the per frame player state
+void PlayerUpdate()
+{
+}
+
+// Queues the player render command by pushing it to render_data.commands
+void PlayerQueueRender(AppMemory* memory, Player* player, RenderData* render_data, double interpolation_alpha)
 {
     LOG_ASSERT((render_data->commands_count + 1) < render_data->max_commands, "Maximum render commands per frame reached! cannot push more render commands");
 
@@ -49,27 +73,11 @@ void PlayerQueueRender(AppMemory* memory, Player* player, RenderData* render_dat
     render_command.Instanced = false;
 
     render_command.Transforms = ArenaAlloc<Mat4>(&memory->TempAllocator, sizeof(Mat4) * 1);
-    // TODO(harsh): implement subpixel rendering instead of this temporary fix of using FloorVec2()
-    render_command.Transforms[0] = ModelMat4(FloorVec2(player->Position), player->Sprite.Scale);
+
+    Vec2 interpolated_position = LerpVec2(player->PrevPosition, player->Position, interpolation_alpha);
+    render_command.Transforms[0] = ModelMat4(interpolated_position, player->Sprite.Scale);
     render_command.UvMinMax = ArenaAlloc<Vec4>(&memory->TempAllocator, sizeof(Vec4) * 1);
     render_command.UvMinMax[0] = GetSpriteUV(&player->Sprite);
 
     PushRenderCommand(render_data, render_command);
-}
-
-/*
-    updates the player state and set the render_data.command required for rendering
-*/
-void PlayerUpdateAndQueueRender(AppMemory* memory, Player* player, InputManager* im, RenderData* render_data)
-{
-    if (im->IsActionPressed(ACTION_MOVE_UP) || im->IsActionHeld(ACTION_MOVE_UP))
-        player->Position.y -= player->MoveSpeed;
-    if (im->IsActionPressed(ACTION_MOVE_DOWN) || im->IsActionHeld(ACTION_MOVE_DOWN))
-        player->Position.y += player->MoveSpeed;
-    if (im->IsActionPressed(ACTION_MOVE_RIGHT) || im->IsActionHeld(ACTION_MOVE_RIGHT))
-        player->Position.x += player->MoveSpeed;
-    if (im->IsActionPressed(ACTION_MOVE_LEFT) || im->IsActionHeld(ACTION_MOVE_LEFT))
-        player->Position.x -= player->MoveSpeed;
-
-    PlayerQueueRender(memory, player, render_data);
 }

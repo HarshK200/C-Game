@@ -5,6 +5,7 @@
 
 #include "src/input/input.h"
 #include "src/renderer/render_data.cpp"
+#include <chrono>
 
 
 // =============================================================
@@ -20,8 +21,9 @@ int PlatformProcessInput(InputManager* input_manager);
 // =============================================================
 struct Game;
 Game* GameCreateAndInit(AppMemory* memory);
-// TODO(harsh): pass delta_time
-void GameUpdate(AppMemory* memory, Game* g, InputManager* input_manager, RenderData* render_data);
+void GamePhysicsUpdate(AppMemory* memory, double delta_time, Game* g, InputManager* input_manager);
+void GameUpdate(AppMemory* memory, Game* g, InputManager* input_manager);
+void GameQueueRender(AppMemory* memory, Game* g, RenderData* render_data, double interpolation_alpha);
 
 
 // =============================================================
@@ -29,7 +31,7 @@ void GameUpdate(AppMemory* memory, Game* g, InputManager* input_manager, RenderD
 // =============================================================
 struct Renderer;
 Renderer* RendererCreateAndInit(AppMemory* memory, PlatformWindow* window);
-void RendererUpdate(AppMemory* memory, PlatformWindow* window, Renderer* r, RenderData* render_data);
+void RenderFrame(AppMemory* memory, PlatformWindow* window, Renderer* r, RenderData* render_data);
 
 
 // =============================================================
@@ -40,10 +42,16 @@ struct App
     bool ShouldClose;
     int ExitCode;
 
+    // Delta time stuff
+    std::chrono::time_point<std::chrono::steady_clock> LastTimestamp;
+    double DeltaTime;
+    double Accumulator;
+
     PlatformWindow* Window;
     InputManager* InputManager;
     Game* Game;
     Renderer* Renderer;
+    RenderData* RenderData;
 
     AppMemory Memory;
 };
