@@ -1,5 +1,7 @@
 #pragma once
 
+#include "src/pch.h"
+
 // utils
 #include "src/utils/log.h"
 #include "src/utils/enums.h"
@@ -11,7 +13,7 @@
 
 
 inline constexpr int unsigned TILE_PIXEL_SCALE = 16;
-inline constexpr int unsigned TILEMAP_SIZE = 3;
+inline constexpr int unsigned TILEMAP_SIZE = 6;
 inline constexpr int unsigned CHUNK_SIZE = 32;
 
 enum TileType
@@ -38,6 +40,8 @@ struct TileMap
 {
     // TODO(harsh): implement a hash table for large sparse data and region data loading
     TileChunk Chunks[TILEMAP_SIZE * TILEMAP_SIZE];
+    int Seed;
+    float NoiseScale;
 };
 
 
@@ -45,25 +49,51 @@ struct TileMap
 //                                  HELPER FUNCTIONS
 // =================================================================================
 
-// NOTE(harsh): Tile coordinates are anchored at the top-left corner of the tile grid.
-// This returns the world-space center of the tile.
-// WARNING(harsh): This world coords MUST NOT be used for changing tile position as these are
-// offseted tile_coords
-Vec2 TileToWorldCoords(Vec2i chunk_coords, Vec2i tile_coords)
+/*
+    Returns tile's world tile coordinates in the tile grid
+*/
+Vec2i GetTileGridCoords(Vec2i chunk_coords, Vec2i tile_local_coords)
 {
-    Vec2 result = {};
-    result.x = ((chunk_coords.x * CHUNK_SIZE) + tile_coords.x + 0.5f) * TILE_PIXEL_SCALE;
-    result.y = ((chunk_coords.y * CHUNK_SIZE) + tile_coords.y + 0.5f) * TILE_PIXEL_SCALE;
+    Vec2i result = {};
+    result.x = (chunk_coords.x * CHUNK_SIZE) + tile_local_coords.x;
+    result.y = (chunk_coords.y * CHUNK_SIZE) + tile_local_coords.y;
     return result;
 }
 
-Tile* GetTileInChunk(TileChunk* chunk, Vec2i tile_coords)
+/*
+    Returns the tile world position *IN PIXELS*.
+*/
+Vec2 GetTileWorldPosition(Vec2i chunk_coords, Vec2i tile_local_coords)
 {
-    return &chunk->Tiles[(CHUNK_SIZE * tile_coords.y) + tile_coords.x];
+    Vec2 result = {};
+    result.x = ((chunk_coords.x * CHUNK_SIZE) + tile_local_coords.x) * TILE_PIXEL_SCALE;
+    result.y = ((chunk_coords.y * CHUNK_SIZE) + tile_local_coords.y) * TILE_PIXEL_SCALE;
+    return result;
 }
-int GetTileIdxInChunk(Vec2i tile_coords)
+
+/*
+    Returns the tile anchor's world position *IN PIXELS* that is offset by 0.5 * TILE_PIXEL_SCALE
+    in +x and +y direction, because the tile is anchored at the top-left corner to align with the
+    tile grid.
+
+    NOTE(harsh): this is so the rendered tiles match the calculations, as calculations are
+    not done based on anchor, they are based
+*/
+Vec2 GetTileAnchorPosition(Vec2i chunk_coords, Vec2i tile_local_coords)
 {
-    return (CHUNK_SIZE * tile_coords.y) + tile_coords.x;
+    Vec2 result = {};
+    result.x = ((chunk_coords.x * CHUNK_SIZE) + tile_local_coords.x + 0.5f) * TILE_PIXEL_SCALE;
+    result.y = ((chunk_coords.y * CHUNK_SIZE) + tile_local_coords.y + 0.5f) * TILE_PIXEL_SCALE;
+    return result;
+}
+
+Tile* GetTileInChunk(TileChunk* chunk, Vec2i tile_local_coords)
+{
+    return &chunk->Tiles[(CHUNK_SIZE * tile_local_coords.y) + tile_local_coords.x];
+}
+int GetTileIdxInChunk(Vec2i tile_local_coords)
+{
+    return (CHUNK_SIZE * tile_local_coords.y) + tile_local_coords.x;
 }
 
 TileChunk* GetChunkInTilemap(TileMap* tilemap, Vec2i chunk_coords)
@@ -79,7 +109,7 @@ int GetChunkIdxInTilemap(Vec2i chunk_coords)
     For the passed in chunk generates CHUNK_SIZE * CHUNK_SIZE tiles with random tiletype
     TODO(harsh): use a noise function to  generated determinic chunks
 */
-void GenerateChunkTiles(TileChunk* chunk)
+void GenerateChunkTiles(TileChunk* chunk, fnl_state* noise, float noise_scale)
 {
 
 
@@ -88,10 +118,21 @@ void GenerateChunkTiles(TileChunk* chunk)
     {
         for (int tile_x = 0; tile_x < CHUNK_SIZE; tile_x++)
         {
-            int random_num = std::rand() % TILE_TYPE_COUNT;
-            TileType random_tile_type = static_cast<TileType>(random_num);
             Tile* tile = GetTileInChunk(chunk, {tile_x, tile_y});
-            tile->TileType = random_tile_type;
+            Vec2i tile_grid_coords = GetTileGridCoords(chunk->ChunkCoords, {tile_x, tile_y});
+
+            // sample noise for this tile in tile grid. Value ranges from 0..1
+            // TODO(harsh): multiply the coordinates by somearbitary scale for more control?
+            float noise_sample = fnlGetNoise2D(
+                noise,
+                tile_grid_coords.x * noise_scale,
+                tile_grid_coords.y * noise_scale);
+
+            tile->TileType = TILE_WATER;
+            if (noise_sample > 0.25)
+                tile->TileType = TILE_GRASS;
+            else if (noise_sample > 0.45)
+                tile->TileType = TILE_DIRT;
         }
     }
 }
@@ -127,7 +168,7 @@ void ChunkQueueRender(AppMemory* memory, TileChunk* chunk, RenderData* render_da
         {
             int tile_idx = (CHUNK_SIZE * tile_y) + tile_x;
             Tile* tile = GetTileInChunk(chunk, {tile_x, tile_y});
-            tile_pos = TileToWorldCoords(chunk->ChunkCoords, {tile_x, tile_y});
+            tile_pos = GetTileAnchorPosition(chunk->ChunkCoords, {tile_x, tile_y});
             render_command->Transforms[tile_idx] = ModelMat4(tile_pos, tile_scale);
             tile_sprite.TexelCoords.x = 0;
             tile_sprite.TexelCoords.y = TILE_PIXEL_SCALE * static_cast<int>(tile->TileType);
@@ -138,22 +179,37 @@ void ChunkQueueRender(AppMemory* memory, TileChunk* chunk, RenderData* render_da
     PushRenderCommand(render_data, render_command);
 }
 
+
 // =================================================================================
-//                              TILEMAP GENERATION
+//                              EXPORTED FUNCTIONS
 // =================================================================================
 
 TileMap* TileMapCreateAndInit(AppMemory* memory)
 {
-    // generate a single chunk
     TileMap* tilemap = ArenaAlloc<TileMap>(&memory->PermanentAllocator, sizeof(TileMap));
+    tilemap->Seed = 6967;
+    tilemap->NoiseScale = 11.0;
 
+    /*
+        create noise TODO(harsh): maybe put the noise on the tilemap? i donno if its needed
+        or not though.
+    */
+    fnl_state noise = fnlCreateState();
+    noise.seed = tilemap->Seed;
+    // TODO(harsh): experiment with OpenSimplexNoise as well
+    noise.noise_type = FNL_NOISE_PERLIN;
+    noise.frequency = 0.015;
+
+    // generate a TILEMAP_SIZE x TILEMAP_SIZE chunks tilemap
+    // TODO(harsh): use hashtable based chunk generation
     for (int chunk_y = 0; chunk_y < TILEMAP_SIZE; chunk_y++)
     {
         for (int chunk_x = 0; chunk_x < TILEMAP_SIZE; chunk_x++)
         {
             TileChunk* chunk = GetChunkInTilemap(tilemap, {chunk_x, chunk_y});
             chunk->ChunkCoords = {chunk_x, chunk_y};
-            GenerateChunkTiles(chunk);
+
+            GenerateChunkTiles(chunk, &noise, tilemap->NoiseScale);
         }
     }
 

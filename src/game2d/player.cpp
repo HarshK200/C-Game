@@ -31,7 +31,7 @@ Player* PlayerCreateAndInit(AppMemory* memory)
     Player* player = ArenaAlloc<Player>(&memory->PermanentAllocator, sizeof(Player));
     player->PrevPosition = {0.0f, 0.0f};
     player->Position = {0.0f, 0.0f};
-    player->Speed = 100.0f;
+    player->Speed = 300.0f;
     player->Sprite = {
         {
             MESH_QUAD,

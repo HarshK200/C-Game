@@ -3,6 +3,7 @@
 // third party header files (Cross paltform)
 #define STB_IMAGE_IMPLEMENTATION
 #include "third_party/stb_image.h"
+#define FNL_IMPL
 #include "third_party/fast_noise_lite.h"
 
 // std libs
