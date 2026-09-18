@@ -1,5 +1,5 @@
-#include <Windows.h>
-#include <winuser.h>
+// pre complied header
+#include "src/pch.h"
 
 // utils
 #include "src/utils/log.h"
@@ -199,8 +199,7 @@ PlatformWindow* PlatformOpenWindow(AppMemory* memory, InputManager* input_manage
 
 /*
     Proccess all the input events in the Window Message Queue
-    If message is WM_QUIT returns WM_QUIT
-    otherwise returns 0 on successful finish
+    If message is WM_QUIT returns 1, otherwise returns 0 on successful finish
 */
 int PlatformProcessInput(InputManager* input_manager)
 {
@@ -231,7 +230,7 @@ int PlatformProcessInput(InputManager* input_manager)
         DispatchMessage(&message);
 
         if (message.message == WM_QUIT)
-            result = WM_QUIT;
+            result = 1;
     }
 
     return result;

@@ -1,7 +1,6 @@
 #pragma once
 
-#include <cmath>
-#include <cstdlib>
+#include "src/pch.h"
 
 #include "src/utils/log.h"
 #include "src/utils/arena_allocator.h"

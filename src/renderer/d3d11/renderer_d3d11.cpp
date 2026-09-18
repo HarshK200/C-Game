@@ -1,6 +1,4 @@
-#include <assert.h>
-#include <d3d11.h>
-#include <dxgiformat.h>
+#include "src/pch.h"
 
 // utils
 #include "src/utils/log.h"

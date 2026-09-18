@@ -1,14 +1,11 @@
-#include <d3d11.h>
-#include <cstdint>
+#include "src/pch.h"
 
 // utils
 #include "src/utils/log.h"
 #include "src/utils/enums.h"
 #include "src/utils/arena_allocator.h"
 
-// thirdparty
-#define STB_IMAGE_IMPLEMENTATION
-#include "third_party/stb_image.h"
+#include "src/pch.h"
 
 
 struct Texture2D

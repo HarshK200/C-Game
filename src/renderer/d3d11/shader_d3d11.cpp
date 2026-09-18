@@ -1,8 +1,4 @@
-#include <d3d11.h>
-#include <winnt.h>
-#include <d3dcompiler.h>
-#include <cstring>
-#include <iterator>
+#include "src/pch.h"
 
 // utils
 #include "src/utils/log.h"

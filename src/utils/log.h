@@ -1,7 +1,6 @@
 #pragma once
 
-#include <stdio.h>
-
+#include "src/pch.h"
 
 #ifdef _WIN32
 

@@ -1,8 +1,6 @@
 #pragma once
 
-#include <cstdint>
-#include <cstdio>
-#include <sys/stat.h>
+#include "src/pch.h"
 
 #include "src/utils/arena_allocator.h"
 #include "src/utils/log.h"

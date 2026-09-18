@@ -7,9 +7,7 @@
 #include "src/renderer/render_data.h"
 #include "src/game2d/sprite2d.cpp"
 
-// thirdparty
-#define FNL_IMPL
-#include "third_party/fast_noise_lite.h"
+#include "src/pch.h"
 
 
 inline constexpr int unsigned TILE_PIXEL_SCALE = 16;

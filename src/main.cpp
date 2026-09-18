@@ -1,4 +1,4 @@
-#include <chrono>
+#include "src/pch.h"
 
 // utils
 #include "src/utils/constants.h"
@@ -52,7 +52,6 @@ struct App
 
 // ================= PLATFORM LAYER DEFINITIONS ==================
 #ifdef _WIN32
-#define WIN32_LEAN_AND_MEAN
 #include "src/platform/win32/win32_platform.cpp"
 #endif
 
@@ -115,7 +114,7 @@ int main()
 
 
         // input processing
-        if (PlatformProcessInput(App.InputManager) == WM_QUIT)
+        if (PlatformProcessInput(App.InputManager) == 1)
             App.ShouldClose = true;
 
         // delta time calculation
