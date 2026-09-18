@@ -3,7 +3,7 @@
   "tasks": [
     {
       "label": "build-debug-win32-d3d11",
-      "command": "./build_win32.sh",
+      "command": "./build_win32.sh debug",
       "options": {
         "shell": {
           "executable": "sh.exe",
@@ -16,7 +16,7 @@
     },
     {
       "label": "build-run-debug-win32-d3d11",
-      "command": "./build_win32.sh && ./build/debug/win32_d3d11.exe",
+      "command": "./build_win32.sh debug && ./build/debug/win32_d3d11.exe",
       "options": {
         "shell": {
           "executable": "sh.exe",
@@ -25,6 +25,32 @@
       },
       "presentation": {
         "focus": true
+      }
+    },
+    {
+      "label": "build-release-win32-d3d11",
+      "command": "./build_win32.sh release",
+      "options": {
+        "shell": {
+          "executable": "sh.exe",
+          "args": ["-c"]
+        }
+      },
+      "presentation": {
+        "focus": false
+      }
+    },
+    {
+      "label": "build-run-release-win32-d3d11",
+      "command": "./build_win32.sh release && ./build/release/win32_d3d11.exe",
+      "options": {
+        "shell": {
+          "executable": "sh.exe",
+          "args": ["-c"]
+        }
+      },
+      "presentation": {
+        "focus": false
       }
     }
   ]
