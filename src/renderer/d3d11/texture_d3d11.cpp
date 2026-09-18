@@ -1,5 +1,3 @@
-#pragma once
-
 #include <d3d11.h>
 #include <cstdint>
 
@@ -9,7 +7,8 @@
 #include "src/utils/arena_allocator.h"
 
 // thirdparty
-#include "src/pch.h"
+#define STB_IMAGE_IMPLEMENTATION
+#include "third_party/stb_image.h"
 
 
 struct Texture2D

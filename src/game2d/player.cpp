@@ -1,5 +1,3 @@
-#pragma once
-
 // utils
 #include "src/utils/log.h"
 #include "src/utils/enums.h"
@@ -7,8 +5,10 @@
 #include "src/utils/arena_allocator.h"
 
 #include "src/input/input.h"
+#include "src/renderer/render_data.h"
+
+// internal game sub_modules implementations
 #include "src/game2d/sprite2d.cpp"
-#include "src/renderer/render_data.cpp"
 
 
 struct Player

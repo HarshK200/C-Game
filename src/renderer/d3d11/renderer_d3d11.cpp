@@ -1,5 +1,3 @@
-#pragma once
-
 #include <assert.h>
 #include <d3d11.h>
 #include <dxgiformat.h>
@@ -11,13 +9,14 @@
 #include "src/utils/game_math.h"
 #include "src/utils/arena_allocator.h"
 
-#include "src/renderer/render_data.cpp"
+// renderer glue
+#include "src/renderer/render_data.h"
 
-// Platform specific import
-#include "src/win32/win32_platform.cpp"
+// platform specific import
+#include "src/platform/win32/win32_platform.h"
 
-#include "src/main.h"
-#include "src/renderer/d3d11/mesh.cpp"
+// internal renderer sub_modules implementations
+#include "src/renderer/d3d11/mesh_d3d11.cpp"
 #include "src/renderer/d3d11/shader_d3d11.cpp"
 #include "src/renderer/d3d11/texture_d3d11.cpp"
 

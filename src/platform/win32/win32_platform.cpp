@@ -1,5 +1,3 @@
-#pragma once
-
 #include <Windows.h>
 #include <winuser.h>
 
@@ -8,17 +6,10 @@
 #include "src/utils/constants.h"
 #include "src/utils/arena_allocator.h"
 
-#include "src/main.h"
 #include "src/input/input.h"
 
-
-// =================================================================================
-//                      PLATFORM SERVICES STRUCTS DEFINITIONS
-// =================================================================================
-struct PlatformWindow
-{
-    HWND Handle;
-};
+// exposed struct definitions
+#include "src/platform/win32/win32_platform.h"
 
 
 // =================================================================================

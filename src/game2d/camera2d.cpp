@@ -1,11 +1,9 @@
-#pragma once
-
 // utils
 #include "src/utils/constants.h"
 #include "src/utils/game_math.h"
 #include "src/utils/arena_allocator.h"
 
-#include "src/renderer/render_data.cpp"
+#include "src/renderer/render_data.h"
 
 
 struct Camera2d

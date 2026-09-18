@@ -50,7 +50,7 @@ struct RenderData
 };
 
 
-RenderData* CreateFrameRenderData(ArenaAllocator* temp_arena_allocator)
+inline RenderData* CreateFrameRenderData(ArenaAllocator* temp_arena_allocator)
 {
     RenderData* render_data = ArenaAlloc<RenderData>(
         temp_arena_allocator,
@@ -65,7 +65,7 @@ RenderData* CreateFrameRenderData(ArenaAllocator* temp_arena_allocator)
     return render_data;
 }
 
-int PushRenderCommand(RenderData* render_data, RenderCommand* render_command)
+inline int PushRenderCommand(RenderData* render_data, RenderCommand* render_command)
 {
     LOG_ASSERT((render_data->commands_count + 1) <= render_data->max_commands, "Maximum render commands per frame reached! cannot push more render commands");
 

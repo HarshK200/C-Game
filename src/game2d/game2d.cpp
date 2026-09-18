@@ -1,11 +1,9 @@
-#pragma once
-
-#include "src/main.h"
-
 // utils
 #include "src/utils/log.h"
 #include "src/utils/arena_allocator.h"
 
+// internal game sub_modules implementations
+#include "src/game2d/sprite2d.cpp" // sprite2d is a shadered module
 #include "src/game2d/player.cpp"
 #include "src/game2d/tilemap.cpp"
 #include "src/game2d/camera2d.cpp"

@@ -1,15 +1,15 @@
-#pragma once
-
-#include "src/pch.h"
-
 // utils
 #include "src/utils/log.h"
 #include "src/utils/enums.h"
 #include "src/utils/game_math.h"
 #include "src/utils/arena_allocator.h"
 
+#include "src/renderer/render_data.h"
 #include "src/game2d/sprite2d.cpp"
-#include "src/renderer/render_data.cpp"
+
+// thirdparty
+#define FNL_IMPL
+#include "third_party/fast_noise_lite.h"
 
 
 inline constexpr int unsigned TILE_PIXEL_SCALE = 16;

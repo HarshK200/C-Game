@@ -1,40 +1,66 @@
-// precompiled headers
-#include "src/pch.h"
 #include <chrono>
 
 // utils
 #include "src/utils/constants.h"
 #include "src/utils/arena_allocator.h"
 
+// layers glue files
+#include "src/input/input.h"
+#include "src/renderer/render_data.h"
 
-// Platform agnostic Declarations *ordered*
-#include "main.h"
 
-// =============================================================
-//                  PLATFORM LAYER DEFINITIONS
-// =============================================================
+// ================= PLATFORM SERVICES DECLARATIONS ==============
+struct PlatformWindow;
+PlatformWindow* PlatformOpenWindow(AppMemory* memory, InputManager* input_manager);
+int PlatformProcessInput(InputManager* input_manager);
+
+
+// =================== GAME SERVICES DECLARATIONS ================
+struct Game;
+Game* GameCreateAndInit(AppMemory* memory);
+void GamePhysicsUpdate(AppMemory* memory, double delta_time, Game* g, InputManager* input_manager);
+void GameUpdate(AppMemory* memory, Game* g, InputManager* input_manager);
+void GameQueueRender(AppMemory* memory, Game* g, RenderData* render_data, double interpolation_alpha);
+
+
+// ================= RENDERER SERVICES DECLARATIONS ==============
+struct Renderer;
+Renderer* RendererCreateAndInit(AppMemory* memory, PlatformWindow* window);
+void RenderFrame(AppMemory* memory, PlatformWindow* window, Renderer* r, RenderData* render_data);
+
+
+// ===================== MAIN APP DEFINITION =====================
+struct App
+{
+    bool ShouldClose;
+    int ExitCode;
+
+    // Delta time stuff
+    std::chrono::time_point<std::chrono::steady_clock> LastTimestamp;
+    double DeltaTime;
+    double Accumulator;
+
+    PlatformWindow* Window;
+    InputManager* InputManager;
+    Game* Game;
+    Renderer* Renderer;
+    RenderData* RenderData;
+
+    AppMemory Memory;
+};
+
+
+// ================= PLATFORM LAYER DEFINITIONS ==================
 #ifdef _WIN32
 #define WIN32_LEAN_AND_MEAN
-#include "src/win32/win32_platform.cpp"
+#include "src/platform/win32/win32_platform.cpp"
 #endif
 
-// =============================================================
-//                    GAME LAYER DEFINITIONS
-// =============================================================
+// =================== GAME LAYER DEFINITIONS ====================
 #include "src/game2d/game2d.cpp"
-#include "src/game2d/camera2d.cpp"
-#include "src/game2d/sprite2d.cpp"
-#include "src/game2d/player.cpp"
-#include "src/game2d/tilemap.cpp"
 
-// =============================================================
-//                  Renderer LAYER DEFINITIONS
-// =============================================================
-#include "src/renderer/render_data.cpp"
+// ================= Renderer LAYER DEFINITIONS ==================
 #ifdef _WIN32
-#include "src/renderer/d3d11/mesh.cpp"
-#include "src/renderer/d3d11/texture_d3d11.cpp"
-#include "src/renderer/d3d11/shader_d3d11.cpp"
 #include "src/renderer/d3d11/renderer_d3d11.cpp"
 #endif
 

@@ -1,13 +1,11 @@
-#pragma once
-
 #include <d3d11.h>
 #include <dxgiformat.h>
 #include <iterator>
 
 // utils
-#include "src/utils/arena_allocator.h"
-#include "src/utils/enums.h"
 #include "src/utils/log.h"
+#include "src/utils/enums.h"
+#include "src/utils/arena_allocator.h"
 
 
 struct Mesh
