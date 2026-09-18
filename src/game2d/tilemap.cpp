@@ -71,6 +71,16 @@ Vec2 GetTileWorldPosition(Vec2i chunk_coords, Vec2i tile_local_coords)
     return result;
 }
 
+// Returns chunk grid coordinates of the world position passed in.
+// World position MUST BE in pixels
+Vec2i WorldPosToChunkGridCoords(Vec2 world_pos)
+{
+    Vec2i result = {};
+    result.x = (int)(world_pos.x / (CHUNK_SIZE * TILE_PIXEL_SCALE));
+    result.y = (int)(world_pos.y / (CHUNK_SIZE * TILE_PIXEL_SCALE));
+    return result;
+}
+
 /*
     Returns the tile anchor's world position *IN PIXELS* that is offset by 0.5 * TILE_PIXEL_SCALE
     in +x and +y direction, because the tile is anchored at the top-left corner to align with the
@@ -129,9 +139,9 @@ void GenerateChunkTiles(TileChunk* chunk, fnl_state* noise, float noise_scale)
                 tile_grid_coords.y * noise_scale);
 
             tile->TileType = TILE_WATER;
-            if (noise_sample > 0.25)
+            if (noise_sample > 0.15)
                 tile->TileType = TILE_GRASS;
-            else if (noise_sample > 0.45)
+            else if (noise_sample > 0.25)
                 tile->TileType = TILE_DIRT;
         }
     }
@@ -187,8 +197,8 @@ void ChunkQueueRender(AppMemory* memory, TileChunk* chunk, RenderData* render_da
 TileMap* TileMapCreateAndInit(AppMemory* memory)
 {
     TileMap* tilemap = ArenaAlloc<TileMap>(&memory->PermanentAllocator, sizeof(TileMap));
-    tilemap->Seed = 6967;
-    tilemap->NoiseScale = 11.0;
+    tilemap->Seed = 696732902;
+    tilemap->NoiseScale = 10.0;
 
     /*
         create noise TODO(harsh): maybe put the noise on the tilemap? i donno if its needed
@@ -198,7 +208,7 @@ TileMap* TileMapCreateAndInit(AppMemory* memory)
     noise.seed = tilemap->Seed;
     // TODO(harsh): experiment with OpenSimplexNoise as well
     noise.noise_type = FNL_NOISE_PERLIN;
-    noise.frequency = 0.015;
+    noise.frequency = 0.03;
 
     // generate a TILEMAP_SIZE x TILEMAP_SIZE chunks tilemap
     // TODO(harsh): use hashtable based chunk generation
@@ -216,14 +226,36 @@ TileMap* TileMapCreateAndInit(AppMemory* memory)
     return tilemap;
 }
 
-void TileMapQueueRender(AppMemory* memory, TileMap* tilemap, RenderData* render_data)
+void TileMapQueueRender(
+    AppMemory* memory,
+    TileMap* tilemap,
+    Vec2 player_position,
+    RenderData* render_data)
 {
-    for (int chunk_y = 0; chunk_y < TILEMAP_SIZE; chunk_y++)
+    // only render the chunks in a 1 chunk radius around the player
+    Vec2i surround_chunk_coords[9] = {
+        {-1, 0},
+        {0, 0},
+        {1, 0},
+        {-1, -1},
+        {0, -1},
+        {1, -1},
+        {-1, 1},
+        {0, 1},
+        {1, 1},
+    };
+    Vec2i player_chunk_coords = WorldPosToChunkGridCoords(player_position);
+    for (int i = 0; i < 9; i++)
     {
-        for (int chunk_x = 0; chunk_x < TILEMAP_SIZE; chunk_x++)
-        {
-            TileChunk* chunk = GetChunkInTilemap(tilemap, {chunk_x, chunk_y});
-            ChunkQueueRender(memory, chunk, render_data);
-        }
+        Vec2i chunk_coords = surround_chunk_coords[i];
+        if ((player_chunk_coords.x + chunk_coords.x < 0) ||
+            (player_chunk_coords.y + chunk_coords.y < 0))
+            continue;
+
+        chunk_coords.x += player_chunk_coords.x;
+        chunk_coords.y += player_chunk_coords.y;
+
+        TileChunk* chunk = GetChunkInTilemap(tilemap, chunk_coords);
+        ChunkQueueRender(memory, chunk, render_data);
     }
 }

@@ -109,9 +109,15 @@
 	[x] Generate and render 1 single Chunk.
 	[x] Generate a few chunks like 3 x 3 i.e. 9 chunks.
 	[x] Anchor tile to top-left as center for easier calculations.
-	[ ] Use a Noise Algorithm like Perline Noise or Simplex Noise.
+	[x] Use a Noise Algorithm like Perline Noise or Simplex Noise.
 		NOTE(harsh): Try simplex noise if its not too complex as that was also made
 		perlin but is just a better and faster version of the original perlin noise.
+	[ ] Only render the chunks around the player (You can check for player position in TileMapQueueRender)
+		and only queue the chunks around the player in a radius).
+	[ ] Improve procedural world generation and make it look more natural. Watch this sabastian league
+		video series: https://www.youtube.com/playlist?list=PLFt_AvWsXl0eBW2EiBtl_sxmDtSgZBxB3
+	[ ] Do procedural generation such that you only generate three big continents. (NOTE: generate only
+	one continent and do 3 passes of noise to generation 3 contients one by one and stitch them together)
 	[ ] Implement a hashtable for storing a large sparse chunks of world data by following handmade hero
 		day055 here: https://guide.handmadehero.org/code/day055/.
 [ ] Perlin noise / Open Simplex noise world generation (if Open Simplex is too complex then use perlin).

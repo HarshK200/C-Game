@@ -54,6 +54,6 @@ void GameQueueRender(AppMemory* memory, Game* g, RenderData* render_data, double
 {
     Camera2dQueueRender(g->Camera, interpolation_alpha, render_data);
 
-    TileMapQueueRender(memory, g->TileMap, render_data);
+    TileMapQueueRender(memory, g->TileMap, g->Player->Position, render_data);
     PlayerQueueRender(memory, g->Player, interpolation_alpha, render_data);
 }
