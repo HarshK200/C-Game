@@ -32,7 +32,7 @@ struct Renderer
     ID3D11DeviceContext* DeviceContext;
 
     ID3D11RenderTargetView* BackBufferRTV;
-    ID3D11Texture2D* InternalRenderTexture; // 640x360 i.e. 16:9 aspect ratio
+    ID3D11Texture2D* InternalRenderTexture; // INTERNAL_RENDER_RESOLUTION.x & INTERNAL_RENDER_RESOLUTION.y
     ID3D11RenderTargetView* InternalRTV;
     ID3D11ShaderResourceView* InternalSRV;
 
@@ -121,8 +121,8 @@ HRESULT CreateAndSetRenderTextures(Renderer* r)
 
     // creating internal render texture
     D3D11_TEXTURE2D_DESC internal_texture_desc = {};
-    internal_texture_desc.Width = 640;
-    internal_texture_desc.Height = 360;
+    internal_texture_desc.Width = INTERNAL_RENDER_RESOLUTION.x;
+    internal_texture_desc.Height = INTERNAL_RENDER_RESOLUTION.y;
     internal_texture_desc.MipLevels = 1;
     internal_texture_desc.ArraySize = 1;
     internal_texture_desc.Format = DXGI_FORMAT_R8G8B8A8_UNORM_SRGB;
@@ -503,7 +503,7 @@ void RenderFrame(AppMemory* memory, PlatformWindow* window, Renderer* r, RenderD
 
 
     // VERY IMPORTANT Finally Swap the back-buffer to show it
-    HRESULT result = r->SwapChain->Present(1, 0); // DXGI_PRESENT_DO_NOT_WAIT flags makes the FPS go Brrrrrrrrr
+    HRESULT result = r->SwapChain->Present(0, 0); // DXGI_PRESENT_DO_NOT_WAIT flags makes the FPS go Brrrrrrrrr
     if (FAILED(result))
     {
         LOG_ASSERT(false, "Failed to present a frame");

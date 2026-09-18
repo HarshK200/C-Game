@@ -44,7 +44,11 @@ Camera2d* Camera2dCreateAndInit(AppMemory* memory)
 void Camera2dPhysicsUpdate(Camera2d* camera, double delta_time, Vec2 player_pos)
 {
     camera->PrevPosition = camera->Position;
-    camera->Position = LerpVec2(camera->Position, player_pos, camera->Speed * delta_time);
+    Vec2 target_pos_diff = AbsVec2(camera->Position - player_pos);
+    if (target_pos_diff.y < 0.001 || target_pos_diff.y > 0.001)
+        camera->Position = LerpVec2(camera->Position, player_pos, camera->Speed * delta_time);
+    else
+        camera->Position = player_pos;
 }
 
 void Camera2dUpdate()
@@ -56,7 +60,9 @@ void Camera2dQueueRender(Camera2d* camera, double interpolation_alpha, RenderDat
 {
     // Update Render Data
     render_data->view_matrix_params.Offset = camera->Offset;
-    render_data->view_matrix_params.Position = LerpVec2(camera->PrevPosition, camera->Position, interpolation_alpha);
+    // NOTE(harsh): the position of any entity MUST BE a whole number otherwise the vertex lie in between pixel
+    // which gives a distoreded sprite artifact
+    render_data->view_matrix_params.Position = FloorVec2(LerpVec2(camera->PrevPosition, camera->Position, interpolation_alpha));
     // TODO(harsh): disable zooming logic on release build
     render_data->view_matrix_params.Zoom = camera->Zoom;
     render_data->projection_matrix_params.NearPlane = camera->NearPlane;

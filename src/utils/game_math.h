@@ -1,6 +1,7 @@
 #pragma once
 
 #include <cmath>
+#include <cstdlib>
 
 #include "src/utils/log.h"
 #include "src/utils/arena_allocator.h"
@@ -45,6 +46,16 @@ typedef union Vec2i
 
     int elements[2];
 } Vec2i;
+
+inline Vec2 operator-(const Vec2& left, const Vec2& right)
+{
+    return {left.x - right.x, left.y - right.y};
+}
+
+inline Vec2 AbsVec2(const Vec2& vec)
+{
+    return {std::abs(vec.x), std::abs(vec.y)};
+}
 
 
 /*
@@ -276,8 +287,3 @@ inline Mat4 ModelMat4(const Vec2& position, const Vec2& scale)
     model_matrix[3][1] = position.y;
     return model_matrix;
 }
-
-
-// ================================================================================
-//                              HASH TABLE
-// ================================================================================
