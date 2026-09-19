@@ -14,7 +14,7 @@
 #endif
 
 inline constexpr int unsigned TILE_PIXEL_SCALE = 16;
-inline constexpr int unsigned TILEMAP_SIZE = 50;
+inline constexpr int unsigned TILEMAP_SIZE = 5;
 inline constexpr int unsigned CHUNK_SIZE = 32;
 
 enum TileType

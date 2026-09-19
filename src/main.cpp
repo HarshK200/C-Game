@@ -43,9 +43,9 @@ struct GameDLL
         Loads the dll and updates the function pointers.
         Returns 0 on success -1 on failure.
     */
-    int Load(const char* dll_path_relative)
+    int Load(LPCSTR dll_path_relative)
     {
-        this->DLL = LoadLibrary(dll_path_relative);
+        this->DLL = LoadLibraryA(dll_path_relative);
         if (!this->DLL)
             return -1;
 
@@ -132,7 +132,7 @@ int main()
     App.InputManager = ArenaAlloc<InputManager>(&App.Memory.PermanentAllocator, sizeof(InputManager));
 
     // Load GameDLL
-    if (App.GameDLL.Load("./game.dll") < 0)
+    if (App.GameDLL.Load("C:\\Users\\Harsh\\Desktop\\personal_dev\\cpp_game\\build\\debug\\game.dll") < 0)
     {
         LOG_ASSERT(false, "Falied to load Game DLL. Exiting program...");
         App.ExitCode = -1;
@@ -187,6 +187,7 @@ int main()
         double frame_time = std::chrono::duration<double>(current_timestamp - App.LastTimestamp).count();
         App.LastTimestamp = current_timestamp;
         App.Accumulator += frame_time;
+        // TODO(harsh): put max frametime here
 
         // run physics simulation with fixed TimeStep and accumulate the rest
         while (App.Accumulator >= App.DeltaTime)

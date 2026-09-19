@@ -56,6 +56,7 @@ debug_build()
         -I.                                                     \
         "${defines[@]}"                                         \
         "${warnings[@]}"                                        \
+        "${flags[@]}"                                           \
         -x c++-header                                           \
         src/pch.h                                               \
         -o "$pch_path"
@@ -68,6 +69,7 @@ debug_build()
         -I.                                                     \
         "${defines[@]}"                                         \
         "${warnings[@]}"                                        \
+        "${flags[@]}"                                           \
         -shared                                                 \
         src/game2d/game2d.cpp -o "$game_dll_path"               \
         -include-pch "$pch_path"
@@ -113,6 +115,7 @@ release_build()
         -I.                                                     \
         "${defines[@]}"                                         \
         "${warnings[@]}"                                        \
+        "${flags[@]}"                                           \
         -shared                                                 \
         src/game2d/game2d.cpp -o "$game_dll_path"
 

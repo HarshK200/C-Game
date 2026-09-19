@@ -1,5 +1,4 @@
 #define EXPORT_FN extern "C" __declspec(dllexport)
-// TODO(harsh): implement hot code reloading using the above
 
 // utils
 #include "src/utils/log.h"
