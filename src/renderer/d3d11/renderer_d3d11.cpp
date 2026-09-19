@@ -1,5 +1,3 @@
-#include "src/pch.h"
-
 // utils
 #include "src/utils/log.h"
 #include "src/utils/enums.h"

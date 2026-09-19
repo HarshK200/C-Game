@@ -4,29 +4,99 @@
 #include "src/utils/constants.h"
 #include "src/utils/arena_allocator.h"
 
-// layers glue files
+
+// ======================= SERVICES GLUE =========================
 #include "src/input/input.h"
 #include "src/renderer/render_data.h"
+#include "src/utils/log.h"
+#include <libloaderapi.h>
 
 
-// ================= PLATFORM SERVICES DECLARATIONS ==============
+// ===================== PLATFORM SERVICES =======================
 struct PlatformWindow;
 PlatformWindow* PlatformOpenWindow(AppMemory* memory, InputManager* input_manager);
 int PlatformProcessInput(InputManager* input_manager);
+#ifdef _WIN32
+#include "src/platform/win32/win32_platform.cpp"
+#endif
 
 
-// =================== GAME SERVICES DECLARATIONS ================
+// ======================= GAME SERVICES =========================
 struct Game;
-Game* GameCreateAndInit(AppMemory* memory);
-void GamePhysicsUpdate(AppMemory* memory, double delta_time, Game* g, InputManager* input_manager);
-void GameUpdate(AppMemory* memory, Game* g, InputManager* input_manager);
-void GameQueueRender(AppMemory* memory, Game* g, RenderData* render_data, double interpolation_alpha);
+struct GameDLL;
+#ifdef _WIN32
+struct GameDLL
+{
+    HMODULE DLL;
+
+    using CreateAndInitFn = Game* (*)(AppMemory*);
+    using PhysicsUpdateFn = void (*)(AppMemory*, double, Game*, InputManager*);
+    using UpdateFn = void (*)(AppMemory*, Game*, InputManager*);
+    using QueueRenderFn = void (*)(AppMemory*, Game*, RenderData*, double);
+
+    CreateAndInitFn CreateAndInit;
+    PhysicsUpdateFn PhysicsUpdate;
+    UpdateFn Update;
+    QueueRenderFn QueueRender;
+
+    /*
+        Loads the dll and updates the function pointers.
+        Returns 0 on success -1 on failure.
+    */
+    int Load(const char* dll_path_relative)
+    {
+        this->DLL = LoadLibrary(dll_path_relative);
+        if (!this->DLL)
+            return -1;
+
+        this->CreateAndInit = (CreateAndInitFn)GetProcAddress(this->DLL, "GameCreateAndInit");
+        this->PhysicsUpdate = (PhysicsUpdateFn)GetProcAddress(this->DLL, "GamePhysicsUpdate");
+        this->Update = (UpdateFn)GetProcAddress(this->DLL, "GameUpdate");
+        this->QueueRender = (QueueRenderFn)GetProcAddress(this->DLL, "GameQueueRender");
+
+        if (!this->CreateAndInit ||
+            !this->PhysicsUpdate ||
+            !this->Update ||
+            !this->QueueRender)
+        {
+            this->UnLoad();
+            return -1;
+        }
 
 
-// ================= RENDERER SERVICES DECLARATIONS ==============
+        return 0;
+    }
+
+    /*
+        Unloads the currently loaded dll if any and sets the function
+        pointers to nullptr.
+    */
+    bool UnLoad()
+    {
+        if (this->DLL == nullptr)
+            return true;
+
+        bool result = FreeLibrary(this->DLL);
+
+        this->DLL = nullptr;
+        this->CreateAndInit = nullptr;
+        this->PhysicsUpdate = nullptr;
+        this->Update = nullptr;
+        this->QueueRender = nullptr;
+
+        return result;
+    }
+};
+#endif
+
+
+// ====================== RENDERER SERVICES ======================
 struct Renderer;
 Renderer* RendererCreateAndInit(AppMemory* memory, PlatformWindow* window);
 void RenderFrame(AppMemory* memory, PlatformWindow* window, Renderer* r, RenderData* render_data);
+#ifdef _WIN32
+#include "src/renderer/d3d11/renderer_d3d11.cpp"
+#endif
 
 
 // ===================== MAIN APP DEFINITION =====================
@@ -43,25 +113,12 @@ struct App
     PlatformWindow* Window;
     InputManager* InputManager;
     Game* Game;
+    GameDLL GameDLL;
     Renderer* Renderer;
     RenderData* RenderData;
 
     AppMemory Memory;
 };
-
-
-// ================= PLATFORM LAYER DEFINITIONS ==================
-#ifdef _WIN32
-#include "src/platform/win32/win32_platform.cpp"
-#endif
-
-// =================== GAME LAYER DEFINITIONS ====================
-#include "src/game2d/game2d.cpp"
-
-// ================= Renderer LAYER DEFINITIONS ==================
-#ifdef _WIN32
-#include "src/renderer/d3d11/renderer_d3d11.cpp"
-#endif
 
 
 // ================== Application Entry Point ==================
@@ -74,6 +131,14 @@ int main()
     App.Memory.TempAllocator = CreateArena(512 * MegaByte);
     App.InputManager = ArenaAlloc<InputManager>(&App.Memory.PermanentAllocator, sizeof(InputManager));
 
+    // Load GameDLL
+    if (App.GameDLL.Load("./game.dll") < 0)
+    {
+        LOG_ASSERT(false, "Falied to load Game DLL. Exiting program...");
+        App.ExitCode = -1;
+        goto program_exit;
+    }
+
     // Open Platform Agnostic Window
     App.Window = PlatformOpenWindow(&App.Memory, App.InputManager);
     if (!App.Window)
@@ -84,7 +149,7 @@ int main()
     }
 
     // Create & Init Game instance
-    App.Game = GameCreateAndInit(&App.Memory);
+    App.Game = App.GameDLL.CreateAndInit(&App.Memory);
     if (!App.Game)
     {
         LOG_ASSERT(false, "Game init failed. Exiting program...");
@@ -126,16 +191,16 @@ int main()
         // run physics simulation with fixed TimeStep and accumulate the rest
         while (App.Accumulator >= App.DeltaTime)
         {
-            GamePhysicsUpdate(&App.Memory, App.DeltaTime, App.Game, App.InputManager);
+            App.GameDLL.PhysicsUpdate(&App.Memory, App.DeltaTime, App.Game, App.InputManager);
             App.Accumulator -= App.DeltaTime;
         }
         double interpolation_alpha = App.Accumulator / App.DeltaTime;
 
         // per frame game update
-        GameUpdate(&App.Memory, App.Game, App.InputManager);
+        App.GameDLL.Update(&App.Memory, App.Game, App.InputManager);
 
         //  queue game entites render
-        GameQueueRender(&App.Memory, App.Game, App.RenderData, interpolation_alpha);
+        App.GameDLL.QueueRender(&App.Memory, App.Game, App.RenderData, interpolation_alpha);
 
         // render the frame
         RenderFrame(&App.Memory, App.Window, App.Renderer, App.RenderData);

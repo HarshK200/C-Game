@@ -105,6 +105,7 @@
 	```
 [x] Delta time
 
+[ ] Hot code reloading.
 [ ] Procdural World Generation
 	[x] Generate and render 1 single Chunk.
 	[x] Generate a few chunks like 3 x 3 i.e. 9 chunks.
@@ -133,7 +134,6 @@
 [ ] Setup Audio Layer (use XAudio2 built into windows 11 SDK, low to mid level API)
 	- NOTE: Audio API used by Handmade hero i.e. DirectSound is long depricated Deprecated since
 	the era of DirectX 8/Vista.
-[ ] Hot code reloading
 [ ] Disable WindowResize and Make window resizing done through settings.
 [ ] Add achor to the player so when calculations happen, player's feet is considered as (0, 0) not the
 	body center

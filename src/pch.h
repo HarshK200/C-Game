@@ -7,6 +7,8 @@
 #include <Windows.h>
 #include <winuser.h>
 #include <winnt.h>
+#include <minwindef.h>
+#include <libloaderapi.h>
 #include <d3d11.h>
 #include <dxgiformat.h>
 #include <d3dcompiler.h>
@@ -23,11 +25,3 @@
 #include <iterator>
 #include <assert.h>
 #include <sys/stat.h>
-
-
-// thirdparty
-#define FNL_IMPL
-#include "third_party/fast_noise_lite.h"
-
-#define STB_IMAGE_IMPLEMENTATION
-#include "third_party/stb_image.h"

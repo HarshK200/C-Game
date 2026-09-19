@@ -1,3 +1,6 @@
+#define EXPORT_FN extern "C" __declspec(dllexport)
+// TODO(harsh): implement hot code reloading using the above
+
 // utils
 #include "src/utils/log.h"
 #include "src/utils/arena_allocator.h"
@@ -20,7 +23,7 @@ struct Game
 // creates a new game with the "new" keyword and returns the pointer to it
 // NOTE(harsh): the allocated memory is not tracker you must track and free the game
 // yourself or use an arena allocater, i gotta imlement that allocater first > o <
-Game* GameCreateAndInit(AppMemory* memory)
+EXPORT_FN Game* GameCreateAndInit(AppMemory* memory)
 {
     LOG_INFO("Game Init");
 
@@ -35,20 +38,20 @@ Game* GameCreateAndInit(AppMemory* memory)
 
 
 // This runs once per physics timestep completely seperate from frame update
-void GamePhysicsUpdate(AppMemory* memory, double delta_time, Game* g, InputManager* input_manager)
+EXPORT_FN void GamePhysicsUpdate(AppMemory* memory, double delta_time, Game* g, InputManager* input_manager)
 {
     Camera2dPhysicsUpdate(g->Camera, delta_time, g->Player->Position);
     PlayerPhysicsUpdate(memory, delta_time, g->Player, input_manager);
 }
 
 // Updates the Per Frame game state
-void GameUpdate(AppMemory* memory, Game* g, InputManager* input_manager)
+EXPORT_FN void GameUpdate(AppMemory* memory, Game* g, InputManager* input_manager)
 {
     Camera2dUpdate();
     PlayerUpdate();
 }
 
-void GameQueueRender(AppMemory* memory, Game* g, RenderData* render_data, double interpolation_alpha)
+EXPORT_FN void GameQueueRender(AppMemory* memory, Game* g, RenderData* render_data, double interpolation_alpha)
 {
     Camera2dQueueRender(g->Camera, interpolation_alpha, render_data);
 

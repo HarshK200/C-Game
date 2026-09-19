@@ -2,6 +2,19 @@
   "version": "2.0.0",
   "tasks": [
     {
+      "label": "build-debug-game_only-win32-d3d11",
+      "command": "./build_win32.sh debug game_only",
+      "options": {
+        "shell": {
+          "executable": "sh.exe",
+          "args": ["-c"]
+        }
+      },
+      "presentation": {
+        "focus": false
+      }
+    },
+    {
       "label": "build-debug-win32-d3d11",
       "command": "./build_win32.sh debug",
       "options": {

@@ -7,8 +7,11 @@
 #include "src/renderer/render_data.h"
 #include "src/game2d/sprite2d.cpp"
 
-#include "src/pch.h"
-
+// thirdparty
+#ifndef FNL_IMPL
+#define FNL_IMPL
+#include "third_party/fast_noise_lite.h"
+#endif
 
 inline constexpr int unsigned TILE_PIXEL_SCALE = 16;
 inline constexpr int unsigned TILEMAP_SIZE = 50;
