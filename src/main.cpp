@@ -23,71 +23,24 @@ int PlatformProcessInput(InputManager* input_manager);
 
 // ======================= GAME SERVICES =========================
 struct Game;
-struct GameDLL;
-#ifdef _WIN32
 struct GameDLL
 {
-    HMODULE DLL;
-
-    using CreateAndInitFn = Game* (*)(AppMemory*);
-    using PhysicsUpdateFn = void (*)(AppMemory*, double, Game*, InputManager*);
-    using UpdateFn = void (*)(AppMemory*, Game*, InputManager*);
-    using QueueRenderFn = void (*)(AppMemory*, Game*, RenderData*, double);
-
-    CreateAndInitFn CreateAndInit;
-    PhysicsUpdateFn PhysicsUpdate;
-    UpdateFn Update;
-    QueueRenderFn QueueRender;
-
-    /*
-        Loads the dll and updates the function pointers.
-        Returns 0 on success -1 on failure.
-    */
-    int Load(LPCSTR dll_path_relative)
-    {
-        this->DLL = LoadLibraryA(dll_path_relative);
-        if (!this->DLL)
-            return -1;
-
-        this->CreateAndInit = (CreateAndInitFn)GetProcAddress(this->DLL, "GameCreateAndInit");
-        this->PhysicsUpdate = (PhysicsUpdateFn)GetProcAddress(this->DLL, "GamePhysicsUpdate");
-        this->Update = (UpdateFn)GetProcAddress(this->DLL, "GameUpdate");
-        this->QueueRender = (QueueRenderFn)GetProcAddress(this->DLL, "GameQueueRender");
-
-        if (!this->CreateAndInit ||
-            !this->PhysicsUpdate ||
-            !this->Update ||
-            !this->QueueRender)
-        {
-            this->UnLoad();
-            return -1;
-        }
-
-
-        return 0;
-    }
-
-    /*
-        Unloads the currently loaded dll if any and sets the function
-        pointers to nullptr.
-    */
-    bool UnLoad()
-    {
-        if (this->DLL == nullptr)
-            return true;
-
-        bool result = FreeLibrary(this->DLL);
-
-        this->DLL = nullptr;
-        this->CreateAndInit = nullptr;
-        this->PhysicsUpdate = nullptr;
-        this->Update = nullptr;
-        this->QueueRender = nullptr;
-
-        return result;
-    }
+    void* DLL;
+    const char* Name = "C:\\Users\\Harsh\\Desktop\\personal_dev\\cpp_game\\build\\debug\\game.dll";
+    const char* LoadDLLName = "C:\\Users\\Harsh\\Desktop\\personal_dev\\cpp_game\\build\\debug\\game_load.dll";
+    long long LastModifiedTimestamp;
 };
-#endif
+
+using GameCreateAndInitFn = Game* (*)(AppMemory*);
+using GamePhysicsUpdateFn = void (*)(AppMemory*, double, Game*, InputManager*);
+using GameUpdateFn = void (*)(AppMemory*, Game*, InputManager*);
+using GameQueueRenderFn = void (*)(AppMemory*, Game*, RenderData*, double);
+static GameCreateAndInitFn GameCreateAndInit;
+static GamePhysicsUpdateFn GamePhysicsUpdate;
+static GameUpdateFn GameUpdate;
+static GameQueueRenderFn GameQueueRender;
+
+void ReloadGameDLL(ArenaAllocator* temp_allocator, GameDLL* game_dll);
 
 
 // ====================== RENDERER SERVICES ======================
@@ -105,17 +58,22 @@ struct App
     bool ShouldClose;
     int ExitCode;
 
-    // Delta time stuff
+    // Delta time
     std::chrono::time_point<std::chrono::steady_clock> LastTimestamp;
     double DeltaTime;
     double Accumulator;
 
-    PlatformWindow* Window;
+    // platform layer
     InputManager* InputManager;
-    Game* Game;
+    PlatformWindow* Window;
+
+    // game
     GameDLL GameDLL;
-    Renderer* Renderer;
+    Game* Game;
+
+    // renderer
     RenderData* RenderData;
+    Renderer* Renderer;
 
     AppMemory Memory;
 };
@@ -131,13 +89,8 @@ int main()
     App.Memory.TempAllocator = CreateArena(512 * MegaByte);
     App.InputManager = ArenaAlloc<InputManager>(&App.Memory.PermanentAllocator, sizeof(InputManager));
 
-    // Load GameDLL
-    if (App.GameDLL.Load("C:\\Users\\Harsh\\Desktop\\personal_dev\\cpp_game\\build\\debug\\game.dll") < 0)
-    {
-        LOG_ASSERT(false, "Falied to load Game DLL. Exiting program...");
-        App.ExitCode = -1;
-        goto program_exit;
-    }
+    // Reload Game DLL
+    ReloadGameDLL(&App.Memory.TempAllocator, &App.GameDLL);
 
     // Open Platform Agnostic Window
     App.Window = PlatformOpenWindow(&App.Memory, App.InputManager);
@@ -149,7 +102,7 @@ int main()
     }
 
     // Create & Init Game instance
-    App.Game = App.GameDLL.CreateAndInit(&App.Memory);
+    App.Game = GameCreateAndInit(&App.Memory);
     if (!App.Game)
     {
         LOG_ASSERT(false, "Game init failed. Exiting program...");
@@ -174,9 +127,10 @@ int main()
     // Main Update Loop
     while (App.ShouldClose == false)
     {
+        // reload game dll
+
         // re-create transient variables
         App.RenderData = CreateFrameRenderData(&App.Memory.TempAllocator);
-
 
         // input processing
         if (PlatformProcessInput(App.InputManager) == 1)
@@ -185,23 +139,24 @@ int main()
         // delta time calculation
         auto current_timestamp = std::chrono::steady_clock::now();
         double frame_time = std::chrono::duration<double>(current_timestamp - App.LastTimestamp).count();
+        if (frame_time > 0.25)
+            frame_time = 0.25;
         App.LastTimestamp = current_timestamp;
         App.Accumulator += frame_time;
-        // TODO(harsh): put max frametime here
 
         // run physics simulation with fixed TimeStep and accumulate the rest
         while (App.Accumulator >= App.DeltaTime)
         {
-            App.GameDLL.PhysicsUpdate(&App.Memory, App.DeltaTime, App.Game, App.InputManager);
+            GamePhysicsUpdate(&App.Memory, App.DeltaTime, App.Game, App.InputManager);
             App.Accumulator -= App.DeltaTime;
         }
         double interpolation_alpha = App.Accumulator / App.DeltaTime;
 
         // per frame game update
-        App.GameDLL.Update(&App.Memory, App.Game, App.InputManager);
+        GameUpdate(&App.Memory, App.Game, App.InputManager);
 
         //  queue game entites render
-        App.GameDLL.QueueRender(&App.Memory, App.Game, App.RenderData, interpolation_alpha);
+        GameQueueRender(&App.Memory, App.Game, App.RenderData, interpolation_alpha);
 
         // render the frame
         RenderFrame(&App.Memory, App.Window, App.Renderer, App.RenderData);
@@ -213,4 +168,45 @@ int main()
 
 program_exit:
     return App.ExitCode;
+}
+
+
+void ReloadGameDLL(ArenaAllocator* temp_allocator, GameDLL* game_dll)
+{
+    long long current_modified_timestamp = GameFileIO::GetLastModifiedTime(game_dll->Name);
+
+    // check if the game.dll was updated
+    if (current_modified_timestamp > game_dll->LastModifiedTimestamp)
+    {
+        // check if we've ever loaded the game.dll before, if we have unload it
+        if (game_dll->DLL)
+        {
+            bool result = PlatformFreeDynamicLibrary(game_dll->DLL);
+            LOG_ASSERT(result, "Failed to free Dynamic Library");
+
+            game_dll->DLL = nullptr;
+            LOG_INFOF("unloaded dynamic libarary %s", game_dll->Name);
+        }
+
+        // NOTE(harsh): cakez uses platform sleep here, probably so the code retries to load dll
+        // again in 10 ms in case it was in use or maybe to avoid load fails while being written to?
+        while (!GameFileIO::CopyFile(temp_allocator, game_dll->Name, game_dll->LoadDLLName))
+        {
+            LOG_ERRORF("Failed DLL file copy, retrying in 10ms...");
+            PlatformSleep(10);
+        }
+
+        // load the dll
+        game_dll->DLL = PlatformLoadDynamicLibrary(game_dll->LoadDLLName);
+        LOG_ASSERT(game_dll->DLL, "Failed to load load dll file at %s", game_dll->LoadDLLName);
+
+        // update game function pointers
+        GameCreateAndInit = (GameCreateAndInitFn)PlatformLoadDynamicFunction(game_dll->DLL, "GameCreateAndInit");
+        GamePhysicsUpdate = (GamePhysicsUpdateFn)PlatformLoadDynamicFunction(game_dll->DLL, "GamePhysicsUpdate");
+        GameUpdate = (GameUpdateFn)PlatformLoadDynamicFunction(game_dll->DLL, "GameUpdate");
+        GameQueueRender = (GameQueueRenderFn)PlatformLoadDynamicFunction(game_dll->DLL, "GameQueueRender");
+
+        // update last modified timestamp
+        game_dll->LastModifiedTimestamp = current_modified_timestamp;
+    }
 }

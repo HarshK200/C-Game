@@ -235,3 +235,32 @@ int PlatformProcessInput(InputManager* input_manager)
 
     return result;
 }
+
+void PlatformSleep(unsigned long ms)
+{
+    Sleep(ms);
+}
+
+void* PlatformLoadDynamicLibrary(const char* dll_path)
+{
+    HMODULE dll = LoadLibrary(dll_path);
+    LOG_ASSERT(dll, "failed to load dll at path: %s", dll_path);
+
+    return dll;
+}
+
+void* PlatformLoadDynamicFunction(void* dll, const char* func_name)
+{
+    FARPROC func_ptr = GetProcAddress((HMODULE)dll, func_name);
+    LOG_ASSERT(dll, "failed to load function with name: %s", func_name);
+
+    return (void*)func_ptr;
+}
+
+bool PlatformFreeDynamicLibrary(void* dll)
+{
+    bool free_result = FreeLibrary((HMODULE)dll);
+    LOG_ASSERT(free_result, "Failed to free dynamic dll");
+
+    return free_result;
+}

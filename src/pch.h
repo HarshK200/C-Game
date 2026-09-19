@@ -9,6 +9,7 @@
 #include <winnt.h>
 #include <minwindef.h>
 #include <libloaderapi.h>
+#include <synchapi.h>
 #include <d3d11.h>
 #include <dxgiformat.h>
 #include <d3dcompiler.h>
