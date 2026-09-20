@@ -104,8 +104,8 @@
 	void InputPollMessage(PlatformApp* app);
 	```
 [x] Delta time
+[x] Hot code reloading.
 
-[ ] Hot code reloading.
 [ ] Procdural World Generation
 	[x] Generate and render 1 single Chunk.
 	[x] Generate a few chunks like 3 x 3 i.e. 9 chunks.

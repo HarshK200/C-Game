@@ -171,7 +171,7 @@ namespace GameFileIO
         FILE* file = fopen(file_path, "wb");
         if (!file)
         {
-            fclose(file);
+            LOG_ASSERT(file, "Failed to load file at: %s", file_path);
             return false;
         }
 

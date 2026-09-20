@@ -128,6 +128,7 @@ int main()
     while (App.ShouldClose == false)
     {
         // reload game dll
+        ReloadGameDLL(&App.Memory.TempAllocator, &App.GameDLL);
 
         // re-create transient variables
         App.RenderData = CreateFrameRenderData(&App.Memory.TempAllocator);
@@ -171,6 +172,10 @@ program_exit:
 }
 
 
+/*
+    Reloads the game dll on game.dll rebuild.
+    NOTE(harsh): This **WILL NOT WORK IF YOU HAVE A DEBUGGER ATTACHED**
+*/
 void ReloadGameDLL(ArenaAllocator* temp_allocator, GameDLL* game_dll)
 {
     long long current_modified_timestamp = GameFileIO::GetLastModifiedTime(game_dll->Name);
@@ -188,12 +193,20 @@ void ReloadGameDLL(ArenaAllocator* temp_allocator, GameDLL* game_dll)
             LOG_INFOF("unloaded dynamic libarary %s", game_dll->Name);
         }
 
+        int unsigned copy_file_retry_count = 10;
+
         // NOTE(harsh): cakez uses platform sleep here, probably so the code retries to load dll
         // again in 10 ms in case it was in use or maybe to avoid load fails while being written to?
-        while (!GameFileIO::CopyFile(temp_allocator, game_dll->Name, game_dll->LoadDLLName))
+        while (!GameFileIO::CopyFile(temp_allocator, game_dll->Name, game_dll->LoadDLLName) && copy_file_retry_count > 0)
         {
-            LOG_ERRORF("Failed DLL file copy, retrying in 10ms...");
+            LOG_WARN("Failed DLL file copy, retrying in 10ms...");
             PlatformSleep(10);
+            copy_file_retry_count -= 1;
+        }
+        if (copy_file_retry_count <= 0)
+        {
+            LOG_ERROR("\nHot code reload failed, *MAKE SURE YOU DON'T HAVE A DEBUGGER ATTACHED* and try again\n");
+            return;
         }
 
         // load the dll
@@ -208,5 +221,6 @@ void ReloadGameDLL(ArenaAllocator* temp_allocator, GameDLL* game_dll)
 
         // update last modified timestamp
         game_dll->LastModifiedTimestamp = current_modified_timestamp;
+        LOG_OK("Hot Reloaded the game dll successfully");
     }
 }
