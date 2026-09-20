@@ -105,7 +105,7 @@
 	```
 [x] Delta time
 [x] Hot code reloading.
-[ ] Zoom in out for debug mode.
+[x] Zoom in out for debug mode.
 
 [ ] Procdural World Generation
 	[x] Generate and render 1 single Chunk.
@@ -116,8 +116,9 @@
 		perlin but is just a better and faster version of the original perlin noise.
 	[x] Only render the chunks around the player (You can check for player position in TileMapQueueRender)
 		and only queue the chunks around the player in a radius).
-	[ ] Improve procedural world generation and make it look more natural. Watch this sabastian league
+	[x] Improve procedural world generation and make it look more natural. Watch this sabastian league
 		video series: https://www.youtube.com/playlist?list=PLFt_AvWsXl0eBW2EiBtl_sxmDtSgZBxB3
+	[ ] Decrease water patches in proceduraly generated world.
 	[ ] Do procedural generation such that you only generate three big continents. (NOTE: generate only
 	one continent and do 3 passes of noise to generation 3 contients one by one and stitch them together)
 	[ ] Implement a hashtable for storing a large sparse chunks of world data by following handmade hero

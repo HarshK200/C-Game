@@ -14,7 +14,7 @@
 #endif
 
 inline constexpr int unsigned TILE_PIXEL_SCALE = 16;
-inline constexpr int unsigned TILEMAP_SIZE = 5;
+inline constexpr int unsigned TILEMAP_SIZE = 30;
 inline constexpr int unsigned CHUNK_SIZE = 32;
 
 enum TileType
@@ -22,6 +22,7 @@ enum TileType
     TILE_GRASS = 0,
     TILE_WATER = 1,
     TILE_DIRT = 2,
+    TILE_SAND = 3,
     TILE_TYPE_COUNT,
 };
 
@@ -41,8 +42,7 @@ struct TileMap
 {
     // TODO(harsh): implement a hash table for large sparse data and region data loading
     TileChunk Chunks[TILEMAP_SIZE * TILEMAP_SIZE];
-    int Seed;
-    float NoiseScale;
+    fnl_state Noise;
 };
 
 
@@ -124,7 +124,7 @@ int GetChunkIdxInTilemap(Vec2i chunk_coords)
     For the passed in chunk generates CHUNK_SIZE * CHUNK_SIZE tiles with random tiletype
     TODO(harsh): use a noise function to  generated determinic chunks
 */
-void GenerateChunkTiles(TileChunk* chunk, fnl_state* noise, float noise_scale)
+void GenerateChunkTiles(TileChunk* chunk, fnl_state* noise)
 {
     // populating the chunk index in the array
     for (int tile_y = 0; tile_y < CHUNK_SIZE; tile_y++)
@@ -134,17 +134,18 @@ void GenerateChunkTiles(TileChunk* chunk, fnl_state* noise, float noise_scale)
             Tile* tile = GetTileInChunk(chunk, {tile_x, tile_y});
             Vec2i tile_grid_coords = GetTileGridCoords(chunk->ChunkCoords, {tile_x, tile_y});
 
-            // sample noise for this tile in tile grid. Value ranges from 0..1
-            // TODO(harsh): multiply the coordinates by somearbitary scale for more control?
+            // sample noise for this tile in tile grid. Value ranges from -1..1
             float noise_sample = fnlGetNoise2D(
                 noise,
-                tile_grid_coords.x * noise_scale,
-                tile_grid_coords.y * noise_scale);
+                tile_grid_coords.x,
+                tile_grid_coords.y);
 
             tile->TileType = TILE_WATER;
-            if (noise_sample > 0.05)
+            if (noise_sample > -0.20)
+                tile->TileType = TILE_SAND;
+            if (noise_sample > -0.10)
                 tile->TileType = TILE_GRASS;
-            if (noise_sample > 0.15)
+            if (noise_sample > 0.25)
                 tile->TileType = TILE_DIRT;
         }
     }
@@ -202,18 +203,16 @@ void ChunkQueueRender(AppMemory* memory, TileChunk* chunk, RenderData* render_da
 TileMap* TileMapCreateAndInit(AppMemory* memory)
 {
     TileMap* tilemap = ArenaAlloc<TileMap>(&memory->PermanentAllocator, sizeof(TileMap));
-    tilemap->Seed = 696732902;
 
-    /*
-        create noise TODO(harsh): maybe put the noise on the tilemap? i donno if its needed
-        or not though.
-    */
-    fnl_state noise = fnlCreateState();
-    noise.seed = tilemap->Seed;
-    // TODO(harsh): experiment with OpenSimplexNoise as well
-    noise.noise_type = FNL_NOISE_PERLIN;
-    noise.frequency = 0.01;
-    tilemap->NoiseScale = 10.0;
+
+    tilemap->Noise = fnlCreateState();
+    tilemap->Noise.seed = 696732902;
+    tilemap->Noise.noise_type = FNL_NOISE_PERLIN;
+    tilemap->Noise.frequency = 0.01f;
+    tilemap->Noise.fractal_type = FNL_FRACTAL_FBM; // how to combine octaves
+    tilemap->Noise.octaves = 3;
+    tilemap->Noise.lacunarity = 2.0f; // x-axis knob
+    tilemap->Noise.gain = 1.0f;       // aka persistance y-axis knob
 
     // generate a TILEMAP_SIZE x TILEMAP_SIZE chunks tilemap
     // TODO(harsh): use hashtable based chunk generation
@@ -226,7 +225,7 @@ TileMap* TileMapCreateAndInit(AppMemory* memory)
                 continue;
             chunk->ChunkCoords = {chunk_x, chunk_y};
 
-            GenerateChunkTiles(chunk, &noise, tilemap->NoiseScale);
+            GenerateChunkTiles(chunk, &tilemap->Noise);
         }
     }
 

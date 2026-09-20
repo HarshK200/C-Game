@@ -31,7 +31,7 @@ Player* PlayerCreateAndInit(AppMemory* memory)
     Player* player = ArenaAlloc<Player>(&memory->PermanentAllocator, sizeof(Player));
     player->PrevPosition = {0.0f, 0.0f};
     player->Position = {0.0f, 0.0f};
-    player->Speed = 300.0f;
+    player->Speed = 500.0f;
     player->Sprite = {
         {
             MESH_QUAD,
@@ -63,7 +63,6 @@ void PlayerPhysicsUpdate(AppMemory* memory, double delta_time, Player* player, I
 // updates the per frame player state
 void PlayerUpdate(Player* player, InputManager* im)
 {
-    player->Speed = 1000.0f;
 }
 
 // Queues the player render command by pushing it to render_data.commands
