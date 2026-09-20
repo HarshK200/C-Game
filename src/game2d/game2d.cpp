@@ -47,7 +47,7 @@ EXPORT_FN void GamePhysicsUpdate(AppMemory* memory, double delta_time, Game* g, 
 EXPORT_FN void GameUpdate(AppMemory* memory, Game* g, InputManager* input_manager)
 {
     Camera2dUpdate(g->Camera, input_manager);
-    PlayerUpdate();
+    PlayerUpdate(g->Player, input_manager);
 }
 
 EXPORT_FN void GameQueueRender(AppMemory* memory, Game* g, RenderData* render_data, double interpolation_alpha)

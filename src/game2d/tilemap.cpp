@@ -14,7 +14,7 @@
 #endif
 
 inline constexpr int unsigned TILE_PIXEL_SCALE = 16;
-inline constexpr int unsigned TILEMAP_SIZE = 50;
+inline constexpr int unsigned TILEMAP_SIZE = 5;
 inline constexpr int unsigned CHUNK_SIZE = 32;
 
 enum TileType
@@ -109,6 +109,10 @@ int GetTileIdxInChunk(Vec2i tile_local_coords)
 
 TileChunk* GetChunkInTilemap(TileMap* tilemap, Vec2i chunk_coords)
 {
+    // return null on invalid chunk
+    if (chunk_coords.x >= TILEMAP_SIZE || chunk_coords.y >= TILEMAP_SIZE)
+        return nullptr;
+
     return &tilemap->Chunks[(TILEMAP_SIZE * chunk_coords.y) + chunk_coords.x];
 }
 int GetChunkIdxInTilemap(Vec2i chunk_coords)
@@ -140,7 +144,7 @@ void GenerateChunkTiles(TileChunk* chunk, fnl_state* noise, float noise_scale)
             tile->TileType = TILE_WATER;
             if (noise_sample > 0.05)
                 tile->TileType = TILE_GRASS;
-            else if (noise_sample > 0.15)
+            if (noise_sample > 0.15)
                 tile->TileType = TILE_DIRT;
         }
     }
@@ -148,6 +152,8 @@ void GenerateChunkTiles(TileChunk* chunk, fnl_state* noise, float noise_scale)
 
 void ChunkQueueRender(AppMemory* memory, TileChunk* chunk, RenderData* render_data)
 {
+    LOG_ASSERT(chunk, "Invalid chunk passed");
+
     // push chunk render command
     RenderCommand* render_command = ArenaAlloc<RenderCommand>(&memory->TempAllocator, sizeof(RenderCommand));
     render_command->MeshId = MESH_QUAD;
@@ -197,7 +203,6 @@ TileMap* TileMapCreateAndInit(AppMemory* memory)
 {
     TileMap* tilemap = ArenaAlloc<TileMap>(&memory->PermanentAllocator, sizeof(TileMap));
     tilemap->Seed = 696732902;
-    tilemap->NoiseScale = 10.0;
 
     /*
         create noise TODO(harsh): maybe put the noise on the tilemap? i donno if its needed
@@ -208,6 +213,7 @@ TileMap* TileMapCreateAndInit(AppMemory* memory)
     // TODO(harsh): experiment with OpenSimplexNoise as well
     noise.noise_type = FNL_NOISE_PERLIN;
     noise.frequency = 0.01;
+    tilemap->NoiseScale = 10.0;
 
     // generate a TILEMAP_SIZE x TILEMAP_SIZE chunks tilemap
     // TODO(harsh): use hashtable based chunk generation
@@ -216,6 +222,8 @@ TileMap* TileMapCreateAndInit(AppMemory* memory)
         for (int chunk_x = 0; chunk_x < TILEMAP_SIZE; chunk_x++)
         {
             TileChunk* chunk = GetChunkInTilemap(tilemap, {chunk_x, chunk_y});
+            if (!chunk)
+                continue;
             chunk->ChunkCoords = {chunk_x, chunk_y};
 
             GenerateChunkTiles(chunk, &noise, tilemap->NoiseScale);
@@ -247,15 +255,18 @@ void TileMapQueueRender(
     Vec2i player_chunk_coords = WorldPosToChunkGridCoords(player_position);
     for (int i = 0; i < 9; i++)
     {
-        Vec2i chunk_coords = surround_chunk_coords[i];
-        if ((player_chunk_coords.x + chunk_coords.x < 0) ||
-            (player_chunk_coords.y + chunk_coords.y < 0))
+        Vec2i chunk_coords = player_chunk_coords;
+        if (((chunk_coords.x + surround_chunk_coords[i].x) < 0) ||
+            ((chunk_coords.y + surround_chunk_coords[i].y) < 0))
             continue;
 
-        chunk_coords.x += player_chunk_coords.x;
-        chunk_coords.y += player_chunk_coords.y;
+        chunk_coords.x += surround_chunk_coords[i].x;
+        chunk_coords.y += surround_chunk_coords[i].y;
 
         TileChunk* chunk = GetChunkInTilemap(tilemap, chunk_coords);
+        if (!chunk)
+            continue;
+
         ChunkQueueRender(memory, chunk, render_data);
     }
 }

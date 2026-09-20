@@ -61,8 +61,9 @@ void PlayerPhysicsUpdate(AppMemory* memory, double delta_time, Player* player, I
 }
 
 // updates the per frame player state
-void PlayerUpdate()
+void PlayerUpdate(Player* player, InputManager* im)
 {
+    player->Speed = 1000.0f;
 }
 
 // Queues the player render command by pushing it to render_data.commands
@@ -74,6 +75,7 @@ void PlayerQueueRender(AppMemory* memory, Player* player, double interpolation_a
     render_command->MeshId = player->Sprite.SpriteSheet.MeshId;
     render_command->TextureId = player->Sprite.SpriteSheet.TextureId;
     render_command->Instanced = false;
+    render_command->NoOfInstances = 0;
     render_command->Transforms = ArenaAlloc<Mat4>(&memory->TempAllocator, sizeof(Mat4) * 1);
     // NOTE(harsh): the position of any entity MUST BE a whole number otherwise the vertex lie in between pixel
     // which gives a distoreded sprite artifact

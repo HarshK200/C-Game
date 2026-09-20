@@ -293,7 +293,7 @@ void RenderPass_Game(AppMemory* memory, Renderer* r, RenderData* render_data)
         // ===================== Instanced Drawing =====================
         // TODO(harsh): create the array with only the amount of elements required for this
         // instanced draw rather than the whole array
-        EntityData* entity_data = ArenaAlloc<EntityData>(&memory->TempAllocator, sizeof(EntityData) * render_command.NoOfInstances);
+        EntityData* entity_data;
         int unsigned instances_to_draw = 0;
 
         // perpare instance data for only 1 instance
@@ -302,6 +302,7 @@ void RenderPass_Game(AppMemory* memory, Renderer* r, RenderData* render_data)
             LOG_ASSERT(
                 (render_command.Instanced == false && render_command.NoOfInstances == 0),
                 "no_of_instances MUST be 0 when render_command.instanced is false")
+            entity_data = ArenaAlloc<EntityData>(&memory->TempAllocator, sizeof(EntityData) * 1);
             instances_to_draw = 1;
             entity_data[0].Model = render_command.Transforms[0];
             entity_data[0].UVMinMax = render_command.UvMinMax[0];
@@ -312,8 +313,9 @@ void RenderPass_Game(AppMemory* memory, Renderer* r, RenderData* render_data)
         {
             LOG_ASSERT(
                 (render_command.Instanced == true && render_command.NoOfInstances > 1),
-                "no_of_instances MUST be 1 when render_command.instanced is true")
+                "no_of_instances MUST be above 1 when render_command.instanced is true")
             LOG_ASSERT(render_command.NoOfInstances <= MAX_INSTANCE_BUFFER_SIZE, "no_of_instances EXCEDED MAX_INSTANCE_BUFFER_SIZE")
+            entity_data = ArenaAlloc<EntityData>(&memory->TempAllocator, sizeof(EntityData) * render_command.NoOfInstances);
             instances_to_draw = render_command.NoOfInstances;
             for (int i = 0; i < render_command.NoOfInstances; i++)
             {
