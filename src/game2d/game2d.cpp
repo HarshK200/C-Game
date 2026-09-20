@@ -46,7 +46,7 @@ EXPORT_FN void GamePhysicsUpdate(AppMemory* memory, double delta_time, Game* g, 
 // Updates the Per Frame game state
 EXPORT_FN void GameUpdate(AppMemory* memory, Game* g, InputManager* input_manager)
 {
-    Camera2dUpdate();
+    Camera2dUpdate(g->Camera, input_manager);
     PlayerUpdate();
 }
 

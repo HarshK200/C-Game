@@ -74,6 +74,38 @@ void HandleKeyboardInput(InputManager* im, UINT message, WPARAM wparam)
     }
 }
 
+void HandleMouseInput(InputManager* im, UINT message, WPARAM wparam)
+{
+    LOG_ASSERT(
+        (message == WM_MOUSEMOVE || message == WM_MOUSEWHEEL),
+        "HandleMouseInput() called on invalid event. Make sure event == WM_MOUSEMOVE or WM_MOUSEHWHEEL");
+
+    if (message == WM_MOUSEWHEEL)
+    {
+        int delta = GET_WHEEL_DELTA_WPARAM(wparam);
+        if (delta == 0)
+            return;
+
+        // scroll up
+        if (delta > 0)
+        {
+            // LOG_INFO("SCROLLUP");
+            im->ActionMap[ACTION_ZOOM_IN] = SINGLE_PRESSED;
+        }
+
+        // scroll down
+        else if (delta < 0)
+        {
+            // LOG_INFO("SCROLL DOWN");
+            im->ActionMap[ACTION_ZOOM_OUT] = SINGLE_PRESSED;
+        }
+    }
+
+    if (message == WM_MOUSEMOVE)
+    {
+    }
+}
+
 /*
     Windows message callback. This function gets called everytime windows Dispatch's a message
     i.e. everytime DispatchMessage() is called.
@@ -106,6 +138,12 @@ LRESULT CALLBACK WindowMessageCallback(HWND window, UINT message, WPARAM wparam,
         case WM_KEYUP:
         {
             HandleKeyboardInput(input_manager, message, wparam);
+            break;
+        }
+        case WM_MOUSEWHEEL:
+        case WM_MOUSEMOVE:
+        {
+            HandleMouseInput(input_manager, message, wparam);
             break;
         }
         case WM_SIZE:
@@ -213,6 +251,9 @@ int PlatformProcessInput(InputManager* input_manager)
             case HELD:
                 break;
             case RELEASED:
+                input_manager->ActionMap[i] = IDLE;
+                break;
+            case SINGLE_PRESSED:
                 input_manager->ActionMap[i] = IDLE;
                 break;
             default:

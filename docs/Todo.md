@@ -105,6 +105,7 @@
 	```
 [x] Delta time
 [x] Hot code reloading.
+[ ] Zoom in out for debug mode.
 
 [ ] Procdural World Generation
 	[x] Generate and render 1 single Chunk.

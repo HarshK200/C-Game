@@ -3,6 +3,8 @@
 #include "src/utils/game_math.h"
 #include "src/utils/arena_allocator.h"
 
+// layers glue
+#include "src/input/input.h"
 #include "src/renderer/render_data.h"
 
 
@@ -49,8 +51,15 @@ void Camera2dPhysicsUpdate(Camera2d* camera, double delta_time, Vec2 player_pos)
         camera->Position = player_pos;
 }
 
-void Camera2dUpdate()
+void Camera2dUpdate(Camera2d* camera, InputManager* im)
 {
+#ifdef ISEKAIED_DEBUG
+    if (im->IsActionSinglePressed(ACTION_ZOOM_IN))
+        camera->Zoom += 0.1;
+    if (im->IsActionSinglePressed(ACTION_ZOOM_OUT))
+        if (camera->Zoom > 0.1)
+            camera->Zoom -= 0.1;
+#endif
 }
 
 
@@ -61,8 +70,13 @@ void Camera2dQueueRender(Camera2d* camera, double interpolation_alpha, RenderDat
     // NOTE(harsh): the position of any entity MUST BE a whole number otherwise the vertex lie in between pixel
     // which gives a distoreded sprite artifact
     render_data->view_matrix_params.Position = FloorVec2(LerpVec2(camera->PrevPosition, camera->Position, interpolation_alpha));
-    // TODO(harsh): disable zooming logic on release build
+
+#ifdef ISEKAIED_DEBUG
     render_data->view_matrix_params.Zoom = camera->Zoom;
+#else
+    render_data->view_matrix_params.Zoom = 1;
+#endif
+
     render_data->projection_matrix_params.NearPlane = camera->NearPlane;
     render_data->projection_matrix_params.FarPlane = camera->FarPlane;
 }

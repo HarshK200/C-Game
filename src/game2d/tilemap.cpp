@@ -14,7 +14,7 @@
 #endif
 
 inline constexpr int unsigned TILE_PIXEL_SCALE = 16;
-inline constexpr int unsigned TILEMAP_SIZE = 5;
+inline constexpr int unsigned TILEMAP_SIZE = 50;
 inline constexpr int unsigned CHUNK_SIZE = 32;
 
 enum TileType
@@ -122,8 +122,6 @@ int GetChunkIdxInTilemap(Vec2i chunk_coords)
 */
 void GenerateChunkTiles(TileChunk* chunk, fnl_state* noise, float noise_scale)
 {
-
-
     // populating the chunk index in the array
     for (int tile_y = 0; tile_y < CHUNK_SIZE; tile_y++)
     {
@@ -140,9 +138,9 @@ void GenerateChunkTiles(TileChunk* chunk, fnl_state* noise, float noise_scale)
                 tile_grid_coords.y * noise_scale);
 
             tile->TileType = TILE_WATER;
-            if (noise_sample > 0.15)
+            if (noise_sample > 0.05)
                 tile->TileType = TILE_GRASS;
-            else if (noise_sample > 0.25)
+            else if (noise_sample > 0.15)
                 tile->TileType = TILE_DIRT;
         }
     }
@@ -209,7 +207,7 @@ TileMap* TileMapCreateAndInit(AppMemory* memory)
     noise.seed = tilemap->Seed;
     // TODO(harsh): experiment with OpenSimplexNoise as well
     noise.noise_type = FNL_NOISE_PERLIN;
-    noise.frequency = 0.03;
+    noise.frequency = 0.01;
 
     // generate a TILEMAP_SIZE x TILEMAP_SIZE chunks tilemap
     // TODO(harsh): use hashtable based chunk generation
@@ -245,6 +243,7 @@ void TileMapQueueRender(
         {0, 1},
         {1, 1},
     };
+
     Vec2i player_chunk_coords = WorldPosToChunkGridCoords(player_position);
     for (int i = 0; i < 9; i++)
     {

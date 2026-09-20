@@ -250,10 +250,9 @@ inline Mat4 Orthograhpic_RH_ZO_Mat4(
 inline Mat4 ViewMat4(Vec2 position, Vec2 offset, float zoom)
 {
     Mat4 view_matrix = Translate_Mat4({offset.x, offset.y, 0.0f});
-
-    // TODO(harsh): figure out the correct order for scaling/zooming
-    // view_matrix = Mat4xMat4(view_matrix, Scale_Mat4({zoom, zoom, 1.0f}));
-
+#ifdef ISEKAIED_DEBUG
+    view_matrix = Mat4xMat4(view_matrix, Scale_Mat4({zoom, zoom, 1.0f}));
+#endif
     view_matrix = Mat4xMat4(view_matrix, Translate_Mat4({-position.x, -position.y, 0.0f}));
 
     return view_matrix;
