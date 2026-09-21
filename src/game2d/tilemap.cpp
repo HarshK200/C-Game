@@ -13,9 +13,10 @@
 #include "third_party/fast_noise_lite.h"
 #endif
 
-inline constexpr int unsigned TILE_PIXEL_SCALE = 16;
-inline constexpr int unsigned TILEMAP_SIZE = 30;
-inline constexpr int unsigned CHUNK_SIZE = 32;
+inline constexpr int TILE_PIXEL_SCALE = 16;
+inline constexpr int TILEMAP_SIZE = 20;
+inline constexpr int CHUNK_SIZE = 32;
+inline constexpr int TILEMAP_CHUNK_HASH_SIZE = 4096;
 
 enum TileType
 {
@@ -34,14 +35,17 @@ struct Tile
 
 struct TileChunk
 {
-    Vec2i ChunkCoords;
+    Vec2i GridCoords;
     Tile Tiles[CHUNK_SIZE * CHUNK_SIZE];
+
+    TileChunk* NextInHash;
 };
 
 struct TileMap
 {
-    // TODO(harsh): implement a hash table for large sparse data and region data loading
-    TileChunk Chunks[TILEMAP_SIZE * TILEMAP_SIZE];
+    // TODO(harsh): what does TILEMAP_CHUNK_BUCKET_SIZE power of 2 affect? is that bad?
+    TileChunk* ChunkHash[TILEMAP_CHUNK_HASH_SIZE];
+
     fnl_state Noise;
 };
 
@@ -72,23 +76,17 @@ Vec2 GetTileWorldPosition(Vec2i chunk_coords, Vec2i tile_local_coords)
     return result;
 }
 
-// Returns chunk grid coordinates of the world position passed in.
-// World position MUST BE in pixels
-Vec2i WorldPosToChunkGridCoords(Vec2 world_pos)
-{
-    Vec2i result = {};
-    result.x = (int)(world_pos.x / (CHUNK_SIZE * TILE_PIXEL_SCALE));
-    result.y = (int)(world_pos.y / (CHUNK_SIZE * TILE_PIXEL_SCALE));
-    return result;
-}
-
 /*
     Returns the tile anchor's world position *IN PIXELS* that is offset by 0.5 * TILE_PIXEL_SCALE
     in +x and +y direction, because the tile is anchored at the top-left corner to align with the
     tile grid.
 
-    NOTE(harsh): this is so the rendered tiles match the calculations, as calculations are
-    not done based on anchor, they are based
+    NOTE(harsh): this is so the rendered tiles anchor is the top-left for easier calculations,
+    since the calculations are done from from coordinates (0, 0) which without achor tile would be
+    centered on which creates a calculation and visual disparity.
+    **TLDR: Tile coordinates like (0, 0) is the tile center by default due to rect Quad vertices
+    anchor is used to offset that down and right by 0.5 of TILE_PIXEL_SCALE so now (0, 0) is the tile's
+    top-left instead of center, which matches calculation**
 */
 Vec2 GetTileAnchorPosition(Vec2i chunk_coords, Vec2i tile_local_coords)
 {
@@ -102,22 +100,80 @@ Tile* GetTileInChunk(TileChunk* chunk, Vec2i tile_local_coords)
 {
     return &chunk->Tiles[(CHUNK_SIZE * tile_local_coords.y) + tile_local_coords.x];
 }
+
 int GetTileIdxInChunk(Vec2i tile_local_coords)
 {
     return (CHUNK_SIZE * tile_local_coords.y) + tile_local_coords.x;
 }
 
+// Returns chunk grid coordinates of the world position passed in.
+// World position MUST BE in pixels
+Vec2i WorldPosToChunkGridCoords(Vec2 world_pos)
+{
+    Vec2i result = {};
+    result.x = floor(world_pos.x / (CHUNK_SIZE * TILE_PIXEL_SCALE));
+    result.y = floor(world_pos.y / (CHUNK_SIZE * TILE_PIXEL_SCALE));
+    return result;
+}
+
+// Returns the hash of the chunk coordinates passed in
+uint32_t HashChunkCoords(Vec2i chunk_coords)
+{
+    uint32_t x = (uint32_t)chunk_coords.x;
+    uint32_t y = (uint32_t)chunk_coords.y;
+
+    // TODO(harsh): why are we using uint32_t? also how in the fuck does this even work?
+    uint32_t hash = x * 0x8da6b343;
+    hash ^= y * 0xd8163841;
+
+    return hash % TILEMAP_CHUNK_HASH_SIZE;
+}
+
+void SetChunkInTilemap(TileMap* tilemap, TileChunk* chunk)
+{
+    uint32_t chunk_hash = HashChunkCoords(chunk->GridCoords);
+    // if no chunk at this hash, set it to chunk passed in
+    if (tilemap->ChunkHash[chunk_hash] == nullptr)
+    {
+        tilemap->ChunkHash[chunk_hash] = chunk;
+        return;
+    }
+
+    // if there is a chunk at this hash, traverse it until the last node and set it to
+    // chunk passed in
+    TileChunk* tilemap_chunk = tilemap->ChunkHash[chunk_hash];
+    while (tilemap_chunk)
+    {
+        if (tilemap_chunk->NextInHash)
+        {
+            tilemap_chunk = tilemap_chunk->NextInHash;
+            continue;
+        }
+        tilemap_chunk->NextInHash = chunk;
+        break;
+    }
+}
+
+/*
+    Returns the chunk at chunk_coords in the Tilemap ChunkHash.
+
+    Returns TileChunk* on success and nullptr on failure.
+*/
 TileChunk* GetChunkInTilemap(TileMap* tilemap, Vec2i chunk_coords)
 {
-    // return null on invalid chunk
-    if (chunk_coords.x >= TILEMAP_SIZE || chunk_coords.y >= TILEMAP_SIZE)
-        return nullptr;
+    uint32_t chunk_hash = HashChunkCoords(chunk_coords);
+    TileChunk* chunk = tilemap->ChunkHash[chunk_hash];
 
-    return &tilemap->Chunks[(TILEMAP_SIZE * chunk_coords.y) + chunk_coords.x];
-}
-int GetChunkIdxInTilemap(Vec2i chunk_coords)
-{
-    return (TILEMAP_SIZE * chunk_coords.y) + chunk_coords.x;
+    while (chunk)
+    {
+        if (chunk->GridCoords.x == chunk_coords.x &&
+            chunk->GridCoords.y == chunk_coords.y)
+            return chunk;
+
+        chunk = chunk->NextInHash;
+    }
+
+    return nullptr;
 }
 
 /*
@@ -131,7 +187,7 @@ void GenerateChunkTiles(TileChunk* chunk, fnl_state* noise)
         for (int tile_x = 0; tile_x < CHUNK_SIZE; tile_x++)
         {
             Tile* tile = GetTileInChunk(chunk, {tile_x, tile_y});
-            Vec2i tile_grid_coords = GetTileGridCoords(chunk->ChunkCoords, {tile_x, tile_y});
+            Vec2i tile_grid_coords = GetTileGridCoords(chunk->GridCoords, {tile_x, tile_y});
 
             // sample noise for this tile in tile grid. Value ranges from -1..1
             float noise_sample = fnlGetNoise2D(
@@ -183,7 +239,7 @@ void ChunkQueueRender(AppMemory* memory, TileChunk* chunk, RenderData* render_da
         {
             int tile_idx = (CHUNK_SIZE * tile_y) + tile_x;
             Tile* tile = GetTileInChunk(chunk, {tile_x, tile_y});
-            tile_pos = GetTileAnchorPosition(chunk->ChunkCoords, {tile_x, tile_y});
+            tile_pos = GetTileAnchorPosition(chunk->GridCoords, {tile_x, tile_y});
             render_command->Transforms[tile_idx] = ModelMat4(tile_pos, tile_scale);
             tile_sprite.TexelCoords.x = 0;
             tile_sprite.TexelCoords.y = TILE_PIXEL_SCALE * static_cast<int>(tile->TileType);
@@ -214,17 +270,20 @@ TileMap* TileMapCreateAndInit(AppMemory* memory)
     tilemap->Noise.gain = 1.0f;       // aka persistance y-axis knob
 
     // generate a TILEMAP_SIZE x TILEMAP_SIZE chunks tilemap
-    // TODO(harsh): use hashtable based chunk generation
-    for (int chunk_y = 0; chunk_y < TILEMAP_SIZE; chunk_y++)
+    for (int chunk_y = -(TILEMAP_SIZE / 2); chunk_y < (TILEMAP_SIZE / 2); chunk_y++)
     {
-        for (int chunk_x = 0; chunk_x < TILEMAP_SIZE; chunk_x++)
+        for (int chunk_x = -(TILEMAP_SIZE / 2); chunk_x < (TILEMAP_SIZE / 2); chunk_x++)
         {
-            TileChunk* chunk = GetChunkInTilemap(tilemap, {chunk_x, chunk_y});
+            TileChunk* chunk = ArenaAlloc<TileChunk>(&memory->PermanentAllocator, sizeof(TileChunk));
             if (!chunk)
+            {
+                LOG_ASSERT(chunk, "Chunk creation failed");
                 continue;
-            chunk->ChunkCoords = {chunk_x, chunk_y};
-
+            }
+            chunk->GridCoords = {chunk_x, chunk_y};
             GenerateChunkTiles(chunk, &tilemap->Noise);
+
+            SetChunkInTilemap(tilemap, chunk);
         }
     }
 
@@ -253,15 +312,9 @@ void TileMapQueueRender(
     Vec2i player_chunk_coords = WorldPosToChunkGridCoords(player_position);
     for (int i = 0; i < 9; i++)
     {
-        Vec2i chunk_coords = player_chunk_coords;
-        if (((chunk_coords.x + surround_chunk_coords[i].x) < 0) ||
-            ((chunk_coords.y + surround_chunk_coords[i].y) < 0))
-            continue;
-
-        chunk_coords.x += surround_chunk_coords[i].x;
-        chunk_coords.y += surround_chunk_coords[i].y;
-
+        Vec2i chunk_coords = player_chunk_coords + surround_chunk_coords[i];
         TileChunk* chunk = GetChunkInTilemap(tilemap, chunk_coords);
+        // if chunk doesn't exist continue to next
         if (!chunk)
             continue;
 

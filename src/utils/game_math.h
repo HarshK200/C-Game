@@ -9,6 +9,7 @@
 // ================================================================================
 //                                  VECTORS
 // ================================================================================
+
 typedef union Vec2
 {
     struct
@@ -17,6 +18,15 @@ typedef union Vec2
     };
     float elements[2];
 } Vec2;
+inline Vec2 operator+(const Vec2& left, const Vec2& right)
+{
+    return {left.x + right.x, left.y + right.y};
+}
+inline Vec2 operator-(const Vec2& left, const Vec2& right)
+{
+    return {left.x - right.x, left.y - right.y};
+}
+
 typedef union Vec3
 {
     struct
@@ -25,6 +35,7 @@ typedef union Vec3
     };
     float elements[3];
 } Vec3;
+
 typedef union Vec4
 {
     struct
@@ -32,10 +43,10 @@ typedef union Vec4
         float x, y, z, w;
     };
     float elements[4];
-
-    inline float& operator[](int Index) { return elements[Index]; }
     inline const float& operator[](int Index) const { return elements[Index]; }
+    inline float& operator[](int Index) { return elements[Index]; }
 } Vec4;
+
 typedef union Vec2i
 {
     struct
@@ -45,23 +56,26 @@ typedef union Vec2i
 
     int elements[2];
 } Vec2i;
-
-inline Vec2 operator-(const Vec2& left, const Vec2& right)
+inline Vec2i operator+(const Vec2i& left, const Vec2i& right)
+{
+    return {left.x + right.x, left.y + right.y};
+}
+inline Vec2i operator-(const Vec2i& left, const Vec2i& right)
 {
     return {left.x - right.x, left.y - right.y};
 }
 
-inline Vec2 AbsVec2(const Vec2& vec)
+
+inline Vec2 AbsVec(const Vec2& vec)
+{
+    return {std::abs(vec.x), std::abs(vec.y)};
+}
+inline Vec2i AbsVec(const Vec2i& vec)
 {
     return {std::abs(vec.x), std::abs(vec.y)};
 }
 
-
-/*
-    TODO(harsh): write the Normalize function and overload it with Vec2, Vec3 and Vec4
-    not to be used directly, call Noramlize() instead
-*/
-inline Vec2 NormalizeVec2(const Vec2& vec)
+inline Vec2 NormalizeVec(const Vec2& vec)
 {
     // pythagoras thorem
     float length = sqrt(pow(vec.x, 2) + pow(vec.y, 2));
@@ -71,7 +85,8 @@ inline Vec2 NormalizeVec2(const Vec2& vec)
 
     return normalized;
 }
-inline Vec2 FloorVec2(const Vec2& vec)
+
+inline Vec2 FloorVec(const Vec2& vec)
 {
     Vec2 result = {};
     result.x = floor(vec.x);
@@ -79,8 +94,17 @@ inline Vec2 FloorVec2(const Vec2& vec)
 
     return result;
 }
+inline Vec2i FloorVec(const Vec2i& vec)
+{
+    Vec2i result = {};
+    result.x = floor(vec.x);
+    result.y = floor(vec.y);
+
+    return result;
+}
+
 // Lerp's from a --> b with t as the step
-inline Vec2 LerpVec2(const Vec2& a, const Vec2& b, float t)
+inline Vec2 LerpVec(const Vec2& a, const Vec2& b, float t)
 {
     Vec2 result = {};
     result.x = a.x + t * (b.x - a.x);

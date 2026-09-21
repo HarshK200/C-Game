@@ -96,14 +96,14 @@ void HandleMouseInput(InputManager* im, UINT message, WPARAM wparam)
         if (delta > 0)
         {
             // LOG_INFO("SCROLLUP");
-            im->ActionMap[ACTION_ZOOM_IN] = SINGLE_PRESSED;
+            im->ActionMap[ACTION_ZOOM_IN_DEBUG] = SINGLE_PRESSED;
         }
 
         // scroll down
         else if (delta < 0)
         {
             // LOG_INFO("SCROLL DOWN");
-            im->ActionMap[ACTION_ZOOM_OUT] = SINGLE_PRESSED;
+            im->ActionMap[ACTION_ZOOM_OUT_DEBUG] = SINGLE_PRESSED;
         }
 
         return;
@@ -115,7 +115,8 @@ void HandleMouseInput(InputManager* im, UINT message, WPARAM wparam)
         switch (wparam)
         {
             case MK_MBUTTON:
-                im->ActionMap[ACTION_ZOOM_RESET] = PRESSED;
+                im->ActionMap[ACTION_ZOOM_RESET_DEBUG] = PRESSED;
+                break;
             default:
                 break;
         }
@@ -129,7 +130,8 @@ void HandleMouseInput(InputManager* im, UINT message, WPARAM wparam)
         switch (wparam)
         {
             case MK_MBUTTON:
-                im->ActionMap[ACTION_ZOOM_RESET] = RELEASED;
+                im->ActionMap[ACTION_ZOOM_RESET_DEBUG] = RELEASED;
+                break;
             default:
                 break;
         }

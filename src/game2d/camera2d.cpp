@@ -44,9 +44,9 @@ Camera2d* Camera2dCreateAndInit(AppMemory* memory)
 void Camera2dPhysicsUpdate(Camera2d* camera, double delta_time, Vec2 player_pos)
 {
     camera->PrevPosition = camera->Position;
-    Vec2 target_pos_diff = AbsVec2(camera->Position - player_pos);
+    Vec2 target_pos_diff = AbsVec(camera->Position - player_pos);
     if (target_pos_diff.y < 0.001 || target_pos_diff.y > 0.001)
-        camera->Position = LerpVec2(camera->Position, player_pos, camera->Speed * delta_time);
+        camera->Position = LerpVec(camera->Position, player_pos, camera->Speed * delta_time);
     else
         camera->Position = player_pos;
 }
@@ -54,12 +54,12 @@ void Camera2dPhysicsUpdate(Camera2d* camera, double delta_time, Vec2 player_pos)
 void Camera2dUpdate(Camera2d* camera, InputManager* im)
 {
 #ifdef ISEKAIED_DEBUG
-    if (im->IsActionSinglePressed(ACTION_ZOOM_IN))
+    if (im->IsActionSinglePressed(ACTION_ZOOM_IN_DEBUG))
         camera->Zoom += 0.1f;
-    if (im->IsActionSinglePressed(ACTION_ZOOM_OUT))
+    if (im->IsActionSinglePressed(ACTION_ZOOM_OUT_DEBUG))
         if (camera->Zoom > 0.1f)
             camera->Zoom -= 0.1f;
-    if (im->IsActionPressed(ACTION_ZOOM_RESET))
+    if (im->IsActionPressed(ACTION_ZOOM_RESET_DEBUG))
         camera->Zoom = 1.0f;
 #endif
 }
@@ -71,7 +71,7 @@ void Camera2dQueueRender(Camera2d* camera, double interpolation_alpha, RenderDat
     render_data->view_matrix_params.Offset = camera->Offset;
     // NOTE(harsh): the position of any entity MUST BE a whole number otherwise the vertex lie in between pixel
     // which gives a distoreded sprite artifact
-    render_data->view_matrix_params.Position = FloorVec2(LerpVec2(camera->PrevPosition, camera->Position, interpolation_alpha));
+    render_data->view_matrix_params.Position = FloorVec(LerpVec(camera->PrevPosition, camera->Position, interpolation_alpha));
 
 #ifdef ISEKAIED_DEBUG
     render_data->view_matrix_params.Zoom = camera->Zoom;
