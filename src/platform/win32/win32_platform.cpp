@@ -77,9 +77,15 @@ void HandleKeyboardInput(InputManager* im, UINT message, WPARAM wparam)
 void HandleMouseInput(InputManager* im, UINT message, WPARAM wparam)
 {
     LOG_ASSERT(
-        (message == WM_MOUSEMOVE || message == WM_MOUSEWHEEL),
+        (message == WM_MOUSEMOVE ||
+         message == WM_MOUSEWHEEL ||
+         message == WM_MBUTTONDBLCLK ||
+         message == WM_MBUTTONDOWN ||
+         message == WM_MBUTTONUP),
         "HandleMouseInput() called on invalid event. Make sure event == WM_MOUSEMOVE or WM_MOUSEHWHEEL");
 
+
+    // handle mouse wheel scroll
     if (message == WM_MOUSEWHEEL)
     {
         int delta = GET_WHEEL_DELTA_WPARAM(wparam);
@@ -99,10 +105,42 @@ void HandleMouseInput(InputManager* im, UINT message, WPARAM wparam)
             // LOG_INFO("SCROLL DOWN");
             im->ActionMap[ACTION_ZOOM_OUT] = SINGLE_PRESSED;
         }
+
+        return;
+    }
+
+    // handle mouse button down
+    if (message == WM_MBUTTONDOWN)
+    {
+        switch (wparam)
+        {
+            case MK_MBUTTON:
+                im->ActionMap[ACTION_ZOOM_RESET] = PRESSED;
+            default:
+                break;
+        }
+
+        return;
+    }
+
+    // handle mouse button up
+    if (message == WM_MBUTTONUP)
+    {
+        switch (wparam)
+        {
+            case MK_MBUTTON:
+                im->ActionMap[ACTION_ZOOM_RESET] = RELEASED;
+            default:
+                break;
+        }
+
+        return;
     }
 
     if (message == WM_MOUSEMOVE)
     {
+
+        return;
     }
 }
 
@@ -126,12 +164,12 @@ LRESULT CALLBACK WindowMessageCallback(HWND window, UINT message, WPARAM wparam,
     {
         case WM_CREATE:
         {
-            LOG_INFO("WM_CREATE");
+            // LOG_INFO("WM_CREATE");
             break;
         }
         case WM_ACTIVATEAPP:
         {
-            LOG_INFO("WM_ACTIVATEAPP");
+            // LOG_INFO("WM_ACTIVATEAPP");
             break;
         }
         case WM_KEYDOWN:
@@ -142,23 +180,26 @@ LRESULT CALLBACK WindowMessageCallback(HWND window, UINT message, WPARAM wparam,
         }
         case WM_MOUSEWHEEL:
         case WM_MOUSEMOVE:
+        case WM_MBUTTONDBLCLK:
+        case WM_MBUTTONDOWN:
+        case WM_MBUTTONUP:
         {
             HandleMouseInput(input_manager, message, wparam);
             break;
         }
         case WM_SIZE:
-            LOG_INFO("WM_SIZE");
+            // LOG_INFO("WM_SIZE");
             input_manager->WindowResized = true;
             break;
         case WM_CLOSE:
         {
-            LOG_INFO("WM_CLOSE");
+            // LOG_INFO("WM_CLOSE");
             DestroyWindow(window);
             break;
         }
         case WM_DESTROY:
         {
-            LOG_INFO("WM_DESTROY");
+            // LOG_INFO("WM_DESTROY");
             PostQuitMessage(0);
             break;
         }

@@ -86,7 +86,7 @@ int main()
     App App = {};
     App.ShouldClose = false;
     App.Memory.PermanentAllocator = CreateArena(64 * MegaByte);
-    App.Memory.TempAllocator = CreateArena(512 * MegaByte);
+    App.Memory.TempAllocator = CreateArena(1 * GigaByte);
     App.InputManager = ArenaAlloc<InputManager>(&App.Memory.PermanentAllocator, sizeof(InputManager));
 
     // Reload Game DLL

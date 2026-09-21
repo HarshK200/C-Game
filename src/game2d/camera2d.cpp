@@ -32,7 +32,7 @@ Camera2d* Camera2dCreateAndInit(AppMemory* memory)
     camera->Position = {0, 0};
     camera->Speed = 5.0f;
     camera->Offset = {INTERNAL_RENDER_RESOLUTION.x / 2, INTERNAL_RENDER_RESOLUTION.y / 2};
-    camera->Zoom = 1;
+    camera->Zoom = 1.0f;
     // TODO(harsh): how does this whole near and far plane things work? and is -1 near_plane
     // correct for the ZO i.e. the d3d11 render z axis thinig?? in the Orthographic_ZO_RH matrix?
     camera->NearPlane = -1;
@@ -55,10 +55,12 @@ void Camera2dUpdate(Camera2d* camera, InputManager* im)
 {
 #ifdef ISEKAIED_DEBUG
     if (im->IsActionSinglePressed(ACTION_ZOOM_IN))
-        camera->Zoom += 0.1;
+        camera->Zoom += 0.1f;
     if (im->IsActionSinglePressed(ACTION_ZOOM_OUT))
-        if (camera->Zoom > 0.1)
-            camera->Zoom -= 0.1;
+        if (camera->Zoom > 0.1f)
+            camera->Zoom -= 0.1f;
+    if (im->IsActionPressed(ACTION_ZOOM_RESET))
+        camera->Zoom = 1.0f;
 #endif
 }
 

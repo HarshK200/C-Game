@@ -122,7 +122,6 @@ int GetChunkIdxInTilemap(Vec2i chunk_coords)
 
 /*
     For the passed in chunk generates CHUNK_SIZE * CHUNK_SIZE tiles with random tiletype
-    TODO(harsh): use a noise function to  generated determinic chunks
 */
 void GenerateChunkTiles(TileChunk* chunk, fnl_state* noise)
 {
@@ -140,13 +139,13 @@ void GenerateChunkTiles(TileChunk* chunk, fnl_state* noise)
                 tile_grid_coords.x,
                 tile_grid_coords.y);
 
-            tile->TileType = TILE_WATER;
-            if (noise_sample > -0.20)
-                tile->TileType = TILE_SAND;
-            if (noise_sample > -0.10)
+            tile->TileType = TILE_DIRT;
+            if (noise_sample < 0.35)
                 tile->TileType = TILE_GRASS;
-            if (noise_sample > 0.25)
-                tile->TileType = TILE_DIRT;
+            if (noise_sample < -0.25)
+                tile->TileType = TILE_SAND;
+            if (noise_sample < -0.30)
+                tile->TileType = TILE_WATER;
         }
     }
 }
