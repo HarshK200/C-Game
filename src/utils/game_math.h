@@ -16,6 +16,10 @@ typedef union Vec2
     {
         float x, y;
     };
+    struct
+    {
+        float width, height;
+    };
     float elements[2];
 } Vec2;
 inline Vec2 operator+(const Vec2& left, const Vec2& right)
@@ -52,6 +56,10 @@ typedef union Vec2i
     struct
     {
         int x, y;
+    };
+    struct
+    {
+        int width, height;
     };
 
     int elements[2];

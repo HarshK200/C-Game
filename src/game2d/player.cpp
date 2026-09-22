@@ -40,6 +40,7 @@ Player* PlayerCreateAndInit(AppMemory* memory)
         },
         {0, 0},
         {32.0f, 48.0f},
+        {0.0, 0.0},
     };
 
     return player;

@@ -20,6 +20,7 @@ struct Sprite2d
     SpriteSheet2d SpriteSheet;
     Vec2i TexelCoords;
     Vec2 Scale;
+    Vec2 PosOffset;
 };
 
 Vec4 GetSpriteUV(Sprite2d* sprite)

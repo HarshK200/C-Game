@@ -1,3 +1,5 @@
+#include "src/pch.h"
+
 // utils
 #include "src/utils/log.h"
 #include "src/utils/enums.h"
@@ -5,7 +7,7 @@
 #include "src/utils/game_math.h"
 #include "src/utils/arena_allocator.h"
 
-// renderer glue
+// layers glue
 #include "src/renderer/render_data.h"
 
 // platform specific import
@@ -22,6 +24,7 @@
 // =================================================================================
 struct Renderer
 {
+    Vec2 WinClientRectSize; // backbuffer is also the same size as window since its reset to WinClientRectSize on resize
     IDXGISwapChain* SwapChain;
     ID3D11Device* Device;
     ID3D11DeviceContext* DeviceContext;
@@ -56,8 +59,9 @@ HRESULT SetupD3D11(HWND window_handle, Renderer* r)
 
     DXGI_SWAP_CHAIN_DESC sd = {};
     sd.BufferCount = 2;
-    sd.BufferDesc.Width = DEFAULT_WINDOW_RESOLUTION.x;
-    sd.BufferDesc.Height = DEFAULT_WINDOW_RESOLUTION.y;
+    r->WinClientRectSize = {(int)DEFAULT_WINDOW_RESOLUTION.x, (int)DEFAULT_WINDOW_RESOLUTION.y};
+    sd.BufferDesc.Width = (int)DEFAULT_WINDOW_RESOLUTION.x;
+    sd.BufferDesc.Height = (int)DEFAULT_WINDOW_RESOLUTION.y;
     // NOTE(harsh): sRGB is non-linear color encoding as human eye's are more sensitive to darker tones than
     // brighter tones, when creating textures make sure to specifiy DXGI_FORMAT_R8G8B8A8_UNORM_SRGB in texture
     // description the GPU will handle the sRGB -> Linear conversion
@@ -101,6 +105,93 @@ HRESULT SetupD3D11(HWND window_handle, Renderer* r)
     return S_OK;
 }
 
+/*
+    Resizes the backbuffer and recreates its RenderTargetView
+*/
+HRESULT HandleWindowResized(Renderer* r, PlatformWindow* window)
+{
+    // NOTE(harsh): this is DIFFERENT from window rect, this one doesn't include borders and title.
+    // Only the internal rect used for rendering
+    RECT client_rect;
+    GetClientRect(window->Handle, &client_rect);
+    Vec2 client_rect_size = {
+        (float)(client_rect.right - client_rect.left), // width
+        (float)(client_rect.bottom - client_rect.top), // height
+    };
+    r->WinClientRectSize = client_rect_size;
+
+    // release previous backbuffer render target view, so backbuffer can be resized
+    r->BackBufferRTV->Release();
+    r->BackBufferRTV = nullptr;
+
+    // resize the backbuffer and recreate its render target view
+    r->SwapChain->ResizeBuffers(
+        2,
+        r->WinClientRectSize.x,
+        r->WinClientRectSize.y,
+        DXGI_FORMAT_R8G8B8A8_UNORM,
+        NULL);
+    // Get the pointer to the back-buffer
+    ID3D11Texture2D* back_buffer_texture;
+    HRESULT result = r->SwapChain->GetBuffer(0, __uuidof(ID3D11Texture2D), (void**)&back_buffer_texture);
+    if (FAILED(result))
+    {
+        LOG_ERRORF("HandleResizeWindow Getting SwapChain back-buffer FAILED! with error code: %d", result);
+        return result;
+    }
+    D3D11_RENDER_TARGET_VIEW_DESC backbuffer_rtv_desc = {};
+    // the backbuffer is sRGB so all the internal linear calculations for lighting
+    // finally converts to sRGB encoded colors
+    backbuffer_rtv_desc.Format = DXGI_FORMAT_R8G8B8A8_UNORM_SRGB;
+    backbuffer_rtv_desc.ViewDimension = D3D11_RTV_DIMENSION_TEXTURE2D;
+    result = r->Device->CreateRenderTargetView(
+        back_buffer_texture,
+        &backbuffer_rtv_desc,
+        &r->BackBufferRTV);
+    if (FAILED(result))
+    {
+        LOG_ERRORF("HandleResizeWindow back-buffer Render Target View Creation FAILED! with error code: %d", result);
+        return result;
+    }
+    back_buffer_texture->Release();
+
+    return S_OK;
+}
+
+/*
+    Calculates the letterbox viewport buffer for window and returns that
+*/
+D3D11_VIEWPORT GetBackbufferViewportLetterbox(Renderer* r)
+{
+    // LOG_INFOF(
+    //     "Client size: %.0f x %.0f, Internal: %.0f x %.0f",
+    //     r->WinClientRectSize.width,
+    //     r->WinClientRectSize.height,
+    //     INTERNAL_RENDER_RESOLUTION.width,
+    //     INTERNAL_RENDER_RESOLUTION.height);
+
+    int scale = min(
+        (int)r->WinClientRectSize.width / (int)INTERNAL_RENDER_RESOLUTION.width,
+        (int)r->WinClientRectSize.height / (int)INTERNAL_RENDER_RESOLUTION.height);
+
+    // Window is smaller than the internal render resolution
+    // no upscale required, well just loose part of the rendered texture from screen
+    if (scale < 1)
+        scale = 1;
+
+
+    D3D11_VIEWPORT viewport = {};
+
+    viewport.Width = (INTERNAL_RENDER_RESOLUTION.width * scale);
+    viewport.Height = (INTERNAL_RENDER_RESOLUTION.height * scale);
+    viewport.TopLeftX = ((int)r->WinClientRectSize.width - viewport.Width) / 2;
+    viewport.TopLeftY = ((int)r->WinClientRectSize.height - viewport.Height) / 2;
+
+    viewport.MinDepth = 0.0f;
+    viewport.MaxDepth = 1.0f;
+
+    return viewport;
+}
 
 /*
     Creates the Render textures i.e. BackBufferRender texture & InternalRenderTexture and the
@@ -114,7 +205,7 @@ HRESULT CreateAndSetRenderTextures(Renderer* r)
 {
     HRESULT result;
 
-    // creating internal render texture
+    // =============== Creating internal render texture ===============
     D3D11_TEXTURE2D_DESC internal_texture_desc = {};
     internal_texture_desc.Width = INTERNAL_RENDER_RESOLUTION.x;
     internal_texture_desc.Height = INTERNAL_RENDER_RESOLUTION.y;
@@ -130,7 +221,6 @@ HRESULT CreateAndSetRenderTextures(Renderer* r)
         LOG_ERRORF("Creating internal render texture FAILED! with error code: %d", result);
         return result;
     }
-
     // create render target view and shader resource view (not passing any desc so just default)
     D3D11_RENDER_TARGET_VIEW_DESC internal_rtv_desc = {};
     internal_rtv_desc.Format = internal_texture_desc.Format;
@@ -154,6 +244,7 @@ HRESULT CreateAndSetRenderTextures(Renderer* r)
     }
 
 
+    // =============== Create RenderTargetView for the back-buffer ===============
     // Get the pointer to the back-buffer
     ID3D11Texture2D* back_buffer_texture;
     result = r->SwapChain->GetBuffer(0, __uuidof(ID3D11Texture2D), (void**)&back_buffer_texture);
@@ -162,8 +253,6 @@ HRESULT CreateAndSetRenderTextures(Renderer* r)
         LOG_ERRORF("SetupPixelartRenderTargets SwapChain Getting buffer FAILED! with error code: %d", result);
         return result;
     }
-
-    // Create RenderTargetView for the back-buffer
     D3D11_RENDER_TARGET_VIEW_DESC backbuffer_rtv_desc = {};
     // the backbuffer is sRGB so all the internal linear calculations for lighting
     // finally converts to sRGB encoded colors
@@ -362,15 +451,7 @@ void RenderPass_Upscale(Renderer* r)
     r->DeviceContext->ClearRenderTargetView(r->BackBufferRTV, black);
 
     // set the viewport that should be the exact same as the window
-    // TODO(harsh): make the viewport width and height set by settings.
-    D3D11_VIEWPORT backbuffer_render_viewport = {
-        0.0f,
-        0.0f,
-        DEFAULT_WINDOW_RESOLUTION.x,
-        DEFAULT_WINDOW_RESOLUTION.y,
-        0.0f,
-        1.0f,
-    };
+    D3D11_VIEWPORT backbuffer_render_viewport = GetBackbufferViewportLetterbox(r);
     r->DeviceContext->RSSetViewports(1, &backbuffer_render_viewport);
 
     // set the topology for draw calls
@@ -492,17 +573,18 @@ Renderer* RendererCreateAndInit(AppMemory* memory, PlatformWindow* window)
                      BackBufferRenderTargetView.
     3. Finally present's the backbuffer by DXGI_SWAP_EFFECT_FLIP_DISCARD, switching the backbuffer with front
 */
-void RenderFrame(AppMemory* memory, PlatformWindow* window, Renderer* r, RenderData* render_data)
+void RenderFrame(AppMemory* memory, PlatformWindow* window, Renderer* r, RenderData* render_data, bool window_resized)
 {
-    // ======================== GAME RENDER PASS ========================
+    if (window_resized)
+    {
+        HRESULT result = HandleWindowResized(r, window);
+        LOG_ASSERT(SUCCEEDED(result), "Failed to resize window with error code: %d", result);
+    }
+
     RenderPass_Game(memory, r, render_data);
     RenderPass_Upscale(r);
 
-
     // VERY IMPORTANT Finally Swap the back-buffer to show it
     HRESULT result = r->SwapChain->Present(0, 0); // DXGI_PRESENT_DO_NOT_WAIT flags makes the FPS go Brrrrrrrrr
-    if (FAILED(result))
-    {
-        LOG_ASSERT(false, "Failed to present a frame");
-    }
+    LOG_ASSERT(SUCCEEDED(result), "Failed to present a frame with error code: %d", result);
 }

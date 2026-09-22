@@ -106,8 +106,7 @@
 [x] Delta time
 [x] Hot code reloading.
 [x] Zoom in out for debug mode.
-
-[ ] Procdural World Generation
+[x] Procdural World Generation
 	[x] Generate and render 1 single Chunk.
 	[x] Generate a few chunks like 3 x 3 i.e. 9 chunks.
 	[x] Anchor tile to top-left as center for easier calculations.
@@ -118,25 +117,27 @@
 		and only queue the chunks around the player in a radius).
 	[x] Improve procedural world generation and make it look more natural. Watch this sabastian league
 		video series: https://www.youtube.com/playlist?list=PLFt_AvWsXl0eBW2EiBtl_sxmDtSgZBxB3
-	[ ] Decrease water patches in proceduraly generated world.
-	[ ] Do procedural generation such that you only generate three big continents. (NOTE: generate only
+	[x] Decrease water patches in proceduraly generated world.
+	[x] **ONLY DO ONE CONTINENT FOR MVP**Do procedural generation such that you only generate three big continents. (NOTE: generate only
 	one continent and do 3 passes of noise to generation 3 contients one by one and stitch them together)
-	[ ] Implement a hashtable for storing a large sparse chunks of world data by following handmade hero
+	[x] Implement a hashtable for storing a large sparse chunks of world data by following handmade hero
 		day055 here: https://guide.handmadehero.org/code/day055/
-[ ] Perlin noise / Open Simplex noise world generation (if Open Simplex is too complex then use perlin).
+	[x] Perlin noise / Open Simplex noise world generation (if Open Simplex is too complex then use perlin).
+[x] Integer scaling for InternalRenderTexture to BackBuffer.
+
+[ ] Handle WindowResize (later handle this via game settings ui).
+[ ] Implement toggle window fullscreen.
+[ ] Add Y sorting in the game logic maybe? Do LayerID calculation.
 [ ] Sub-Pixel Rendering
 [ ] Smooth pixel art camera based on this video: https://www.youtube.com/watch?v=DwVPFbDoyoc
 **Do NOT write shader groups in RenderData that couples renderer too much with game & is bad design**
 **DON'T WRITE RENDER GROUPS Either, just have RenderCommandType and have renderer sort them for**
 **rendering in batches based on aforementioned RenderCommandType and a sortkey/layer for Correct**
 **Render ordering and blending**
-[ ] Add Y sorting in the game logic maybe? Do LayerID calculation
-
 [ ] Figure out AnimatedSprite2d.
 [ ] Setup Audio Layer (use XAudio2 built into windows 11 SDK, low to mid level API)
 	- NOTE: Audio API used by Handmade hero i.e. DirectSound is long depricated Deprecated since
 	the era of DirectX 8/Vista.
-[ ] Disable WindowResize and Make window resizing done through settings.
 [ ] Add achor to the player so when calculations happen, player's feet is considered as (0, 0) not the
 	body center
 	OR

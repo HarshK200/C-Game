@@ -27,28 +27,31 @@ void HandleKeyboardInput(InputManager* im, UINT message, WPARAM wparam)
     {
         // LOG_INFO("WM_KEYDOWN");
 
-        INPUT_ACTION action;
-        bool known_action = true;
         switch (wparam)
         {
             case 'W':
-                action = ACTION_MOVE_UP;
+                if (im->ActionMap[ACTION_MOVE_UP] == IDLE)
+                    im->ActionMap[ACTION_MOVE_UP] = PRESSED;
                 break;
             case 'A':
-                action = ACTION_MOVE_LEFT;
+                if (im->ActionMap[ACTION_MOVE_LEFT] == IDLE)
+                    im->ActionMap[ACTION_MOVE_LEFT] = PRESSED;
                 break;
             case 'S':
-                action = ACTION_MOVE_DOWN;
+                if (im->ActionMap[ACTION_MOVE_DOWN] == IDLE)
+                    im->ActionMap[ACTION_MOVE_DOWN] = PRESSED;
                 break;
             case 'D':
-                action = ACTION_MOVE_RIGHT;
+                if (im->ActionMap[ACTION_MOVE_RIGHT] == IDLE)
+                    im->ActionMap[ACTION_MOVE_RIGHT] = PRESSED;
+                break;
+            case VK_F11:
+                im->ActionMap[ACTION_WINDOWED_FULLSCREEN] = SINGLE_PRESSED;
+                im->ActionMap[ACTION_WINDOW_RESIZE] = SINGLE_PRESSED;
                 break;
             default:
-                known_action = false;
                 break;
         }
-        if (known_action && im->ActionMap[action] == IDLE)
-            im->ActionMap[action] = PRESSED;
     }
 
     if (message == WM_KEYUP)
@@ -189,9 +192,13 @@ LRESULT CALLBACK WindowMessageCallback(HWND window, UINT message, WPARAM wparam,
             HandleMouseInput(input_manager, message, wparam);
             break;
         }
-        case WM_SIZE:
-            // LOG_INFO("WM_SIZE");
-            input_manager->WindowResized = true;
+        case WM_ENTERSIZEMOVE:
+            // LOG_INFO("WM_ENTERSIZEMOVE");
+            break;
+        case WM_EXITSIZEMOVE:
+            // LOG_INFO("WM_EXITSIZEMOVE");
+            input_manager->ActionMap[ACTION_WINDOW_MOVE] = SINGLE_PRESSED;
+            input_manager->ActionMap[ACTION_WINDOW_RESIZE] = SINGLE_PRESSED;
             break;
         case WM_CLOSE:
         {
@@ -204,6 +211,13 @@ LRESULT CALLBACK WindowMessageCallback(HWND window, UINT message, WPARAM wparam,
             // LOG_INFO("WM_DESTROY");
             PostQuitMessage(0);
             break;
+        }
+        case WM_SYSCOMMAND:
+        {
+            if (wparam == SC_MAXIMIZE)
+                input_manager->ActionMap[ACTION_WINDOW_RESIZE] = SINGLE_PRESSED;
+            if (wparam == SC_RESTORE)
+                input_manager->ActionMap[ACTION_WINDOW_RESIZE] = SINGLE_PRESSED;
         }
         default:
         {
@@ -247,11 +261,14 @@ PlatformWindow* PlatformOpenWindow(AppMemory* memory, InputManager* input_manage
     // window style we are using i.e. this will account for the drawable window rect +
     // style like border, menu, etc...
     DWORD window_style = WS_OVERLAPPEDWINDOW | WS_VISIBLE;
+    window->Pos = {0, 0};
+    window->PrevClientRectSize = DEFAULT_WINDOW_RESOLUTION;
+    window->ClientRectSize = DEFAULT_WINDOW_RESOLUTION;
     RECT window_rect = {
-        0,
-        0,
-        (LONG)DEFAULT_WINDOW_RESOLUTION.x,
-        (LONG)DEFAULT_WINDOW_RESOLUTION.y,
+        (LONG)window->Pos.x,
+        (LONG)window->Pos.y,
+        (LONG)window->ClientRectSize.width,
+        (LONG)window->ClientRectSize.height,
     };
     AdjustWindowRect(&window_rect, window_style, FALSE);
     int outer_width = window_rect.right - window_rect.left;
@@ -278,11 +295,12 @@ PlatformWindow* PlatformOpenWindow(AppMemory* memory, InputManager* input_manage
     return window;
 }
 
+
 /*
     Proccess all the input events in the Window Message Queue
     If message is WM_QUIT returns 1, otherwise returns 0 on successful finish
 */
-int PlatformProcessInput(InputManager* input_manager)
+int PlatformInputUpdate(InputManager* input_manager)
 {
     for (int i = 0; i < INPUT_ACTION_COUNT; i++)
     {
@@ -318,6 +336,95 @@ int PlatformProcessInput(InputManager* input_manager)
     }
 
     return result;
+}
+
+void PlatformMoveWindow(PlatformWindow* window)
+{
+    // update window position
+    RECT window_rect;
+    GetWindowRect(window->Handle, &window_rect);
+    window->Pos.x = (float)window_rect.left;
+    window->Pos.y = (float)window_rect.top;
+}
+
+void PlatformResizeWindow(PlatformWindow* window)
+{
+    // update previous client rect size
+    window->PrevClientRectSize = window->ClientRectSize;
+
+    // update window client rect size
+    RECT client_rect;
+    GetClientRect(window->Handle, &client_rect);
+    window->ClientRectSize.width = client_rect.right - client_rect.left;
+    window->ClientRectSize.height = client_rect.bottom - client_rect.top;
+}
+
+void PlatformToggleWindowedFullscreen(PlatformWindow* window)
+{
+    MONITORINFO monitor_info = {};
+    monitor_info.cbSize = sizeof(monitor_info);
+
+    HMONITOR monitor = MonitorFromWindow(window->Handle, MONITOR_DEFAULTTONEAREST);
+    GetMonitorInfo(monitor, &monitor_info);
+
+    if (!window->IsFullscreen)
+    {
+        // Remove normal window decorations.
+        SetWindowLong(
+            window->Handle,
+            GWL_STYLE,
+            WS_POPUP | WS_VISIBLE);
+
+        // Make the window cover the entire monitor.
+        SetWindowPos(
+            window->Handle,
+            HWND_TOP,
+            monitor_info.rcMonitor.left,
+            monitor_info.rcMonitor.top,
+            monitor_info.rcMonitor.right - monitor_info.rcMonitor.left,
+            monitor_info.rcMonitor.bottom - monitor_info.rcMonitor.top,
+            SWP_FRAMECHANGED | SWP_NOOWNERZORDER);
+
+        ShowWindow(window->Handle, SW_SHOW);
+        window->IsFullscreen = true;
+
+        return;
+    }
+
+    if (window->IsFullscreen)
+    {
+        DWORD window_style = WS_OVERLAPPEDWINDOW | WS_VISIBLE;
+
+        // Remove normal window decorations.
+        SetWindowLong(
+            window->Handle,
+            GWL_STYLE,
+            window_style);
+
+        RECT window_rect = {
+            0,
+            0,
+            (LONG)window->PrevClientRectSize.width,
+            (LONG)window->PrevClientRectSize.height,
+        };
+        AdjustWindowRect(&window_rect, window_style, FALSE);
+        int outer_width = window_rect.right - window_rect.left;
+        int outer_height = window_rect.bottom - window_rect.top;
+        // Restore window back to its previous size before fullscreen.
+        SetWindowPos(
+            window->Handle,
+            HWND_TOP,
+            window->Pos.x,
+            window->Pos.y,
+            outer_width,
+            outer_height,
+            SWP_FRAMECHANGED | SWP_NOOWNERZORDER);
+
+        ShowWindow(window->Handle, SW_SHOW);
+        window->IsFullscreen = false;
+
+        return;
+    }
 }
 
 void PlatformSleep(unsigned long ms)

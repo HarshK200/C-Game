@@ -15,7 +15,10 @@
 // ===================== PLATFORM SERVICES =======================
 struct PlatformWindow;
 PlatformWindow* PlatformOpenWindow(AppMemory* memory, InputManager* input_manager);
-int PlatformProcessInput(InputManager* input_manager);
+int PlatformInputUpdate(InputManager* input_manager);
+void PlatformMoveWindow(PlatformWindow* window);
+void PlatformResizeWindow(PlatformWindow* window);
+void PlatformToggleWindowedFullscreen(PlatformWindow* window);
 #ifdef _WIN32
 #include "src/platform/win32/win32_platform.cpp"
 #endif
@@ -40,13 +43,11 @@ static GamePhysicsUpdateFn GamePhysicsUpdate;
 static GameUpdateFn GameUpdate;
 static GameQueueRenderFn GameQueueRender;
 
-void ReloadGameDLL(ArenaAllocator* temp_allocator, GameDLL* game_dll);
-
 
 // ====================== RENDERER SERVICES ======================
 struct Renderer;
 Renderer* RendererCreateAndInit(AppMemory* memory, PlatformWindow* window);
-void RenderFrame(AppMemory* memory, PlatformWindow* window, Renderer* r, RenderData* render_data);
+void RenderFrame(AppMemory* memory, PlatformWindow* window, Renderer* r, RenderData* render_data, bool window_resized);
 #ifdef _WIN32
 #include "src/renderer/d3d11/renderer_d3d11.cpp"
 #endif
@@ -77,6 +78,10 @@ struct App
 
     AppMemory Memory;
 };
+
+// ======================= HELPER FUNCTIONS =========================
+void ProcessInput(InputManager* im, PlatformWindow* window);
+void ReloadGameDLL(ArenaAllocator* temp_allocator, GameDLL* game_dll);
 
 
 // ================== Application Entry Point ==================
@@ -134,8 +139,10 @@ int main()
         App.RenderData = CreateFrameRenderData(&App.Memory.TempAllocator);
 
         // input processing
-        if (PlatformProcessInput(App.InputManager) == 1)
+        if (PlatformInputUpdate(App.InputManager) == 1)
             App.ShouldClose = true;
+
+        ProcessInput(App.InputManager, App.Window);
 
         // delta time calculation
         auto current_timestamp = std::chrono::steady_clock::now();
@@ -160,7 +167,12 @@ int main()
         GameQueueRender(&App.Memory, App.Game, App.RenderData, interpolation_alpha);
 
         // render the frame
-        RenderFrame(&App.Memory, App.Window, App.Renderer, App.RenderData);
+        RenderFrame(
+            &App.Memory,
+            App.Window,
+            App.Renderer,
+            App.RenderData,
+            App.InputManager->IsActionSinglePressed(ACTION_WINDOW_RESIZE));
 
 
         // cleanup
@@ -223,4 +235,20 @@ void ReloadGameDLL(ArenaAllocator* temp_allocator, GameDLL* game_dll)
         game_dll->LastModifiedTimestamp = current_modified_timestamp;
         LOG_OK("Hot Reloaded the game dll successfully");
     }
+}
+
+
+void ProcessInput(InputManager* im, PlatformWindow* window)
+{
+    // toggle window fullscreen
+    if (im->IsActionSinglePressed(ACTION_WINDOWED_FULLSCREEN))
+        PlatformToggleWindowedFullscreen(window);
+
+    // resize window
+    if (im->IsActionSinglePressed(ACTION_WINDOW_RESIZE))
+        PlatformResizeWindow(window);
+
+    // move window
+    if (im->IsActionSinglePressed(ACTION_WINDOW_MOVE))
+        PlatformMoveWindow(window);
 }

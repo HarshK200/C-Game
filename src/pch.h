@@ -23,6 +23,6 @@
 #include <stdio.h>
 #include <cstdlib>
 #include <cmath>
-#include <iterator>
 #include <assert.h>
+#include <iterator>
 #include <sys/stat.h>
