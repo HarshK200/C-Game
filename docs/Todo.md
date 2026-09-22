@@ -124,9 +124,9 @@
 		day055 here: https://guide.handmadehero.org/code/day055/
 	[x] Perlin noise / Open Simplex noise world generation (if Open Simplex is too complex then use perlin).
 [x] Integer scaling for InternalRenderTexture to BackBuffer.
+[x] Handle WindowResize (later handle this via game settings ui).
+[x] Implement toggle window fullscreen.
 
-[ ] Handle WindowResize (later handle this via game settings ui).
-[ ] Implement toggle window fullscreen.
 [ ] Add Y sorting in the game logic maybe? Do LayerID calculation.
 [ ] Sub-Pixel Rendering
 [ ] Smooth pixel art camera based on this video: https://www.youtube.com/watch?v=DwVPFbDoyoc
