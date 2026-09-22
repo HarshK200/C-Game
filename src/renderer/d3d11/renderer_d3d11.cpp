@@ -356,7 +356,9 @@ void RenderPass_Game(AppMemory* memory, Renderer* r, RenderData* render_data)
     // bind Sampler (only one single point sampler is used)
     r->DeviceContext->PSSetSamplers(0, 1, &r->PointSampler);
 
-    // TODO(harsh): sorted rendering based on sort order or a sort key
+    // TODO(harsh): sort render commands based on there LayerId
+
+
     for (int i = 0; i < render_data->commands_count; i++)
     {
         RenderCommand render_command = render_data->RenderCommands[i];
@@ -380,8 +382,6 @@ void RenderPass_Game(AppMemory* memory, Renderer* r, RenderData* render_data)
 
 
         // ===================== Instanced Drawing =====================
-        // TODO(harsh): create the array with only the amount of elements required for this
-        // instanced draw rather than the whole array
         EntityData* entity_data;
         int unsigned instances_to_draw = 0;
 

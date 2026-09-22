@@ -31,12 +31,12 @@ Player* PlayerCreateAndInit(AppMemory* memory)
     Player* player = ArenaAlloc<Player>(&memory->PermanentAllocator, sizeof(Player));
     player->PrevPosition = {0.0f, 0.0f};
     player->Position = {0.0f, 0.0f};
-    player->Speed = 500.0f;
+    player->Speed = 100.0f;
     player->Sprite = {
         {
             MESH_QUAD,
             TEXTURE_ENTITY_ATLAS,
-            {96, 48},
+            {160, 112},
         },
         {0, 0},
         {32.0f, 48.0f},
@@ -72,14 +72,14 @@ void PlayerQueueRender(AppMemory* memory, Player* player, double interpolation_a
     LOG_ASSERT((render_data->commands_count + 1) < render_data->max_commands, "Maximum render commands per frame reached! cannot push more render commands");
 
     RenderCommand* render_command = ArenaAlloc<RenderCommand>(&memory->TempAllocator, sizeof(RenderCommand));
+    render_command->LayerId = LAYER_PLAYER;
     render_command->MeshId = player->Sprite.SpriteSheet.MeshId;
     render_command->TextureId = player->Sprite.SpriteSheet.TextureId;
     render_command->Instanced = false;
     render_command->NoOfInstances = 0;
     render_command->Transforms = ArenaAlloc<Mat4>(&memory->TempAllocator, sizeof(Mat4) * 1);
-    // NOTE(harsh): the position of any entity MUST BE a whole number otherwise the vertex lie in between pixel
-    // which gives a distoreded sprite artifact
     Vec2 interpolated_position = FloorVec(LerpVec(player->PrevPosition, player->Position, interpolation_alpha));
+
     render_command->Transforms[0] = ModelMat4(interpolated_position, player->Sprite.Scale);
     render_command->UvMinMax = ArenaAlloc<Vec4>(&memory->TempAllocator, sizeof(Vec4) * 1);
     render_command->UvMinMax[0] = GetSpriteUV(&player->Sprite);

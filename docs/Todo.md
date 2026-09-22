@@ -127,13 +127,12 @@
 [x] Handle WindowResize (later handle this via game settings ui).
 [x] Implement toggle window fullscreen.
 
-[ ] Add Y sorting in the game logic maybe? Do LayerID calculation.
-[ ] Sub-Pixel Rendering
 [ ] Smooth pixel art camera based on this video: https://www.youtube.com/watch?v=DwVPFbDoyoc
 **Do NOT write shader groups in RenderData that couples renderer too much with game & is bad design**
 **DON'T WRITE RENDER GROUPS Either, just have RenderCommandType and have renderer sort them for**
 **rendering in batches based on aforementioned RenderCommandType and a sortkey/layer for Correct**
 **Render ordering and blending**
+[ ] Add Y sorting in the game logic maybe? Do LayerID calculation.
 [ ] Figure out AnimatedSprite2d.
 [ ] Setup Audio Layer (use XAudio2 built into windows 11 SDK, low to mid level API)
 	- NOTE: Audio API used by Handmade hero i.e. DirectSound is long depricated Deprecated since

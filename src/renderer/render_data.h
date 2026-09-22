@@ -9,6 +9,9 @@
 
 enum LayerID
 {
+    LAYER_BASE = 0,
+    LAYER_PLAYER = 1,
+    LAYER_COUNT,
 };
 
 struct RenderCommand

@@ -212,6 +212,7 @@ void ChunkQueueRender(AppMemory* memory, TileChunk* chunk, RenderData* render_da
 
     // push chunk render command
     RenderCommand* render_command = ArenaAlloc<RenderCommand>(&memory->TempAllocator, sizeof(RenderCommand));
+    render_command->LayerId = LAYER_BASE;
     render_command->MeshId = MESH_QUAD;
     render_command->TextureId = TEXTURE_TILEMAP_ATLAS;
     render_command->Instanced = true;
