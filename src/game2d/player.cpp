@@ -36,10 +36,10 @@ Player* PlayerCreateAndInit(AppMemory* memory)
         {
             MESH_QUAD,
             TEXTURE_ENTITY_ATLAS,
-        },
-        {0, 0},
-        {32, 48},
-        {0.0, 0.0},
+        },          // sprite sheet
+        {0, 0},     // texel coords
+        {32, 48},   // scale
+        {0.0, 0.0}, // pos offset
     };
 
     return player;
@@ -68,8 +68,6 @@ void PlayerUpdate(Player* player, InputManager* im)
 // Queues the player render command by pushing it to render_data.commands
 void PlayerQueueRender(AppMemory* memory, Player* player, double interpolation_alpha, RenderData* render_data)
 {
-    LOG_ASSERT((render_data->commands_count + 1) < render_data->max_commands, "Maximum render commands per frame reached! cannot push more render commands");
-
     RenderCommand* render_command = ArenaAlloc<RenderCommand>(&memory->TempAllocator, sizeof(RenderCommand));
     render_command->LayerId = LAYER_PLAYER;
     render_command->MeshId = player->Sprite.SpriteSheet.MeshId;
@@ -78,7 +76,6 @@ void PlayerQueueRender(AppMemory* memory, Player* player, double interpolation_a
     render_command->NoOfInstances = 0;
     render_command->Transforms = ArenaAlloc<Mat4>(&memory->TempAllocator, sizeof(Mat4) * 1);
     Vec2 interpolated_position = FloorVec(LerpVec(player->PrevPosition, player->Position, interpolation_alpha));
-
     render_command->Transforms[0] = ModelMat4(
         interpolated_position,
         {(float)player->Sprite.Scale.x, (float)player->Sprite.Scale.y});

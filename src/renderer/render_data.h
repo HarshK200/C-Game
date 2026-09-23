@@ -9,8 +9,9 @@
 
 enum LayerID
 {
-    LAYER_BASE = 0,
+    LAYER_TILEMAP = 0,
     LAYER_PLAYER = 1,
+    LAYER_TREES = 2,
     LAYER_COUNT,
 };
 
@@ -25,7 +26,6 @@ struct RenderCommand
     int NoOfInstances; // no_of_instances should be 0 if instanced is false
     bool Instanced;    // should be false if drawing only one entity
 
-    // TODO(harsh): implemente this layer in renderer
     LayerID LayerId;
 
     // TODO(harsh): albedo and albedo_override
@@ -45,12 +45,12 @@ struct ProjectionMatrixParams
 
 struct RenderData
 {
-    RenderCommand* RenderCommands; // array of RenderCommand* allocated using temp_arena_allocator
-    int unsigned commands_count;
-    int unsigned max_commands;
+    RenderCommand* RenderCommands; // array of RenderCommand allocated using temp_arena_allocator
+    int unsigned RenderCommandsCount;
+    int unsigned MaxCommands;
 
-    ViewMatrixParams view_matrix_params;
-    ProjectionMatrixParams projection_matrix_params;
+    ViewMatrixParams ViewMatParams;
+    ProjectionMatrixParams ProjectionMatParams;
 };
 
 
@@ -64,18 +64,18 @@ inline RenderData* CreateFrameRenderData(ArenaAllocator* temp_arena_allocator)
     render_data->RenderCommands = ArenaAlloc<RenderCommand>(
         temp_arena_allocator,
         sizeof(RenderCommand) * MAX_RENDER_COMMANDS_PER_FRAME);
-    render_data->max_commands = MAX_RENDER_COMMANDS_PER_FRAME;
+    render_data->MaxCommands = MAX_RENDER_COMMANDS_PER_FRAME;
 
     return render_data;
 }
 
 inline int PushRenderCommand(RenderData* render_data, RenderCommand* render_command)
 {
-    LOG_ASSERT((render_data->commands_count + 1) <= render_data->max_commands, "Maximum render commands per frame reached! cannot push more render commands");
+    LOG_ASSERT((render_data->RenderCommandsCount + 1) <= render_data->MaxCommands, "Maximum render commands per frame reached! cannot push more render commands");
     LOG_ASSERT((render_command->NoOfInstances < MAX_INSTANCE_BUFFER_SIZE), "Invalid render_command, no of MAX_INSTANCE_BUFFER_SIZE exceeded");
 
-    render_data->RenderCommands[render_data->commands_count] = *render_command;
-    render_data->commands_count += 1;
+    render_data->RenderCommands[render_data->RenderCommandsCount] = *render_command;
+    render_data->RenderCommandsCount += 1;
 
     return 0;
 }

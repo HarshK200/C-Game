@@ -126,13 +126,8 @@
 [x] Integer scaling for InternalRenderTexture to BackBuffer.
 [x] Handle WindowResize (later handle this via game settings ui).
 [x] Implement toggle window fullscreen.
+[x] Implement sorted LayerId Rendering.
 
-[ ] Smooth pixel art camera based on this video: https://www.youtube.com/watch?v=DwVPFbDoyoc
-**Do NOT write shader groups in RenderData that couples renderer too much with game & is bad design**
-**DON'T WRITE RENDER GROUPS Either, just have RenderCommandType and have renderer sort them for**
-**rendering in batches based on aforementioned RenderCommandType and a sortkey/layer for Correct**
-**Render ordering and blending**
-[ ] Add Y sorting in the game logic maybe? Do LayerID calculation.
 [ ] Figure out AnimatedSprite2d.
 [ ] Setup Audio Layer (use XAudio2 built into windows 11 SDK, low to mid level API)
 	- NOTE: Audio API used by Handmade hero i.e. DirectSound is long depricated Deprecated since
@@ -142,6 +137,11 @@
 	OR
 	Maybe just add a sprite offset that sounds simpler, so right before rendering i just add the sprite
 	offset to the player position to be rendered.
+[ ] Smooth pixel art camera based on this video: https://www.youtube.com/watch?v=DwVPFbDoyoc
+**Do NOT write shader groups in RenderData that couples renderer too much with game & is bad design**
+**DON'T WRITE RENDER GROUPS Either, just have RenderCommandType and have renderer sort them for**
+**rendering in batches based on aforementioned RenderCommandType and a sortkey/layer for Correct**
+**Render ordering and blending**
 [ ] Particle system.
 
 ### Done:

@@ -9,6 +9,7 @@
 #include "src/game2d/player.cpp"
 #include "src/game2d/tilemap.cpp"
 #include "src/game2d/camera2d.cpp"
+#include "src/game2d/trees.cpp"
 
 
 // ================== Renderer Layer Services Definitions ==================
@@ -17,6 +18,7 @@ struct Game
     Camera2d* Camera;
     Player* Player;
     TileMap* TileMap;
+    Tree* Tree;
 };
 
 // creates a new game with the "new" keyword and returns the pointer to it
@@ -31,6 +33,7 @@ EXPORT_FN Game* GameCreateAndInit(AppMemory* memory)
     g->Camera = Camera2dCreateAndInit(memory);
     g->Player = PlayerCreateAndInit(memory);
     g->TileMap = TileMapCreateAndInit(memory);
+    g->Tree = TreesCreateAndInit(memory);
 
     return g;
 }
@@ -56,4 +59,5 @@ EXPORT_FN void GameQueueRender(AppMemory* memory, Game* g, RenderData* render_da
 
     TileMapQueueRender(memory, g->TileMap, g->Player->Position, render_data);
     PlayerQueueRender(memory, g->Player, interpolation_alpha, render_data);
+    TreeQueueRender(memory, g->Tree, render_data);
 }

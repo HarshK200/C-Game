@@ -68,17 +68,17 @@ void Camera2dUpdate(Camera2d* camera, InputManager* im)
 void Camera2dQueueRender(Camera2d* camera, double interpolation_alpha, RenderData* render_data)
 {
     // Update Render Data
-    render_data->view_matrix_params.Offset = camera->Offset;
+    render_data->ViewMatParams.Offset = camera->Offset;
     // NOTE(harsh): the position of any entity MUST BE a whole number otherwise the vertex lie in between pixel
     // which gives a distoreded sprite artifact
-    render_data->view_matrix_params.Position = FloorVec(LerpVec(camera->PrevPosition, camera->Position, interpolation_alpha));
+    render_data->ViewMatParams.Position = FloorVec(LerpVec(camera->PrevPosition, camera->Position, interpolation_alpha));
 
 #ifdef ISEKAIED_DEBUG
-    render_data->view_matrix_params.Zoom = camera->Zoom;
+    render_data->ViewMatParams.Zoom = camera->Zoom;
 #else
     render_data->view_matrix_params.Zoom = 1;
 #endif
 
-    render_data->projection_matrix_params.NearPlane = camera->NearPlane;
-    render_data->projection_matrix_params.FarPlane = camera->FarPlane;
+    render_data->ProjectionMatParams.NearPlane = camera->NearPlane;
+    render_data->ProjectionMatParams.FarPlane = camera->FarPlane;
 }

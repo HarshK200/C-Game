@@ -297,6 +297,40 @@ HRESULT CreateAndSetPointSampler(Renderer* r)
     return S_OK;
 }
 
+void SortRenderCommands(RenderCommand* render_commands, int low, int high)
+{
+    // only one element
+    if (low >= high)
+        return;
+
+    int i = low;
+    int j = high;
+    LayerID pivot = render_commands[(low + high) / 2].LayerId;
+
+    while (i <= j)
+    {
+        while (render_commands[i].LayerId < pivot)
+            i++;
+        while (render_commands[j].LayerId > pivot)
+            j--;
+
+        if (i <= j)
+        {
+            RenderCommand temp = render_commands[i];
+            render_commands[i] = render_commands[j];
+            render_commands[j] = temp;
+
+            i++;
+            j--;
+        }
+    }
+
+    if (low < j)
+        SortRenderCommands(render_commands, low, j);
+    if (i < high)
+        SortRenderCommands(render_commands, i, high);
+}
+
 void RenderPass_Game(AppMemory* memory, Renderer* r, RenderData* render_data)
 {
     // ========================= Internal Render texture setup =========================
@@ -326,16 +360,16 @@ void RenderPass_Game(AppMemory* memory, Renderer* r, RenderData* render_data)
     // upload the Per Frame Uniform Buffer data
     FrameUniforms frame_uniforms = {};
     frame_uniforms.View = ViewMat4(
-        render_data->view_matrix_params.Position,
-        render_data->view_matrix_params.Offset,
-        render_data->view_matrix_params.Zoom);
+        render_data->ViewMatParams.Position,
+        render_data->ViewMatParams.Offset,
+        render_data->ViewMatParams.Zoom);
     frame_uniforms.Projection = Orthograhpic_RH_ZO_Mat4(
         0,
         INTERNAL_RENDER_RESOLUTION.x,
         INTERNAL_RENDER_RESOLUTION.y,
         0,
-        render_data->projection_matrix_params.NearPlane,
-        render_data->projection_matrix_params.FarPlane);
+        render_data->ProjectionMatParams.NearPlane,
+        render_data->ProjectionMatParams.FarPlane);
     UploadUniformBufferData(
         r->DeviceContext,
         r->UniformBuffers[UNIFORM_PER_FRAME_BUFFER],
@@ -356,10 +390,11 @@ void RenderPass_Game(AppMemory* memory, Renderer* r, RenderData* render_data)
     // bind Sampler (only one single point sampler is used)
     r->DeviceContext->PSSetSamplers(0, 1, &r->PointSampler);
 
-    // TODO(harsh): sort render commands based on there LayerId
+    // sort render commands based on there LayerId
+    SortRenderCommands(render_data->RenderCommands, 0, render_data->RenderCommandsCount - 1);
 
 
-    for (int i = 0; i < render_data->commands_count; i++)
+    for (int i = 0; i < render_data->RenderCommandsCount; i++)
     {
         RenderCommand render_command = render_data->RenderCommands[i];
         Mesh* mesh = r->Meshes[render_command.MeshId];
