@@ -394,7 +394,7 @@ void RenderPass_Game(AppMemory* memory, Renderer* r, RenderData* render_data)
             entity_data = ArenaAlloc<EntityData>(&memory->TempAllocator, sizeof(EntityData) * 1);
             instances_to_draw = 1;
             entity_data[0].Model = render_command.Transforms[0];
-            entity_data[0].UVMinMax = render_command.UvMinMax[0];
+            entity_data[0].UVMinMax = GetSpriteUvMinMax(render_command.SpriteCoords[0], render_command.SpriteScale[0], texture);
         }
 
         // prepare instance data for multiple instances
@@ -409,7 +409,7 @@ void RenderPass_Game(AppMemory* memory, Renderer* r, RenderData* render_data)
             for (int i = 0; i < render_command.NoOfInstances; i++)
             {
                 entity_data[i].Model = render_command.Transforms[i];
-                entity_data[i].UVMinMax = render_command.UvMinMax[i];
+                entity_data[i].UVMinMax = GetSpriteUvMinMax(render_command.SpriteCoords[i], render_command.SpriteScale[i], texture);
             }
         }
 

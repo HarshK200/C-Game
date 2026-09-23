@@ -19,7 +19,8 @@ struct RenderCommand
     MeshID MeshId;
     TextureID TextureId;
     Mat4* Transforms;
-    Vec4* UvMinMax;
+    Vec2i* SpriteCoords;
+    Vec2i* SpriteScale;
 
     int NoOfInstances; // no_of_instances should be 0 if instanced is false
     bool Instanced;    // should be false if drawing only one entity

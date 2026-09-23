@@ -1,6 +1,7 @@
 // utils
 #include "src/utils/log.h"
 #include "src/utils/enums.h"
+#include "src/utils/game_math.h"
 #include "src/utils/arena_allocator.h"
 
 // third party
@@ -144,4 +145,15 @@ int LoadAllTextures(
 
 
     return 0;
+}
+
+Vec4 GetSpriteUvMinMax(Vec2i sprite_coords, Vec2i sprite_scale, Texture2D* texture)
+{
+    Vec4 uv_min_max = {};
+    uv_min_max.x = (float)sprite_coords.x / (float)texture->Width;
+    uv_min_max.y = (float)sprite_coords.y / (float)texture->Height;
+    uv_min_max.z = ((sprite_coords.x + sprite_scale.x) - 1) / (float)texture->Width;
+    uv_min_max.w = ((sprite_coords.y + sprite_scale.y) - 1) / (float)texture->Height;
+
+    return uv_min_max;
 }

@@ -36,10 +36,9 @@ Player* PlayerCreateAndInit(AppMemory* memory)
         {
             MESH_QUAD,
             TEXTURE_ENTITY_ATLAS,
-            {160, 112},
         },
         {0, 0},
-        {32.0f, 48.0f},
+        {32, 48},
         {0.0, 0.0},
     };
 
@@ -80,9 +79,13 @@ void PlayerQueueRender(AppMemory* memory, Player* player, double interpolation_a
     render_command->Transforms = ArenaAlloc<Mat4>(&memory->TempAllocator, sizeof(Mat4) * 1);
     Vec2 interpolated_position = FloorVec(LerpVec(player->PrevPosition, player->Position, interpolation_alpha));
 
-    render_command->Transforms[0] = ModelMat4(interpolated_position, player->Sprite.Scale);
-    render_command->UvMinMax = ArenaAlloc<Vec4>(&memory->TempAllocator, sizeof(Vec4) * 1);
-    render_command->UvMinMax[0] = GetSpriteUV(&player->Sprite);
+    render_command->Transforms[0] = ModelMat4(
+        interpolated_position,
+        {(float)player->Sprite.Scale.x, (float)player->Sprite.Scale.y});
+    render_command->SpriteCoords = ArenaAlloc<Vec2i>(&memory->TempAllocator, sizeof(Vec2i) * 1);
+    render_command->SpriteScale = ArenaAlloc<Vec2i>(&memory->TempAllocator, sizeof(Vec2i) * 1);
+    *render_command->SpriteCoords = player->Sprite.TexelCoords;
+    *render_command->SpriteScale = player->Sprite.Scale;
 
     PushRenderCommand(render_data, render_command);
 }

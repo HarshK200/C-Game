@@ -218,7 +218,8 @@ void ChunkQueueRender(AppMemory* memory, TileChunk* chunk, RenderData* render_da
     render_command->Instanced = true;
     render_command->NoOfInstances = CHUNK_SIZE * CHUNK_SIZE;
     render_command->Transforms = ArenaAlloc<Mat4>(&memory->TempAllocator, sizeof(Mat4) * CHUNK_SIZE * CHUNK_SIZE);
-    render_command->UvMinMax = ArenaAlloc<Vec4>(&memory->TempAllocator, sizeof(Vec4) * CHUNK_SIZE * CHUNK_SIZE);
+    render_command->SpriteCoords = ArenaAlloc<Vec2i>(&memory->TempAllocator, sizeof(Vec2i) * CHUNK_SIZE * CHUNK_SIZE);
+    render_command->SpriteScale = ArenaAlloc<Vec2i>(&memory->TempAllocator, sizeof(Vec2i) * CHUNK_SIZE * CHUNK_SIZE);
 
     Vec2 tile_scale = {TILE_PIXEL_SCALE, TILE_PIXEL_SCALE};
     Vec2 tile_pos = {};
@@ -227,7 +228,6 @@ void ChunkQueueRender(AppMemory* memory, TileChunk* chunk, RenderData* render_da
         {
             MESH_QUAD,
             TEXTURE_TILEMAP_ATLAS,
-            {112, 96},
         },
         {0, 0},
         {TILE_PIXEL_SCALE, TILE_PIXEL_SCALE},
@@ -244,7 +244,8 @@ void ChunkQueueRender(AppMemory* memory, TileChunk* chunk, RenderData* render_da
             render_command->Transforms[tile_idx] = ModelMat4(tile_pos, tile_scale);
             tile_sprite.TexelCoords.x = 0;
             tile_sprite.TexelCoords.y = TILE_PIXEL_SCALE * static_cast<int>(tile->TileType);
-            render_command->UvMinMax[tile_idx] = GetSpriteUV(&tile_sprite);
+            render_command->SpriteCoords[tile_idx] = {0, TILE_PIXEL_SCALE * static_cast<int>(tile->TileType)};
+            render_command->SpriteScale[tile_idx] = tile_sprite.Scale;
         }
     }
 
