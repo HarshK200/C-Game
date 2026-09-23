@@ -126,8 +126,10 @@
 [x] Integer scaling for InternalRenderTexture to BackBuffer.
 [x] Handle WindowResize (later handle this via game settings ui).
 [x] Implement toggle window fullscreen.
-[x] Implement sorted LayerId Rendering.
+[x] Implement LayerId Rendering.
+[x] Implement Sprite Sorting for the player.
 
+[ ] Better looking tiles, drawn and dual grid tile system.
 [ ] Figure out AnimatedSprite2d.
 [ ] Setup Audio Layer (use XAudio2 built into windows 11 SDK, low to mid level API)
 	- NOTE: Audio API used by Handmade hero i.e. DirectSound is long depricated Deprecated since

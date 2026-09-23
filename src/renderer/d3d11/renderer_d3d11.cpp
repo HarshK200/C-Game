@@ -305,13 +305,19 @@ void SortRenderCommands(RenderCommand* render_commands, int low, int high)
 
     int i = low;
     int j = high;
-    LayerID pivot = render_commands[(low + high) / 2].LayerId;
+    LayerID pivot_layer_id = render_commands[(low + high) / 2].LayerId;
+    int pivot_sort_order = render_commands[(low + high) / 2].SortOrder;
 
     while (i <= j)
     {
-        while (render_commands[i].LayerId < pivot)
+        // NOTE(harsh): this comparison has to be < you cannot use <= because of index out of bounds when mulitple same elements
+        while (render_commands[i].LayerId < pivot_layer_id ||
+               (render_commands[i].LayerId == pivot_layer_id &&
+                render_commands[i].SortOrder < pivot_sort_order))
             i++;
-        while (render_commands[j].LayerId > pivot)
+        while (render_commands[j].LayerId > pivot_layer_id ||
+               (render_commands[j].LayerId == pivot_layer_id &&
+                render_commands[j].SortOrder > pivot_sort_order))
             j--;
 
         if (i <= j)

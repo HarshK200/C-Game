@@ -9,9 +9,9 @@
 
 enum LayerID
 {
-    LAYER_TILEMAP = 0,
-    LAYER_PLAYER = 1,
-    LAYER_TREES = 2,
+    LAYER_BACKGROUND = 0,
+    LAYER_FOREGROUND = 1,
+    LAYER_UI = 2,
     LAYER_COUNT,
 };
 
@@ -27,6 +27,7 @@ struct RenderCommand
     bool Instanced;    // should be false if drawing only one entity
 
     LayerID LayerId;
+    int SortOrder;
 
     // TODO(harsh): albedo and albedo_override
 };
@@ -78,4 +79,9 @@ inline int PushRenderCommand(RenderData* render_data, RenderCommand* render_comm
     render_data->RenderCommandsCount += 1;
 
     return 0;
+}
+
+inline int CalculateSortOrder(Vec2 position)
+{
+    return (int)position.y * 100;
 }

@@ -19,5 +19,5 @@ struct Sprite2d
     SpriteSheet2d SpriteSheet;
     Vec2i TexelCoords;
     Vec2i Scale;
-    Vec2 PosOffset;
+    Vec2 Offset;
 };
