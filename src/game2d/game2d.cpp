@@ -58,6 +58,6 @@ EXPORT_FN void GameQueueRender(AppMemory* memory, Game* g, RenderData* render_da
     Camera2dQueueRender(g->Camera, interpolation_alpha, render_data);
 
     TileMapQueueRender(memory, g->TileMap, g->Player->Position, render_data);
-    TreeQueueRender(memory, g->Tree, render_data);
+    TreesQueueRender(memory, g->Tree, render_data);
     PlayerQueueRender(memory, g->Player, interpolation_alpha, render_data);
 }

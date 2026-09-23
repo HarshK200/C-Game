@@ -33,7 +33,7 @@ Tree* TreesCreateAndInit(AppMemory* memory)
     return tree;
 }
 
-void TreeQueueRender(AppMemory* memory, Tree* tree, RenderData* render_data)
+void TreesQueueRender(AppMemory* memory, Tree* tree, RenderData* render_data)
 {
     RenderCommand* render_command = ArenaAlloc<RenderCommand>(&memory->TempAllocator, sizeof(RenderCommand));
     render_command->LayerId = LAYER_FOREGROUND;
